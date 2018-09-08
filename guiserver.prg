@@ -808,16 +808,25 @@ FUNCTION MainHandler()
             SetMenu( arr[2] )
          ENDIF
 
-      ELSEIF cCommand == "openformmain"
-         lErr := ( Len(arr)<2 )
+      ELSEIF cCommand == "common"
+         lErr := ( Len(arr)<4 )
          IF lErr
             Send2SocketIn( "+Err" + cn )
          ELSE
-            oForm := HFormTmpl():Read( arr[2] )
-            SetFormTimer( oForm )
             Send2SocketIn( "+Ok" + cn )
-            oForm:ShowMain()
-            lEnd := .T.
+            IF arr[2] == "minfo"
+               f_MsgInfo( Iif(Len(arr)>4,arr[5],""), Iif(Len(arr)>5,arr[6],""), arr[3], arr[4] )
+            ELSEIF arr[2] == "mstop"
+               f_MsgStop( Iif(Len(arr)>4,arr[5],""), Iif(Len(arr)>5,arr[6],""), arr[3], arr[4] )
+            ELSEIF arr[2] == "myesno"
+               f_MsgYesNo( Iif(Len(arr)>4,arr[5],""), Iif(Len(arr)>5,arr[6],""), arr[3], arr[4] )
+            ELSEIF arr[2] == "cfont"
+               f_selefont( arr[3], arr[4] )
+            ELSEIF arr[2] == "cfile"
+               f_selefile( Iif(Len(arr)>4,arr[5],""), arr[3], arr[4] )
+            ELSEIF arr[2] == "ccolor"
+               f_selecolor( Iif(Len(arr)>4,arr[5],""), arr[3], arr[4] )
+            ENDIF
          ENDIF
 
       ELSEIF cCommand == "crmainwnd"
@@ -887,25 +896,26 @@ FUNCTION MainHandler()
             CrStyle( arr[2], arr[3], arr[4], arr[5], arr[6], arr[7], arr[8] )
          ENDIF
 
-      ELSEIF cCommand == "common"
-         lErr := ( Len(arr)<4 )
+      ELSEIF cCommand == "openformmain"
+         lErr := ( Len(arr)<2 )
          IF lErr
             Send2SocketIn( "+Err" + cn )
          ELSE
+            oForm := HFormTmpl():Read( arr[2] )
+            SetFormTimer( oForm )
             Send2SocketIn( "+Ok" + cn )
-            IF arr[2] == "minfo"
-               f_MsgInfo( Iif(Len(arr)>4,arr[5],""), Iif(Len(arr)>5,arr[6],""), arr[3], arr[4] )
-            ELSEIF arr[2] == "mstop"
-               f_MsgStop( Iif(Len(arr)>4,arr[5],""), Iif(Len(arr)>5,arr[6],""), arr[3], arr[4] )
-            ELSEIF arr[2] == "myesno"
-               f_MsgYesNo( Iif(Len(arr)>4,arr[5],""), Iif(Len(arr)>5,arr[6],""), arr[3], arr[4] )
-            ELSEIF arr[2] == "cfont"
-               f_selefont( arr[3], arr[4] )
-            ELSEIF arr[2] == "cfile"
-               f_selefile( Iif(Len(arr)>4,arr[5],""), arr[3], arr[4] )
-            ELSEIF arr[2] == "ccolor"
-               f_selecolor( Iif(Len(arr)>4,arr[5],""), arr[3], arr[4] )
-            ENDIF
+            oForm:ShowMain()
+            lEnd := .T.
+         ENDIF
+
+      ELSEIF cCommand == "openreport"
+         lErr := ( Len(arr)<2 )
+         IF lErr
+            Send2SocketIn( "+Err" + cn )
+         ELSE
+            oForm := HRepTmpl():Read( arr[2] )
+            Send2SocketIn( "+Ok" + cn )
+            oForm:Print()
          ENDIF
 
       ELSEIF cCommand == "setparam"
