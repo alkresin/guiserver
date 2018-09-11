@@ -4,7 +4,7 @@
 #include "hbvm.h"
 #include "hbapifs.h"
 
-#define PROTOCOL_VER  "1.0"
+#define PROTOCOL_VER  "1.1"
 
 #if defined( HB_OS_WIN_32 )
    #define HB_SOCKET_T SOCKET
@@ -43,7 +43,7 @@ int hb_ipRecv( HB_SOCKET_T hSocket, char * szBuffer, int iBufferLen );
 
 static int iIpActive = 0;
 static int iServerPort;
-static HB_SOCKET_T hSocketMain = (HB_SOCKET_T)-1, hSocketIn = (HB_SOCKET_T)-1, hSocketOut = (HB_SOCKET_T)-1;
+static HB_SOCKET_T hSocketMain1 = (HB_SOCKET_T)-1, hSocketMain2 = (HB_SOCKET_T)-1, hSocketIn = (HB_SOCKET_T)-1, hSocketOut = (HB_SOCKET_T)-1;
 static char * pBufferIn = NULL, * pBufferOut = NULL;
 static long int lBufferInLen = 0, lBufferOutLen = 0, lLastReceived = 0;
 static const char * pLogFile = NULL;
@@ -227,6 +227,60 @@ static void socket_Send( HB_SOCKET_T hSocket, const char* szData, unsigned long 
    }
 }
 
+static int sock_Listen( void )
+{
+   char szBuf[64];
+   HB_SOCKET_T incoming;
+   long int lTemp;
+
+   if( iIpActive && hb_ip_rfd_select( 1 ) > 0 )
+   {
+      _writelog( pLogFile, 0, "listen-0\r\n" );
+      if( hSocketMain1 != ((HB_SOCKET_T)-1) && hb_ip_rfd_isset( hSocketMain1 ) )
+      {
+         _writelog( pLogFile, 0, "listen-1\r\n" );
+         incoming = hb_ipAccept( hSocketMain1, -1, szBuf, &lTemp );
+         if( !hb_iperrorcode() )
+         {
+
+            hb_ip_rfd_set( hSocketMain2 );
+            hSocketIn = incoming;
+            hb_ip_rfd_set( incoming );
+
+            sprintf( szBuf, "+v%s/%s\n", PROTOCOL_VER, szVersion );
+            socket_Send( hSocketIn, szBuf, strlen(szBuf) );
+            _writelog( pLogFile, 0, "hSocketIn: %lu\r\n", hSocketIn );
+
+            hb_ip_rfd_clr( hSocketMain1 );
+            hb_ipclose( hSocketMain1 );
+            hSocketMain1 = (HB_SOCKET_T)-1;
+            return 1;
+         }
+      }
+      if( hSocketMain2 != ((HB_SOCKET_T)-1) && hb_ip_rfd_isset( hSocketMain2 ) )
+      {
+         _writelog( pLogFile, 0, "listen-2\r\n" );
+         incoming = hb_ipAccept( hSocketMain2, -1, szBuf, &lTemp );
+         if( !hb_iperrorcode() )
+         {
+
+            hSocketOut = incoming;
+            hb_ip_rfd_set( incoming );
+
+            sprintf( szBuf, "+OK\n" );
+            socket_Send( hSocketOut, szBuf, strlen(szBuf) );
+            _writelog( pLogFile, 0, "hSocketOut: %lu\r\n", hSocketOut );
+
+            hb_ip_rfd_clr( hSocketMain2 );
+            hb_ipclose( hSocketMain2 );
+            hSocketMain2 = (HB_SOCKET_T)-1;
+            return 1;
+         }
+      }
+   }
+   return 0;
+}
+
 static int sockIn_Check( void )
 {
    char szBuf[64];
@@ -235,27 +289,7 @@ static int sockIn_Check( void )
 
    if( iIpActive && hb_ip_rfd_select( 1 ) > 0 )
    {
-      _writelog( pLogFile, 0, "check-1\r\n" );
-      if( hSocketMain != ((HB_SOCKET_T)-1) && hb_ip_rfd_isset( hSocketMain ) && hSocketIn == (HB_SOCKET_T)-1 )
-      {
-         _writelog( pLogFile, 0, "check-2\r\n" );
-         incoming = hb_ipAccept( hSocketMain, -1, szBuf, &lTemp );
-         if( !hb_iperrorcode() )
-         {
-
-            hSocketIn = incoming;
-            hb_ip_rfd_set( incoming );
-
-            sprintf( szBuf, "+v%s/%s\n", PROTOCOL_VER, szVersion );
-            socket_Send( hSocketIn, szBuf, strlen(szBuf) );
-            _writelog( pLogFile, 0, "incoming: %lu\r\n", hSocketIn );
-
-            hb_ip_rfd_clr( hSocketMain );
-            hb_ipclose( hSocketMain );
-            hSocketMain = (HB_SOCKET_T)-1;
-            return 1;
-         }
-      }
+      _writelog( pLogFile, 0, "check-0\r\n" );
       if( hSocketIn != (HB_SOCKET_T)-1 && hb_ip_rfd_isset( hSocketIn ) )
       {
          _writelog( pLogFile, 0, "check-3\r\n" );
@@ -383,16 +417,31 @@ HB_FUNC( CONNECTSOCKET )
    if( !hb_iperrorcode() )    
    {
       hSocketOut = hSocket;
-      _writelog( pLogFile, 0, "conn Ok %d %lu\r\n", hSocket, ulms );
+      _writelog( pLogFile, 0, "conn1 Ok %d %lu\r\n", hSocket, ulms );
       while( iIpActive )
       {
-         sockIn_Check();
          if( hb_ipDataReady( hSocketOut,2 ) != 0 )
          {
             if( sockOut_Recv( TIMEOUT ) > 0 )
             {
                hb_retclen( pBufferOut, lLastReceived );
-               return;
+               hSocket = hb_ipConnect( szAddr, iPort+1, TIMEOUT*2 );
+               if( !hb_iperrorcode() )    
+               {
+                  hSocketIn = hSocket;
+                  hb_ip_rfd_set( hSocketIn );
+                  _writelog( pLogFile, 0, "conn2 Ok %d %lu\r\n", hSocket, ulms );
+                  while( iIpActive )
+                  {
+                     if( hb_ipDataReady( hSocketIn,2 ) != 0 )
+                     {
+                        if( sockIn_Recv( TIMEOUT ) > 0 )
+                        {
+                           return;
+                        }
+                     }
+                  }
+               }
             }
             break;
          }
@@ -414,10 +463,21 @@ HB_FUNC( CREATESOCKET )
    iServerPort = hb_parni(1);
 
    _writelog( pLogFile, 0, "crsocket: %d\r\n", iServerPort );
-   if( ( hSocketMain = hb_ipServer( iServerPort, NULL, 10 ) ) == (HB_SOCKET_T)-1 )
+   if( ( hSocketMain1 = hb_ipServer( iServerPort, NULL, 10 ) ) == (HB_SOCKET_T)-1 )
       return;
-   hb_ip_rfd_set( hSocketMain );
-   _writelog( pLogFile, 0, "main socket: %lu\r\n", hSocketMain );
+   hb_ip_rfd_set( hSocketMain1 );
+   _writelog( pLogFile, 0, "main socket1: %lu\r\n", hSocketMain1 );
+   if( ( hSocketMain2 = hb_ipServer( iServerPort+1, NULL, 10 ) ) == (HB_SOCKET_T)-1 )
+      return;
+   _writelog( pLogFile, 0, "main socket2: %lu\r\n", hSocketMain2 );
+}
+
+HB_FUNC( LISTENSOCKET )
+{
+   if( hSocketMain1 != ((HB_SOCKET_T)-1) || hSocketMain2 != ((HB_SOCKET_T)-1) )
+      hb_retl( sock_Listen() );
+   else
+      hb_retl( 1 );
 }
 
 HB_FUNC( CHECKSOCKET )
@@ -454,9 +514,13 @@ HB_FUNC( IPEXIT )
 {
    if( iIpActive )
    {
-      if( hSocketMain != (HB_SOCKET_T)-1 ) {
-         hb_ipclose( hSocketMain );
-         hSocketMain = (HB_SOCKET_T)-1;
+      if( hSocketMain1 != (HB_SOCKET_T)-1 ) {
+         hb_ipclose( hSocketMain1 );
+         hSocketMain1 = (HB_SOCKET_T)-1;
+      }
+      if( hSocketMain2 != (HB_SOCKET_T)-1 ) {
+         hb_ipclose( hSocketMain2 );
+         hSocketMain2 = (HB_SOCKET_T)-1;
       }
       if( hSocketIn != (HB_SOCKET_T)-1 ) {
          hb_ipclose( hSocketIn );

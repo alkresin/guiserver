@@ -61,9 +61,9 @@ FUNCTION eGUI_Init( cOptions )
    ENDIF
 
    SetHandler( "GUIHANDLER" )
-   CreateSocket( nPort+1 )
+   //CreateSocket( nPort+1 )
    hb_IdleAdd( {|| FIdle() } )
-   Send2SocketOut( '+' + hb_jsonEncode( { "setbconn" } ) + cn )
+   //Send2SocketOut( '+' + hb_jsonEncode( { "setbconn" } ) + cn )
 
    RETURN .T.
 

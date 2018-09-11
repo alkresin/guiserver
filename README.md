@@ -28,3 +28,6 @@ Probably, you will need to change HRB_INS and HWGUI_DIR variables in this shell 
 
 ### Installation
    Just copy an executable file to a folder of your choice. For to not write a full path to it in your applications, add this folder to a PATH environment variable.
+
+### Notes
+   extgui.prg and extgui_classes.prg together with hbip.c, listen.c are an implementation of a GUI framework, based on connection with GuiServer, for Harbour.
