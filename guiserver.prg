@@ -315,7 +315,7 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
    LOCAL x1 := arr[1], y1 := arr[2], w := arr[3], h := arr[4], cCaption := arr[5]
    LOCAL nStyle, tColor, bColor, cTooltip, cPicture, lTransp, bSize, oFont, oStyle
    LOCAL cImage, lResou, trColor, aItems, lEdit, lText, nDisplay, lVert
-   LOCAL lFlat, lCheck, aStyles
+   LOCAL lFlat, lCheck, aStyles, aParts
 
    oParent := GetWidg( Left( cName, nPos-1 ) )
    cName := Substr( cName, nPos+1 )
@@ -434,6 +434,7 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
 
       ELSEIF cWidg == "panelbot"
 
+         oCtrl := HPanelSts():New( oParent,, h, oFont,,, bcolor, oStyle, aParts )
       ENDIF
       EXIT
 
@@ -719,7 +720,7 @@ STATIC FUNCTION SetFormTimer( oForm )
       IF lRes
          oMTimer:End()
          oMTimer := Nil
-         Send2SocketOut( '+["exit"]' + cn )
+         Send2SocketOut( '+["exit","main"]' + cn )
       ENDIF
 
       RETURN lRes
