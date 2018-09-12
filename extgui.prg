@@ -3,6 +3,9 @@
  *  extGUI is a Harbour library to build GUI application, using external
  *       standalone GUI server application.
  *  extGUI sources includes extgui.prg (this file), extgui_classes.prg, hbip.c, listen.c, misc.c.
+ *
+ * Copyright 2018 Alexander S.Kresin <alex@kresin.ru>
+ * www - http://www.kresin.ru
  */
 
 Static cn := e"\n"
