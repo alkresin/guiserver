@@ -1,3 +1,10 @@
+/*
+ * extGUI - GUI framework for Harbour
+ * This test demonstrates base windows and widgets creation
+ *
+ * Copyright 2018 Alexander S.Kresin <alex@kresin.ru>
+ * www - http://www.kresin.ru
+ */
 
 #define  CLR_LBLUE   16759929  // #79BCFF
 #define  CLR_LIGHT1  15132390

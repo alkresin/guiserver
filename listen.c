@@ -1,4 +1,10 @@
-
+/*
+ * GuiServer
+ * a set of connection functions
+ *
+ * Copyright 2018 Alexander S.Kresin <alex@kresin.ru>
+ * www - http://www.kresin.ru
+ */
 #include "hbapi.h"
 #include "hbapiitm.h"
 #include "hbvm.h"

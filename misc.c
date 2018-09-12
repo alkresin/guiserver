@@ -1,4 +1,10 @@
-
+/*
+ * extGUI - GUI framework for Harbour
+ * Functions, which provides launching of a GuiServer process.
+ *
+ * Copyright 2018 Alexander S.Kresin <alex@kresin.ru>
+ * www - http://www.kresin.ru
+ */
 #include "hbapiitm.h"
 
 #if defined( HB_OS_UNIX ) || defined( HB_OS_BSD )

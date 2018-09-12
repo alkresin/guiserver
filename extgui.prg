@@ -1,4 +1,5 @@
 /*
+ *  extGUI - GUI framework for Harbour
  *  extGUI is a Harbour library to build GUI application, using external
  *       standalone GUI server application.
  *  extGUI sources includes extgui.prg (this file), extgui_classes.prg, hbip.c, listen.c, misc.c.

@@ -1,5 +1,9 @@
 /*
+ * extGUI - GUI framework for Harbour
  * This test demonstrates using of a main window form, created by Designer
+ *
+ * Copyright 2018 Alexander S.Kresin <alex@kresin.ru>
+ * www - http://www.kresin.ru
  */
 
 FUNCTION Main

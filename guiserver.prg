@@ -1,4 +1,9 @@
-
+/*
+ * GuiServer main file
+ *
+ * Copyright 2018 Alexander S.Kresin <alex@kresin.ru>
+ * www - http://www.kresin.ru
+ */
 #include "hwgui.ch"
 #include "hwgextern.ch"
 
