@@ -278,7 +278,7 @@ FUNCTION eGUI_SelectFile( cPath, cFunc, cName )
 
 FUNCTION eGUI_SelectColor( nColor, cFunc, cName )
 
-   Send2SocketOut( '+' + hb_jsonEncode( { "common", "cfile", cFunc, cName, nColor } ) + cn )
+   Send2SocketOut( '+' + hb_jsonEncode( { "common", "ccolor", cFunc, cName, nColor } ) + cn )
 
    RETURN Nil
 
@@ -359,7 +359,18 @@ FUNCTION setprops( aProps )
 
    RETURN sProps
 
-FUNCTION GetWndByName( cName )
+STATIC FUNCTION GetItemByName( arr, cName )
+
+   LOCAL oItem
+   FOR EACH oItem IN arr
+      IF !Empty( oItem:cName ) .AND. oItem:cName == cName
+         RETURN oItem
+      ENDIF
+   NEXT
+
+   RETURN Nil
+
+FUNCTION eGUI_GetWnd( cName )
 
    LOCAL oItem, aDialogs
 
@@ -367,33 +378,29 @@ FUNCTION GetWndByName( cName )
    IF cName == "main"
       RETURN EWindow():oMain
    ELSE
-      aDialogs := EWindow():aDialogs
-      FOR EACH oItem IN aDialogs
-         IF !Empty( oItem:cName ) .AND. oItem:cName == cName
-            RETURN oItem
-         ENDIF
-      NEXT
+      RETURN GetItemByName( EWindow():aDialogs, cName )
    ENDIF
    RETURN Nil
 
-FUNCTION GetWidgetByName( cWidgName )
+FUNCTION eGUI_GetWidg( cWidgName )
 
    LOCAL nPos := At( ".", cWidgName ), oWnd, aControls, oItem, cWnd
 
    IF nPos == 0
-      RETURN GetWndByName( cWidgName )
-   ELSE
-      cWnd := Left( cWidgName, nPos-1 )
-      cWidgName := Lower(Substr( cWidgName, nPos+1 ))
+      RETURN eGUI_GetWnd( cWidgName )
+   ENDIF
 
-      IF !Empty( oWnd := GetWndByName( cWnd ) )
-         aControls := oWnd:aWidgets
-         FOR EACH oItem IN aControls
-            IF oItem:cName == cWidgName
-               RETURN oItem
-            ENDIF
-         NEXT
+   cWnd := Left( cWidgName, nPos-1 )
+   cWidgName := Lower(Substr( cWidgName, nPos+1 ))
+
+   IF !Empty( oWnd := eGUI_GetWnd( cWnd ) )
+      IF (nPos := At( ".", cWidgName )) != 0
+         IF ( oWnd := GetItemByName( oWnd:aWidgets, Left( cWidgName, nPos-1 ) ) ) == Nil
+            RETURN Nil
+         ENDIF
+         cWidgName := Substr( cWidgName, nPos+1 )
       ENDIF
+      RETURN GetItemByName( oWnd:aWidgets, cWidgName )
    ENDIF
 
    RETURN Nil
