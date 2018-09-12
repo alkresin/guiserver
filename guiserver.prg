@@ -320,6 +320,11 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
    oParent := GetWidg( Left( cName, nPos-1 ) )
    cName := Substr( cName, nPos+1 )
 
+   IF Valtype(x1) != "N"; x1 := 0; ENDIF
+   IF Valtype(y1) != "N"; y1 := 0; ENDIF
+   IF Valtype(w) != "N"; w := 0; ENDIF
+   IF Valtype(h) != "N"; h := 0; ENDIF
+
    IF !Empty( hash )
       nStyle := hb_hGetDef( hash, "Winstyle", Nil )
       tColor := hb_hGetDef( hash, "TColor", Nil )
@@ -410,12 +415,14 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
    CASE 'o'
       IF cWidg == "ownbtn"
 
-         IF hb_hHaskey( hash, "HStyles" )
-            IF Valtype( xTemp := hash["HStyles"] ) == "A"
-               aStyles := {}
-               FOR i := 1 TO Len( xTemp )
-                  Aadd( aStyles, GetStyle( xTemp[i] ) )
-               NEXT
+         IF !Empty( hash )
+            IF hb_hHaskey( hash, "HStyles" )
+               IF Valtype( xTemp := hash["HStyles"] ) == "A"
+                  aStyles := {}
+                  FOR i := 1 TO Len( xTemp )
+                     Aadd( aStyles, GetStyle( xTemp[i] ) )
+                  NEXT
+               ENDIF
             ENDIF
          ENDIF
          oCtrl := HOwnButton():New( oParent,, aStyles, x1, y1, w, h,,,,, lFlat, ;
@@ -434,6 +441,11 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
 
       ELSEIF cWidg == "panelbot"
 
+         IF !Empty( hash )
+            IF hb_hHaskey( hash, "AParts" )
+               aParts := hash["AParts"]
+            ENDIF
+         ENDIF
          oCtrl := HPanelSts():New( oParent,, h, oFont,,, bcolor, oStyle, aParts )
       ENDIF
       EXIT
@@ -876,9 +888,14 @@ FUNCTION MainHandler()
 
       CASE 'o'
          IF cCommand == "openform"
-            oForm := HFormTmpl():Read( arr[2] )
-            Send2SocketIn( "+Ok" + cn )
-            oForm:Show()
+            lErr := ( Len(arr)<2 )
+            IF lErr
+               Send2SocketIn( "+Err" + cn )
+            ELSE
+               oForm := HFormTmpl():Read( arr[2] )
+               Send2SocketIn( "+Ok" + cn )
+               oForm:Show()
+            ENDIF
          ELSEIF cCommand == "openformmain"
             lErr := ( Len(arr)<2 )
             IF lErr

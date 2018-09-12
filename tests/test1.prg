@@ -1,7 +1,8 @@
+/*
+ * This test demonstrates using of a main window form, created by Designer
+ */
 
 FUNCTION Main
-
-   LOCAL cn := e"\n", n := 0
 
    eGUI_Init()
 

@@ -74,6 +74,12 @@ FUNCTION eGUI_OpenMainForm( cFormName )
 
    RETURN Nil
 
+FUNCTION eGUI_OpenForm( cFormName )
+
+   Send2SocketOut( '+' + hb_jsonEncode( { "openform", cFormName } ) + cn )
+
+   RETURN Nil
+
 FUNCTION eGUI_OpenReport( cRepName )
 
    Send2SocketOut( '+' + hb_jsonEncode( { "openreport", cRepName } ) + cn )
