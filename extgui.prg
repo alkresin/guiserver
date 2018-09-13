@@ -284,7 +284,8 @@ FUNCTION eGUI_SelectColor( nColor, cFunc, cName )
 
 FUNCTION eGUI_SelectFont( cFunc, cName )
 
-   Send2SocketOut( '+' + hb_jsonEncode( { "common", "cfont", cFunc, cName } ) + cn )
+   LOCAL oFont := EFont():New( cName )
+   Send2SocketOut( '+' + hb_jsonEncode( { "common", "cfont", cFunc, oFont:cName } ) + cn )
 
    RETURN Nil
 
@@ -375,6 +376,9 @@ STATIC FUNCTION GetItemByName( arr, cName )
    NEXT
 
    RETURN Nil
+
+FUNCTION eGUI_GetFont( cName )
+   RETURN GetItemByName( EFont():aFonts, cName )
 
 FUNCTION eGUI_GetWnd( cName )
 

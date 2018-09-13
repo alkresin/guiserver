@@ -430,7 +430,6 @@ HB_FUNC( CONNECTSOCKET )
          {
             if( sockOut_Recv( TIMEOUT ) > 0 )
             {
-               hb_retclen( pBufferOut, lLastReceived );
                hSocket = hb_ipConnect( szAddr, iPort+1, TIMEOUT*2 );
                if( !hb_iperrorcode() )    
                {
@@ -443,6 +442,7 @@ HB_FUNC( CONNECTSOCKET )
                      {
                         if( sockIn_Recv( TIMEOUT ) > 0 )
                         {
+                           hb_retclen( pBufferOut, lLastReceived );
                            return;
                         }
                      }

@@ -39,6 +39,8 @@ FUNCTION Main
          eGUI_AddMenuItem( "Open", "openfile" )
          eGUI_AddMenuSeparator()
          eGUI_AddMenuItem( "msgbox", "mbox" )
+         eGUI_AddMenuItem( "Select color", "SetLblColor" )
+         eGUI_AddMenuItem( "Select font", "SetLblFont" )
          eGUI_AddMenuSeparator()
          eGUI_AddMenuItem( "Exit",,"hwg_EndWindow()" )
       egui_EndMenu()
@@ -133,5 +135,35 @@ FUNCTION MBox( aParams )
       egui_MsgInfo( "Test2", "Msgbox" )
    ENDIF
 
+   RETURN Nil
+
+FUNCTION SetLblColor( aParams )
+
+   IF aParams == Nil
+      eGUI_SelectColor( , "SetLblColor", "mm1" )
+   ELSEIF aParams[1] == "mm1"
+      IF !Empty( aParams[2] )
+         oLabel:SetColor( Val(aParams[2]) )
+      ENDIF
+   ENDIF
+
+   RETURN Nil
+
+FUNCTION SetLblFont( aParams )
+
+   LOCAL oFont
+
+   IF aParams == Nil
+      eGUI_SelectFont( "SetLblFont" ) //, "mm1" )
+   ELSE       //IF aParams[1] == "mm1"
+      IF ( oFont := eGUI_GetFont( aParams[1] ) ) != Nil
+         IF Len( aParams ) < 8
+            oFont:Delete()
+         ELSE   
+            oFont:Fill( aParams )
+            oLabel:SetFont( oFont )
+         ENDIF
+      ENDIF
+   ENDIF
 
    RETURN Nil

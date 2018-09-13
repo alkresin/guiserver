@@ -37,7 +37,7 @@ REQUEST HB_GT_GUI_DEFAULT
 STATIC nPort := 3101
 STATIC lEnd := .F., oMTimer := Nil, nInterval := 20
 STATIC cn := e"\n"
-STATIC cLogFile := "guiserver.log"
+STATIC lLogOn := .T., cLogFile := "guiserver.log"
 
 /*
  * GuiServer
@@ -70,7 +70,7 @@ FUNCTION Main( ... )
    SetLogFile( "ac.log" )
    SetVersion( "1.1" )
    SetHandler( "MAINHANDLER" )
-   hwg_writelog( "Start at port "+ Ltrim(Str(nPort)),cLogFile )
+   gWritelog( "Start at port "+ Ltrim(Str(nPort)) )
    CreateSocket( nPort )
 
    DO WHILE !lEnd
@@ -178,7 +178,6 @@ STATIC FUNCTION CrDialog( cName, arr, hash )
    LOCAL nStyle, bColor, oFont
    LOCAL bInit := {|o|
       IF oMTimer == Nil
-         //hwg_writelog( "DActTimer "+str(millisec()),cLogFile )
          SET TIMER oMTimer OF oDlg VALUE nInterval ACTION {||TimerFunc()}
       ENDIF
       RETURN .T.
@@ -187,7 +186,6 @@ STATIC FUNCTION CrDialog( cName, arr, hash )
       LOCAL lRes := .T.
       IF lRes
          IF oMTimer != Nil
-            //hwg_writelog( "Dexit "+str(millisec()),cLogFile )
             oMTimer:End()
             oMTimer := Nil
          ENDIF
@@ -259,7 +257,6 @@ STATIC FUNCTION WinClose( cName )
 
    LOCAL oDlg := GetWnd( cName )
 
-   //hwg_writelog( "wclose-1: " + cName + Iif(!Empty( oDlg ), " T"," F" ),cLogFile )
    IF !Empty( oDlg )
       oDlg:Close()
    ENDIF
@@ -482,10 +479,12 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
    IF Left( cPropName,3 ) == "cb."
       SetCallback( oWnd, Substr(cPropName,4), xProp )
    ELSEIF cPropName == "text"
-      IF lWidg
-         oWnd:SetText( xProp )
-      ELSE
-         oWnd:SetTitle( xProp )
+      IF Valtype(xProp) == "C"
+         IF lWidg
+            oWnd:SetText( xProp )
+         ELSE
+            oWnd:SetTitle( xProp )
+         ENDIF
       ENDIF
 
    ELSEIF cPropName == "value"
@@ -500,6 +499,19 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
          oWnd:SetColor( Iif(xProp[1]!=Nil.AND.xProp[1]==-1,Nil,xProp[1]), ;
             Iif(xProp[2]!=Nil.AND.xProp[2]==-1,Nil,xProp[2]), .T. )
       ENDIF
+
+   ELSEIF cPropName == "font"
+      IF Valtype(xProp) == "C" .AND. ( xProp := GetFont( xProp ) ) != Nil
+         oWnd:oFont := xProp
+         IF lWidg
+#ifdef __GTK__
+            hwg_SetCtrlFont( oWnd:handle,, xProp:handle )
+#else
+            hwg_Setctrlfont( oWnd:oParent:handle, oWnd:id, xProp:handle )
+#endif
+         ENDIF
+      ENDIF
+
    ELSEIF cPropName == "image"
       IF __ObjHasMsg( oWnd, "REPLACEBITMAP" )
          oWnd:ReplaceBitmap( xProp )
@@ -646,11 +658,13 @@ STATIC FUNCTION f_SeleFont( cFunc, cName )
    LOCAL oFont := HFont():Select()
    IF !Empty( cFunc )
       IF Empty( oFont )
-         Send2SocketOut( "+" + hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cName,""} ) } ) + cn )
+         Send2SocketOut( "+" + hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cName} ) } ) + cn )
       ELSE
+         oFont:objname := cName
          Send2SocketOut( "+" + hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( ;
-            {cName,oFont:name,oFont:height,(oFont:weight>400),(oFont:italic>0), ;
-            (oFont:underline>0),(oFont:strikeout>0),oFont:charset } ) } ) + cn )
+            {cName, oFont:name, Ltrim(Str(oFont:height)), Iif(oFont:weight>400,"t","f"), ;
+            Iif(oFont:italic>0,"t","f"), Iif(oFont:underline>0,"t","f"), ;
+            Iif(oFont:strikeout>0,"t","f"),Ltrim(Str(oFont:charset)) } ) } ) + cn )
       ENDIF
    ENDIF
 
@@ -781,7 +795,6 @@ STATIC FUNCTION SetFormTimer( oForm )
 
 STATIC FUNCTION TimerFunc()
 
-   //hwg_writelog( "timer: " + Str(Millisec()) )
    CheckSocket()
    RETURN Nil
 
@@ -791,7 +804,7 @@ FUNCTION MainHandler()
    LOCAL arr, c, cCommand, cRes
    LOCAL oForm, oWnd, lErr := .F.
 
-   hwg_writelog( "> "+ cBuffer,cLogFile )
+   gWritelog( "> "+ cBuffer )
    IF Left( cBuffer,1 ) == "+"
 
       hb_jsonDecode( Substr(cBuffer,2), @arr )
@@ -1020,10 +1033,17 @@ FUNCTION MainHandler()
 
       END
       IF lErr
-         hwg_writelog( "Parsing error",cLogFile )
+         gWritelog( "Parsing error" )
       ENDIF
    ELSE
       Send2SocketIn( "+Wrong" + cn )
    ENDIF
 
+   RETURN Nil
+
+STATIC FUNCTION gWritelog( s )
+
+   IF lLogOn
+      hwg_writelog( s, cLogFile )
+   ENDIF
    RETURN Nil

@@ -14,6 +14,7 @@ Static cn := e"\n"
 
 CLASS EFont
 
+   CLASS VAR aFonts   INIT { }
    DATA cName
    DATA cFamily
    DATA nHeight
@@ -24,9 +25,11 @@ CLASS EFont
    DATA nCharset
 
    METHOD New( cName, cFamily, nHeight, lBold, lItalic, lUnderline, lStrikeout, nCharset )
+   METHOD Fill( arr )
+   METHOD Delete()
 ENDCLASS
 
-METHOD New( cName, cFamily, nHeight, lBold, lItalic, lUnderline, lStrikeout, nCharset )
+METHOD New( cName, cFamily, nHeight, lBold, lItalic, lUnderline, lStrikeout, nCharset ) CLASS EFont
 
    IF Empty( cName )
       cName := "f" + Ltrim(Str(EWidget():nIdCount++))
@@ -39,9 +42,34 @@ METHOD New( cName, cFamily, nHeight, lBold, lItalic, lUnderline, lStrikeout, nCh
    ::lUnderline := !Empty(lUnderline)
    ::lStrikeout := !Empty(lStrikeout)
    ::nCharset   := Iif( Empty(nCharset),0,nCharset )
+   Aadd( ::aFonts, Self )
 
    RETURN Self
 
+METHOD Fill( arr ) CLASS EFont
+
+   ::cFamily := arr[2]
+   ::nHeight := Val(arr[3])
+   ::lBold := (arr[4]=="t")
+   ::lItalic := (arr[5]=="t")
+   ::lUnderline := (arr[6]=="t")
+   ::lStrikeout := (arr[7]=="t")
+   ::nCharset := Val(arr[8])
+
+   RETURN Self
+
+METHOD Delete() CLASS EFont
+
+   LOCAL i, aFonts := EFont():aFonts
+
+   FOR i := Len( aFonts ) TO 1 STEP -1
+      IF aFonts[i]:cName == ::cName
+         EFont():aFonts := hb_ADel( EFont():aFonts, i, .T. )
+         EXIT
+      ENDIF
+   NEXT
+
+   RETURN Nil
 
 CLASS EStyle
 
@@ -58,7 +86,7 @@ CLASS EStyle
    METHOD New( cName, aColors, nOrient, aCorners, nBorder, tColor, cBitmap )
 ENDCLASS
 
-METHOD New( cName, aColors, nOrient, aCorners, nBorder, tColor, cBitmap )
+METHOD New( cName, aColors, nOrient, aCorners, nBorder, tColor, cBitmap ) CLASS EStyle
 
    IF Empty( cName )
       cName := "s" + Ltrim(Str(EWidget():nIdCount++))
@@ -70,6 +98,7 @@ METHOD New( cName, aColors, nOrient, aCorners, nBorder, tColor, cBitmap )
    ::nBorder   := nBorder
    ::tColor    := tColor
    ::aCorners  := aCorners
+   Aadd( ::aStyles, Self )
 
    RETURN Self
 
@@ -94,6 +123,7 @@ CLASS EWidget
    METHOD SetText( cText )
    METHOD GetText()
    METHOD SetColor( tColor, bColor )
+   METHOD SetFont( oFont )
    METHOD SetImage( cImage )
    METHOD SetCallbackProc( cbName, cProc, ... )
    METHOD SetCallbackFunc( cbName, cFunc, ... )
@@ -150,6 +180,12 @@ METHOD SetColor( tColor, bColor ) CLASS EWidget
    LOCAL cName := FullWidgName( Self )
 
    Send2SocketOut( '+' + hb_jsonEncode( { "set", cName, "color", {tColor,bColor} } ) + cn )
+   RETURN Nil
+
+METHOD SetFont( oFont ) CLASS EWidget
+   LOCAL cName := FullWidgName( Self )
+
+   Send2SocketOut( '+' + hb_jsonEncode( { "set", cName, "font", oFont:cName } ) + cn )
    RETURN Nil
 
 METHOD GetText() CLASS EWidget
