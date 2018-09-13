@@ -16,8 +16,13 @@ FUNCTION Main
 
    RETURN Nil
 
-FUNCTION fmenu1()
+FUNCTION fmenu1( aParams )
 
-   eGUI_EvalProc( 'oLabel1:SetText("Hoho")' )
+   LOCAL s := aParams[1] + " / " + Ltrim(Str(Seconds()))
+   eGUI_EvalProc( 'oLabel1:SetText("' + s + '")' )
 
    RETURN Nil
+
+FUNCTION fmenu2()
+
+   RETURN hb_version()

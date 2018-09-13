@@ -34,16 +34,17 @@ ANNOUNCE HB_GTSYS
 REQUEST HB_GT_GUI_DEFAULT
 #endif
 
-Static nPort := 3101
-Static lEnd := .F., oMTimer := Nil, nInterval := 20
-Static cn := e"\n"
-Static cLogFile := "guiserver.log"
+STATIC nPort := 3101
+STATIC lEnd := .F., oMTimer := Nil, nInterval := 20
+STATIC cn := e"\n"
+STATIC cLogFile := "guiserver.log"
 
 /*
  * GuiServer
  */
 
-Static oMainWnd, oCurrWindow, cCurrwindow := ""
+STATIC oMainWnd, oCurrWindow, cCurrwindow := ""
+STATIC cDefPath := ""
 
 FUNCTION Main( ... )
 
@@ -125,7 +126,10 @@ FUNCTION fGO( cFunc, aParams )
 
    LOCAL cRes := Send2SocketOut( "+" + hb_jsonEncode( { "runfunc", cFunc, hb_jsonEncode( aParams ) } ) + cn )
 
-   RETURN cRes
+   IF Substr( cRes,2,1 ) == '"'
+      RETURN Substr( cRes, 3, Len(cRes)-4 )
+   ENDIF
+   RETURN Substr( cRes, 2, Len(cRes)-2 )
 
 STATIC FUNCTION CrMainWnd( arr, hash )
 
@@ -543,6 +547,12 @@ STATIC FUNCTION SetParam( cName, xValue )
 
    IF cName == "bmppath"
       HBitmap():cPath := HIcon():cPath := xValue
+
+   ELSEIF cName == "path"
+      SET DEFAULT TO &xValue
+      SET PATH TO &xValue
+      cDefPath := xValue
+
    ENDIF
 
    RETURN Nil

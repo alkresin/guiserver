@@ -294,6 +294,12 @@ FUNCTION eGUI_SetImagePath( cPath )
 
    RETURN Nil
 
+FUNCTION eGUI_SetPath( cPath )
+
+   Send2SocketOut( '+' + hb_jsonEncode( { "setparam", "path", cPath } ) + cn )
+
+   RETURN Nil
+
 FUNCTION eGUI_Wait()
 
    DO WHILE Inkey(1) != 27
@@ -438,11 +444,11 @@ FUNCTION GUIHandler()
             hb_jsonDecode( arr[3], @arrp )
          ENDIF
          xRes := Eval( xRes, arrp )
-         Send2SocketIn( "+" + hb_jsonDecode(xRes) + cn )
+         Send2SocketIn( "+" + hb_jsonEncode(xRes) + cn )
          lSend := .T.
 
       ELSEIF cCommand == "exit"
-         IF !Empty( o := GetWndByName( arr[2] ) )
+         IF !Empty( o := egui_GetWnd( arr[2] ) )
             o:lWait := .F.
             o:Delete()
          ENDIF

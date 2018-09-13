@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <part class="form">
   <style>
-    <property name="Geometry">{256,214,598,182}</property>
+    <property name="Geometry">{255,213,598,179}</property>
     <property name="Caption">[Example]</property>
     <property name="FormType">[Main]</property>
     <property name="lClipper">.F.</property>
@@ -36,20 +36,20 @@ cFormPath := hb_fnameDir(oForm:cFormName)
           <item name="Test1" id="32001">
             <![CDATA[HFormTmpl():Read( cFormPath + "testget2.xml" ):Show()]]>
           </item>
-          <item name="Call 1" id="32002">
-            <![CDATA[pGo("fmenu1")
-]]>
+          <item name="Proc call" id="32002">
+            <![CDATA[pGo("fmenu1",{Ltrim(Str(Seconds()))})]]>
+          </item>
+          <item name="Func call" id="32003">
+            <![CDATA[oLabel1:SetText( fGo("fmenu2") )]]>
           </item>
           <item name="-" id="32007"/>
           <item name="Exit" id="32006">
-            <![CDATA[hwg_EndWindow()
-]]>
+            <![CDATA[hwg_EndWindow()]]>
           </item>
         </item>
         <item name="Help" id="32004">
           <item name="About" id="32005">
-            <![CDATA[hwg_Shellabout("HwGUI forms example","")
-]]>
+            <![CDATA[hwg_Shellabout("HwGUI forms example","")]]>
           </item>
         </item>
       </property>
@@ -78,7 +78,8 @@ cFormPath := hb_fnameDir(oForm:cFormName)
         <property name="Flat">.T.</property>
       </style>
       <method name="onClick">
-        <![CDATA[HFormTmpl():Read( cFormPath + "testget2.xml" ):Show()]]>
+        <![CDATA[HFormTmpl():Read( cFormPath + "testget2.xml" ):Show()
+]]>
       </method>
     </part>
   </part>
@@ -87,11 +88,12 @@ cFormPath := hb_fnameDir(oForm:cFormName)
       <property name="Geometry">{32,62,296,22}</property>
       <property name="Name">[oLabel1]</property>
       <property name="Caption">[--]</property>
+      <property name="Transparent">.T.</property>
     </style>
   </part>
   <part class="status">
     <style>
-      <property name="Geometry">{0,160,598,22}</property>
+      <property name="Geometry">{0,157,598,22}</property>
       <property name="Name">[oStatus1]</property>
       <property name="aParts">{120,0}</property>
     </style>
