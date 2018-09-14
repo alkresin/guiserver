@@ -18,7 +18,7 @@ Static aMenu := Nil, aMenuStack
 
 FUNCTION eGUI_Init( cOptions )
 
-   LOCAL cServer := "guiserver.exe", cIp := "localhost", nPort := 3101, cLogFile := "ac.log"
+   LOCAL cServer := "guiserver.exe", cIp := "localhost", nPort := 3101, cLogFile := "ac.log", lLog := .F.
    LOCAL cSep := e"\r\n", arr, i, s
 
    IF cOptions != Nil
@@ -40,17 +40,21 @@ FUNCTION eGUI_Init( cOptions )
             cIp := AllTrim( Substr( arr[i], 9 ) )
          ELSEIF Left( s,4 ) == "port"
             nPort := Val( AllTrim( Substr( arr[i], 6 ) ) )
+         ELSEIF Left( s,4 ) == "log"
+            lLog := .T.
          ENDIF
       NEXT
    ENDIF
 
-   SetLogFile( cLogFile )
+   IF lLog
+      SetLogFile( cLogFile )
+      SetPrefix( "   )" )
+   ENDIF
    SetVersion( "1.0" )
-   SetPrefix( "   )" )
    ipInit()
 
    IF !Empty( cServer )
-      extgui_RunApp( cServer + " -p" + Ltrim(Str(nPort)),1 )
+      extgui_RunApp( cServer + " -p" + Ltrim(Str(nPort)) + Iif(lLog," -log+",""),1 )
    ENDIF
    hb_idleSleep( 0.2 )
    //Sleep_ns( 200 )
@@ -267,6 +271,13 @@ FUNCTION eGUI_MsgStop( cMessage, cTitle, cFunc, cName )
 FUNCTION eGUI_MsgYesNo( cMessage, cTitle, cFunc, cName )
 
    Send2SocketOut( '+' + hb_jsonEncode( { "common", "myesno", cFunc, cName, cMessage, cTitle } ) + cn )
+
+   RETURN Nil
+
+FUNCTION eGUI_MsgGet( cMessage, cTitle, nStyle, cFunc, cName )
+
+   nStyle := Iif( Empty(nStyle), 0, nStyle )
+   Send2SocketOut( '+' + hb_jsonEncode( { "common", "myesno", cFunc, cName, cMessage, cTitle, nStyle } ) + cn )
 
    RETURN Nil
 

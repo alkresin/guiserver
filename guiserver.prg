@@ -37,7 +37,7 @@ REQUEST HB_GT_GUI_DEFAULT
 STATIC nPort := 3101
 STATIC lEnd := .F., oMTimer := Nil, nInterval := 20
 STATIC cn := e"\n"
-STATIC lLogOn := .T., cLogFile := "guiserver.log"
+STATIC lLogOn := .F., cLogFile := "guiserver.log"
 
 /*
  * GuiServer
@@ -55,11 +55,15 @@ FUNCTION Main( ... )
    ENDIF
 
    FOR i := 1 TO Len( aParams )
-      IF Left( aParams[i],1 ) $ "-/"
+      IF Left( aParams[i],1 ) $ "-/"       
          sp := Substr( aParams[i],3 )
          IF ( c := Lower( Substr( aParams[i],2,1 ) ) ) == "p"
             IF !Empty(sp) .AND. IsDigit(sp)
                nPort := Val( sp )
+            ENDIF
+         ELSEIF c == 'l'
+            IF sp == "og+"
+               lLogOn := .T.
             ENDIF
          ENDIF
       ENDIF
@@ -67,7 +71,9 @@ FUNCTION Main( ... )
 
    ipInit()
 
-   SetLogFile( "ac.log" )
+   IF lLogOn
+      SetLogFile( "ac.log" )
+   ENDIF
    SetVersion( "1.1" )
    SetHandler( "MAINHANDLER" )
    gWritelog( "Start at port "+ Ltrim(Str(nPort)) )
@@ -634,6 +640,14 @@ STATIC FUNCTION f_MsgYesNo( cMess, cTitle, cFunc, cName )
 
    RETURN Nil
 
+STATIC FUNCTION f_MsgGet( cMess, cTitle, nStyle, cFunc, cName )
+
+   LOCAL cRes := hwg_MsgGet( cTitle, cMess )
+   IF !Empty( cFunc )
+      Send2SocketOut( "+" + hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cName,cRes} ) } ) + cn )
+   ENDIF
+
+   RETURN Nil
 
 STATIC FUNCTION f_SeleFile( cPath, cFunc, cName )
 
@@ -973,6 +987,8 @@ FUNCTION MainHandler()
                   f_MsgStop( Iif(Len(arr)>4,arr[5],""), Iif(Len(arr)>5,arr[6],""), arr[3], arr[4] )
                ELSEIF arr[2] == "myesno"
                   f_MsgYesNo( Iif(Len(arr)>4,arr[5],""), Iif(Len(arr)>5,arr[6],""), arr[3], arr[4] )
+               ELSEIF arr[2] == "mget"
+                  f_MsgGet( Iif(Len(arr)>4,arr[5],""), Iif(Len(arr)>5,arr[6],""), Iif(Len(arr)>6,arr[7],0), arr[3], arr[4] )
                ELSEIF arr[2] == "cfont"
                   f_selefont( arr[3], arr[4] )
                ELSEIF arr[2] == "cfile"
