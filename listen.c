@@ -138,6 +138,15 @@ static unsigned long s2l16( char * ptr1, char * ptr2 )
       return 0;
 }
 
+static void return_buffer( int bOut )
+{
+   char * ptr = (bOut)? pBufferOut : pBufferIn;
+   if( *ptr == '+' )
+      hb_retclen_const( (const char*) (ptr+1), lLastReceived-1 );
+   else if( *ptr == '!' )
+      hb_retclen_const( (const char*) (ptr+8), lLastReceived-8 );
+}
+
 static long int socket_Recv( HB_SOCKET_T hSocket, int iTimeout, char ** pBuffer, long int * pBufferLen )
 {
    int iRet;
@@ -194,12 +203,14 @@ static long int socket_Recv( HB_SOCKET_T hSocket, int iTimeout, char ** pBuffer,
          if( !lLen && **pBuffer == '!' && lLenRcv > 8 )
             lLen = s2l16( *pBuffer+1, *pBuffer+7 );
          if( ( lLen > 0 && lLen <= lLenRcv ) ||
-               ( lLen == 0 && *(ptr-1) == '\n' ) )
+               ( !lLen && *(ptr-1) == '\n' ) )
             break;
       }
    }
    while(1);
 
+   if( !lLen && *(ptr-1) == '\n' )
+      ptr --;
    *ptr = '\0';
    lLastReceived = (long int) (ptr - *pBuffer);
    _writelog( pLogFile, 0, "recv10: %d %s\r\n", lLastReceived, *pBuffer );
@@ -335,13 +346,13 @@ HB_FUNC( MILLISEC )
 HB_FUNC( GETRECVBUFFER )
 {
 
-   hb_retclen_const( pBufferIn, lLastReceived );
+   return_buffer( 0 );
 }
 
 HB_FUNC( GETRECVBUFFEROUT )
 {
 
-   hb_retclen_const( pBufferOut, lLastReceived );
+   return_buffer( 1 );
 }
 
 HB_FUNC( SETLOGFILE )
@@ -396,7 +407,7 @@ HB_FUNC( SEND2SOCKETOUT )
          {
             if( sockOut_Recv( TIMEOUT ) > 0 )
             {
-               hb_retclen( pBufferOut, lLastReceived );
+               return_buffer( 1 );
             }
             break;
          }
@@ -442,7 +453,7 @@ HB_FUNC( CONNECTSOCKET )
                      {
                         if( sockIn_Recv( TIMEOUT ) > 0 )
                         {
-                           hb_retclen( pBufferOut, lLastReceived );
+                           return_buffer( 0 );
                            return;
                         }
                      }

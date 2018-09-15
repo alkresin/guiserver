@@ -193,7 +193,7 @@ METHOD GetText() CLASS EWidget
    LOCAL cName := FullWidgName( Self ), cRes
 
    cRes := Send2SocketOut( '+' + hb_jsonEncode( { "get", cName, "text" } ) + cn )
-   ::cTitle := Substr( cRes,3,Len(cRes)-4 )
+   ::cTitle := Substr( cRes,2,Len(cRes)-2 )
 
    RETURN ::cTitle
 

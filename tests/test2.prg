@@ -21,7 +21,7 @@ Static oDlg, oLabel, oEdi1
 
 FUNCTION Main
 
-   LOCAL oMainWindow, oBtn, oBtnOk, oPane, oStyle, own1
+   LOCAL oMainWindow, oBtn, oPane, oStyle1, oStyle2, oStyle3, oStyle4, ownb
    LOCAL cInitString := ""
 
    IF !eGUI_Init( cInitString )
@@ -29,7 +29,11 @@ FUNCTION Main
       RETURN Nil
    ENDIF
 
-   oStyle := eGUI_CreateStyle( , {CLR_LBLUE0,CLR_LBLUE4}, 1 )
+   oStyle1 := eGUI_CreateStyle( , {CLR_LBLUE,CLR_LBLUE3}, 1 )
+   oStyle2 := eGUI_CreateStyle( , {CLR_LBLUE}, 1,, 3 )
+   oStyle3 := eGUI_CreateStyle( , {CLR_LBLUE}, 1,, 2, CLR_LBLUE0 )
+   oStyle4 := eGUI_CreateStyle( , {CLR_LBLUE2,CLR_LBLUE3}, 1,, 1, CLR_LBLUE )
+
    oMainWindow := eGUI_InitMainWindow( 100, 100, 400, 350, "extGUI test", ;
       {{"bcolor",CLR_LBLUE3}} )
 
@@ -41,17 +45,21 @@ FUNCTION Main
          eGUI_AddMenuItem( "msgbox", "mbox" )
          eGUI_AddMenuItem( "Select color", "SetLblColor" )
          eGUI_AddMenuItem( "Select font", "SetLblFont" )
+         eGUI_AddMenuItem( "Select file", "SeleFile" )
          eGUI_AddMenuSeparator()
          eGUI_AddMenuItem( "Exit",,"hwg_EndWindow()" )
       egui_EndMenu()
       egui_Menu( "Help" )
-         eGUI_AddMenuItem( "About",, 'hwg_MsgInfo("Test","About")' )
+         eGUI_AddMenuItem( "About",, 'hwg_MsgInfo(hb_version()+chr(10)+chr(13)+hwg_version(),"About")' )
       egui_EndMenu()
    egui_EndMenu()
 
-   oPane := oMainWindow:AddWidget( "panel",, 0,0, 400, 36,, {{"HStyle",oStyle}})
-   own1 := oPane:AddWidget( "ownbtn",, 0,0, 48, 36, "Btn1", {{"HStyles",{oStyle}}} )
-   own1:SetCallbackProc( "onclick",, "hwg_MsgInfo('Test')" )
+   oPane := oMainWindow:AddWidget( "paneltop",, 0,0, 400, 36,, {{"HStyle",oStyle1}})
+
+   ownb := oPane:AddWidget( "ownbtn",, 0,0, 64, 36, "Date", {{"HStyles",{oStyle1,oStyle2,oStyle3}}} )
+   ownb:SetCallbackProc( "onclick",, "hwg_WriteStatus(HWindow():GetMain(),1,Dtoc(Date()),.T.)" )
+   ownb := oPane:AddWidget( "ownbtn",, 64,0, 64, 36, "Time", {{"HStyles",{oStyle1,oStyle2,oStyle3}}} )
+   ownb:SetCallbackProc( "onclick",, "hwg_WriteStatus(HWindow():GetMain(),2,Time(),.T.)" )
 
    oLabel := oMainWindow:AddWidget( "label","l1", 20,50, 180, 24, "This is a label", {{"tcolor",255},{"Transpa",.T.}} )
 
@@ -62,8 +70,7 @@ FUNCTION Main
    oMainWindow:AddWidget( "check",, 40, 140, 120, 24, "Check - 1" )
    oMainWindow:AddWidget( "check",, 40, 158, 120, 24, "Check - 2" )
 
-   oBtnOk := oMainWindow:AddWidget( "button",, 150, 250, 100, 32, "Ok" )
-   oBtnOk:SetCallbackProc( "onclick", "fbtnok" )
+   oMainWindow:AddWidget( "panelbot",, 0,0, 400, 32,, {{"HStyle",oStyle4},{"AParts",{120,120,0}}})
 
    eGUI_ActivateMainWindow()
 
@@ -74,12 +81,6 @@ FUNCTION Main
 FUNCTION fmenu1()
 
    oLabel:SetText( "Just a test" )
-   RETURN Nil
-
-FUNCTION fbtnok()
-
-   LOCAL s := egui_EvalFunc( 'Return GetWidg("main.l1"):GetText()' )
-   ? s
    RETURN Nil
 
 FUNCTION newfile( arr )
@@ -130,9 +131,13 @@ FUNCTION fclose()
 FUNCTION MBox( aParams )
 
    IF aParams == Nil
-      egui_MsgInfo( "Test1", "Msgbox", "mbox", "mm1" )
+      egui_MsgYesNo( "Yes or No?", "Msgbox", "mbox", "mm1" )
    ELSEIF aParams[1] == "mm1"
-      egui_MsgInfo( "Test2", "Msgbox" )
+      IF aParams[2] == "t"
+         egui_MsgInfo( "Yes!", "Answer" )
+      ELSE
+         egui_MsgStop( "No...", "Answer" )
+      ENDIF
    ENDIF
 
    RETURN Nil
@@ -154,8 +159,8 @@ FUNCTION SetLblFont( aParams )
    LOCAL oFont
 
    IF aParams == Nil
-      eGUI_SelectFont( "SetLblFont" ) //, "mm1" )
-   ELSE       //IF aParams[1] == "mm1"
+      eGUI_SelectFont( "SetLblFont" )
+   ELSE
       IF ( oFont := eGUI_GetFont( aParams[1] ) ) != Nil
          IF Len( aParams ) < 8
             oFont:Delete()
@@ -163,6 +168,20 @@ FUNCTION SetLblFont( aParams )
             oFont:Fill( aParams )
             oLabel:SetFont( oFont )
          ENDIF
+      ENDIF
+   ENDIF
+
+   RETURN Nil
+
+FUNCTION SeleFile( aParams )
+
+   IF aParams == Nil
+      eGUI_SelectFile( , "SeleFile", "mm1" )
+   ELSE
+      IF Empty( aParams[2] )
+         egui_MsgStop( "Nothing selected", "Result" )
+      ELSE
+         egui_MsgInfo( aParams[2], "File selected" )
       ENDIF
    ENDIF
 

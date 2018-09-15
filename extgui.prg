@@ -69,9 +69,7 @@ FUNCTION eGUI_Init( cOptions )
    ENDIF
 
    SetHandler( "GUIHANDLER" )
-   //CreateSocket( nPort+1 )
    hb_IdleAdd( {|| FIdle() } )
-   //Send2SocketOut( '+' + hb_jsonEncode( { "setbconn" } ) + cn )
 
    RETURN .T.
 
@@ -239,8 +237,8 @@ FUNCTION eGUI_EvalFunc( cCode )
 
    LOCAL cRes
    cRes := Send2SocketOut( '+' + hb_jsonEncode( { "evalcode", cCode, "t" } ) + cn )
-   IF !Empty(cRes) .AND. Left( cRes,2 ) == '+"' .AND. Right( cRes,2 ) == ('"'+cn)
-      cRes := Substr( cRes,3,Len(cRes)-4 )
+   IF !Empty(cRes) .AND. Left( cRes, 1 ) == '"' .AND. Right( cRes,1 ) == '"'
+      cRes := Substr( cRes,2,Len(cRes)-2 )
    ENDIF
 
    RETURN Iif( Empty(cRes), "", cRes )
@@ -249,8 +247,8 @@ FUNCTION eGUI_GetValues( oWnd, aNames )
 
    LOCAL cRes, arr
    cRes := Send2SocketOut( '+' + hb_jsonEncode( { "getvalues", oWnd:cName, aNames } ) + cn )
-   IF !Empty(cRes) .AND. Left( cRes,1 ) == '+'
-      hb_jsonDecode( Substr( cRes,2,Len(cRes)-2 ), @arr )
+   IF !Empty(cRes)
+      hb_jsonDecode( cRes, @arr )
       RETURN arr
    ENDIF
 
@@ -278,6 +276,12 @@ FUNCTION eGUI_MsgGet( cMessage, cTitle, nStyle, cFunc, cName )
 
    nStyle := Iif( Empty(nStyle), 0, nStyle )
    Send2SocketOut( '+' + hb_jsonEncode( { "common", "myesno", cFunc, cName, cMessage, cTitle, nStyle } ) + cn )
+
+   RETURN Nil
+
+FUNCTION eGUI_Choice( arr, cTitle, cFunc, cName )
+
+   Send2SocketOut( '+' + hb_jsonEncode( { "common", "mchoi", cFunc, cName, arr, cTitle } ) + cn )
 
    RETURN Nil
 
@@ -362,6 +366,8 @@ FUNCTION setprops( aProps )
             sProps += ',"Image": "' + aProps[i,2] + '"'
          ELSEIF cProp == "aitems"
             sProps += ',"AItems": ' + hb_jsonEncode(aProps[i,2])
+         ELSEIF cProp == "aparts"
+            sProps += ',"AParts": ' + hb_jsonEncode(aProps[i,2])
          ELSEIF cProp == "hstyles"
             sProps += ',"HStyles": ['
             FOR j := 1 TO Len(aProps[i,2])
@@ -431,57 +437,54 @@ FUNCTION GUIHandler()
    LOCAL cBuffer := GetRecvBuffer(), arr, arrp, cCommand, cFunc, lSend := .F., xRes, o
    //? "Handler"
 
-   IF Left( cBuffer,1 ) == "+"
+   hb_jsonDecode( cBuffer, @arr )
+   IF Valtype(arr) != "A" .OR. Empty(arr)
+      Send2SocketIn( "+Err"+cn )
+      RETURN Nil
+   ENDIF
 
-      hb_jsonDecode( Substr(cBuffer,2), @arr )
-      IF Valtype(arr) != "A" .OR. Empty(arr)
-         Send2SocketIn( "+Err"+cn )
-         RETURN Nil
+   cCommand := Lower( arr[1] )
+   IF cCommand == "runproc"
+
+      Send2SocketIn( "+Ok"+cn )
+      lSend := .T.
+      cFunc := Lower( arr[2] )
+      xRes := &( "{|a|"+cFunc+"(a)}" )
+      IF Len( arr ) > 2
+         hb_jsonDecode( arr[3], @arrp )
       ENDIF
+      Eval( xRes, arrp )
 
-      cCommand := Lower( arr[1] )
-      IF cCommand == "runproc"
+   ELSEIF cCommand == "runfunc"
 
-         Send2SocketIn( "+Ok"+cn )
-         lSend := .T.
-         cFunc := Lower( arr[2] )
-         xRes := &( "{|a|"+cFunc+"(a)}" )
-         IF Len( arr ) > 2
-            hb_jsonDecode( arr[3], @arrp )
-         ENDIF
-         Eval( xRes, arrp )
-
-      ELSEIF cCommand == "runfunc"
-
-         cFunc := Lower( arr[2] )
-         xRes := &( "{|a|"+cFunc+"(a)}" )
-         IF Len( arr ) > 2
-            hb_jsonDecode( arr[3], @arrp )
-         ENDIF
-         xRes := Eval( xRes, arrp )
-         Send2SocketIn( "+" + hb_jsonEncode(xRes) + cn )
-         lSend := .T.
-
-      ELSEIF cCommand == "exit"
-         IF !Empty( o := egui_GetWnd( arr[2] ) )
-            o:lWait := .F.
-            o:Delete()
-         ENDIF
-         lSend := .T.
-         Send2SocketIn( "+Ok"+cn )
-
-      ELSEIF cCommand == "endapp"
-         lSend := .T.
-         Send2SocketIn( "+Ok"+cn )
-         //? "Quitting"
-         ipExit()
-         Quit
-
+      cFunc := Lower( arr[2] )
+      xRes := &( "{|a|"+cFunc+"(a)}" )
+      IF Len( arr ) > 2
+         hb_jsonDecode( arr[3], @arrp )
       ENDIF
+      xRes := Eval( xRes, arrp )
+      Send2SocketIn( "+" + hb_jsonEncode(xRes) + cn )
+      lSend := .T.
 
-      IF !lSend
-         Send2SocketIn( "+Ok"+cn )
+   ELSEIF cCommand == "exit"
+      IF !Empty( o := egui_GetWnd( arr[2] ) )
+         o:lWait := .F.
+         o:Delete()
       ENDIF
+      lSend := .T.
+      Send2SocketIn( "+Ok"+cn )
+
+   ELSEIF cCommand == "endapp"
+      lSend := .T.
+      Send2SocketIn( "+Ok"+cn )
+      //? "Quitting"
+      ipExit()
+      Quit
+
+   ENDIF
+
+   IF !lSend
+      Send2SocketIn( "+Ok"+cn )
    ENDIF
 
    RETURN Nil
