@@ -12,6 +12,8 @@
 
 Static cn := e"\n"
 
+Memvar oLastWindow, oLastWidget
+
 CLASS EFont
 
    CLASS VAR aFonts   INIT { }
@@ -155,7 +157,7 @@ METHOD AddWidget( cWidg, cName, x1, y1, w, h, cTitle, aProps ) CLASS EWidget
 
    cWidg := Lower( cWidg )
    cName := Lower( cName )
-   oWidg := EWidget():New( cWidg, cName, x1, y1, w, h, cTitle )
+   oLastWidget := oWidg := EWidget():New( cWidg, cName, x1, y1, w, h, cTitle )
    oWidg:oParent := Self
    Aadd( ::aWidgets, oWidg )
 

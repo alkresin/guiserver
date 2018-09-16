@@ -328,6 +328,7 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
    LOCAL nStyle, tColor, bColor, cTooltip, cPicture, lTransp, bSize, oFont, oStyle
    LOCAL cImage, lResou, trColor, aItems, lEdit, lText, nDisplay, lVert
    LOCAL lFlat, lCheck, aStyles, aParts
+   LOCAL aLeft, aRight, nFrom, nTo
 
    oParent := GetWidg( Left( cName, nPos-1 ) )
    cName := Substr( cName, nPos+1 )
@@ -462,6 +463,28 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
       ENDIF
       EXIT
 
+   CASE 's'
+      IF cWidg == "splitter"
+         IF !Empty( hash )
+            IF hb_hHaskey( hash, "ALeft" )
+               aLeft := hash["ALefts"]
+               FOR i := 1 TO Len( aLeft )
+                  aLeft[i] := GetWidg( aLeft[i] )
+               NEXT
+            ENDIF
+            IF hb_hHaskey( hash, "ARight" )
+               aRight := hash["ARight"]
+               FOR i := 1 TO Len( aRight )
+                  aRight[i] := GetWidg( aRight[i] )
+               NEXT
+            ENDIF
+            nFrom := hb_hGetDef( hash, "From", Nil )
+            nTo := hb_hGetDef( hash, "To", Nil )
+         ENDIF
+         oCtrl := HSplitter():New( oParent,, x1, y1, w, h, ;
+               bSize,, tcolor, bcolor, aLeft, aRight, nFrom, nTo )
+      ENDIF
+      EXIT
    END
 
    IF !Empty(cName) .AND. !Empty(oCtrl)

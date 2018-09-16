@@ -19,9 +19,11 @@
 
 Static oDlg, oLabel, oEdi1
 
+Memvar oLastWidget
+
 FUNCTION Main
 
-   LOCAL oMainWindow, oBtn, oPane, oStyle1, oStyle2, oStyle3, oStyle4, ownb
+   LOCAL oMainWindow, oPane, oStyle1, oStyle2, oStyle3, oStyle4
    LOCAL cInitString := ""
 
    IF !eGUI_Init( cInitString )
@@ -56,15 +58,15 @@ FUNCTION Main
 
    oPane := oMainWindow:AddWidget( "paneltop",, 0,0, 400, 36,, {{"HStyle",oStyle1}})
 
-   ownb := oPane:AddWidget( "ownbtn",, 0,0, 64, 36, "Date", {{"HStyles",{oStyle1,oStyle2,oStyle3}}} )
-   ownb:SetCallbackProc( "onclick",, "hwg_WriteStatus(HWindow():GetMain(),1,Dtoc(Date()),.T.)" )
-   ownb := oPane:AddWidget( "ownbtn",, 64,0, 64, 36, "Time", {{"HStyles",{oStyle1,oStyle2,oStyle3}}} )
-   ownb:SetCallbackProc( "onclick",, "hwg_WriteStatus(HWindow():GetMain(),2,Time(),.T.)" )
+   oPane:AddWidget( "ownbtn",, 0,0, 64, 36, "Date", {{"HStyles",{oStyle1,oStyle2,oStyle3}}} )
+   oLastWidget:SetCallbackProc( "onclick",, "hwg_WriteStatus(HWindow():GetMain(),1,Dtoc(Date()),.T.)" )
+   oPane:AddWidget( "ownbtn",, 64,0, 64, 36, "Time", {{"HStyles",{oStyle1,oStyle2,oStyle3}}} )
+   oLastWidget:SetCallbackProc( "onclick",, "hwg_WriteStatus(HWindow():GetMain(),2,Time(),.T.)" )
 
    oLabel := oMainWindow:AddWidget( "label","l1", 20,50, 180, 24, "This is a label", {{"tcolor",255},{"Transpa",.T.}} )
 
-   oBtn := oMainWindow:AddWidget( "button",, 200,46, 100, 32, "Click!" )
-   oBtn:SetCallbackProc( "onclick", "fmenu1" )
+   oMainWindow:AddWidget( "button",, 200,46, 100, 32, "Click!" )
+   oLastWidget:SetCallbackProc( "onclick", "fmenu1" )
 
    oMainWindow:AddWidget( "group",, 20, 110, 300, 100, "Group" )
    oMainWindow:AddWidget( "check",, 40, 140, 120, 24, "Check - 1" )
@@ -90,7 +92,7 @@ FUNCTION newfile( arr )
 
 FUNCTION openfile()
 
-   LOCAL oBtnOk, oFont, arr1 := { "First", "Second", "Third"}
+   LOCAL oFont, arr1 := { "First", "Second", "Third"}
 
    oFont := eGUI_CreateFont( "f1", "Georgia", 22 )
    oDlg := eGUI_InitDialog( 300, 200, 220, 400, "GetValues", {{"Font",oFont}} )
@@ -107,9 +109,9 @@ FUNCTION openfile()
 
    oDlg:AddWidget( "combo",, 20,220, 180, 26,, {{"AItems",arr1}})
 
-   oBtnOk := oDlg:AddWidget( "button",, 50, 350, 100, 32, "Ok" )
+   oDlg:AddWidget( "button",, 50, 350, 100, 32, "Ok" )
    //oBtnOk:SetCallbackProc( "onclick",,"hwg_EndDialog()" )
-   oBtnOk:SetCallbackProc( "onclick","fclose" )
+   oLastWidget:SetCallbackProc( "onclick","fclose" )
 
    eGUI_ActivateDialog()
 

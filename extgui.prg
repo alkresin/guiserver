@@ -11,6 +11,8 @@
 Static cn := e"\n"
 Static aMenu := Nil, aMenuStack
 
+Memvar oLastWindow, oLastWidget
+
 #ifdef __PLATFORM__UNIX
 //ANNOUNCE HB_GTSYS
 //REQUEST HB_GT_CGI_DEFAULT
@@ -20,6 +22,8 @@ FUNCTION eGUI_Init( cOptions )
 
    LOCAL cServer := "guiserver.exe", cIp := "localhost", nPort := 3101, cLogFile := "ac.log", lLog := .F.
    LOCAL cSep := e"\r\n", arr, i, s
+
+   PUBLIC oLastWindow, oLastWidget
 
    IF cOptions != Nil
       IF !( cSep $ cOptions )
@@ -102,7 +106,7 @@ FUNCTION eGUI_InitMainWindow( x1, y1, w, h, cTitle, aProps )
    IF Empty( h ); h := 100; ENDIF
    IF Empty( cTitle ); cTitle := ""; ENDIF
 
-   oMain := EWindow():New( "main", "", x1, y1, w, h, cTitle )
+   oLastWindow := oMain := EWindow():New( "main", "", x1, y1, w, h, cTitle )
    sProps := setprops( aProps )
    s := '["crmainwnd",' + hb_jsonEncode({ x1,y1,w,h,cTitle}) + sProps + ']'
 
@@ -126,7 +130,7 @@ FUNCTION eGUI_InitDialog( x1, y1, w, h, cTitle, aProps )
    IF Empty( h ); h := 100; ENDIF
    IF Empty( cTitle ); cTitle := ""; ENDIF
 
-   oDlg := EWindow():New( "dialog", "", x1, y1, w, h, cTitle )
+   oLastWindow := oDlg := EWindow():New( "dialog", "", x1, y1, w, h, cTitle )
    EWindow():oCurrWindow := oDlg
 
    sProps := setprops( aProps )
@@ -316,6 +320,14 @@ FUNCTION eGUI_SetPath( cPath )
 
    RETURN Nil
 
+FUNCTION eGUI_StartPacket()
+
+   RETURN Nil
+
+FUNCTION eGUI_EndPacket()
+
+   RETURN Nil
+
 FUNCTION eGUI_Wait()
 
    DO WHILE Inkey(1) != 27
@@ -362,18 +374,26 @@ FUNCTION setprops( aProps )
             sProps += ',"Picture": "' + aProps[i,2] + '"'
          ELSEIF cProp == "transpa"
             sProps += ',"Transpa": "t"'
+         ELSEIF cProp == "vertical"
+            sProps += ',"Vertical": "t"'
          ELSEIF cProp == "cimage"
             sProps += ',"Image": "' + aProps[i,2] + '"'
          ELSEIF cProp == "aitems"
             sProps += ',"AItems": ' + hb_jsonEncode(aProps[i,2])
          ELSEIF cProp == "aparts"
             sProps += ',"AParts": ' + hb_jsonEncode(aProps[i,2])
-         ELSEIF cProp == "hstyles"
-            sProps += ',"HStyles": ['
+         ELSEIF cProp == "hstyles" .OR. cProp == "aleft" .OR. cProp == "aright"
+            sProps += ',"' + Iif( cProp == "hstyles", 'HStyles', ;
+                  Iif( cProp == "aleft", 'ALeft','ARight' ) ) + '": ['
             FOR j := 1 TO Len(aProps[i,2])
-               sProps += Iif( j==1,'"',',"' ) + aProps[i,2,j]:cName + '"'
+               sProps += Iif( j==1,'"',',"' ) + ;
+                  Iif(Valtype(aProps[i,2,j])=="O",aProps[i,2,j]:cName,aProps[i,2,j]) + '"'
             NEXT
             sProps += ']'
+         ELSEIF cProp == "from"
+            sProps += ',"From": ' + Ltrim(Str(aProps[i,2]))
+         ELSEIF cProp == "to"
+            sProps += ',"To": ' + Ltrim(Str(aProps[i,2]))
          ENDIF
       NEXT
       IF !Empty( sProps )
@@ -396,6 +416,9 @@ STATIC FUNCTION GetItemByName( arr, cName )
 
 FUNCTION eGUI_GetFont( cName )
    RETURN GetItemByName( EFont():aFonts, cName )
+
+FUNCTION eGUI_GetStyle( cName )
+   RETURN GetItemByName( EStyle():aStyles, cName )
 
 FUNCTION eGUI_GetWnd( cName )
 
