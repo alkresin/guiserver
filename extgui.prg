@@ -10,6 +10,7 @@
 
 Static cn := e"\n"
 Static aMenu := Nil, aMenuStack
+Static lPacket := .F., cPacketBuff
 
 Memvar oLastWindow, oLastWidget
 
@@ -79,20 +80,20 @@ FUNCTION eGUI_Init( cOptions )
 
 FUNCTION eGUI_OpenMainForm( cFormName )
 
-   Send2SocketOut( '+' + hb_jsonEncode( { "openformmain", cFormName } ) + cn )
+   SendOut( hb_jsonEncode( { "openformmain", cFormName } ) )
    eGUI_Wait()
 
    RETURN Nil
 
 FUNCTION eGUI_OpenForm( cFormName )
 
-   Send2SocketOut( '+' + hb_jsonEncode( { "openform", cFormName } ) + cn )
+   SendOut( hb_jsonEncode( { "openform", cFormName } ) )
 
    RETURN Nil
 
 FUNCTION eGUI_OpenReport( cRepName )
 
-   Send2SocketOut( '+' + hb_jsonEncode( { "openreport", cRepName } ) + cn )
+   SendOut( hb_jsonEncode( { "openreport", cRepName } ) )
 
    RETURN Nil
 
@@ -110,13 +111,13 @@ FUNCTION eGUI_InitMainWindow( x1, y1, w, h, cTitle, aProps )
    sProps := setprops( aProps )
    s := '["crmainwnd",' + hb_jsonEncode({ x1,y1,w,h,cTitle}) + sProps + ']'
 
-   Send2SocketOut( '+' + s + cn )
+   SendOut( s )
 
    RETURN oMain
 
 FUNCTION eGUI_ActivateMainWindow( lCenter )
 
-   Send2SocketOut( '+' + hb_jsonEncode( { "actmainwnd", { Iif(Empty(lCenter),"f","t") } } ) + cn )
+   SendOut( hb_jsonEncode( { "actmainwnd", { Iif(Empty(lCenter),"f","t") } } ) )
    eGUI_Wait()
 
    RETURN Nil
@@ -136,14 +137,14 @@ FUNCTION eGUI_InitDialog( x1, y1, w, h, cTitle, aProps )
    sProps := setprops( aProps )
    s := '["crdialog","' + oDlg:cName + '",' + hb_jsonEncode({ x1,y1,w,h,cTitle}) + sProps + ']'
 
-   Send2SocketOut( '+' + s + cn )
+   SendOut( s )
 
    RETURN oDlg
 
 FUNCTION eGUI_ActivateDialog( lNoModal, lCenter )
 
    LOCAL oDlg := EWindow():oCurrWindow
-   Send2SocketOut( '+' + hb_jsonEncode( { "actdialog", oDlg:cName, Iif(Empty(lNoModal),"f","t"), { Iif(Empty(lCenter),"f","t") } } ) + cn )
+   SendOut( hb_jsonEncode( { "actdialog", oDlg:cName, Iif(Empty(lNoModal),"f","t"), { Iif(Empty(lCenter),"f","t") } } ) )
    IF Empty( lNoModal )
       oDlg:lWait := .T.
       //eGUI_WaitDlg( oDlg )
@@ -169,7 +170,7 @@ FUNCTION eGUI_Menu( cName )
 FUNCTION eGUI_EndMenu()
 
    IF Empty( aMenuStack )
-      Send2SocketOut( '+' + hb_jsonEncode( { "menu", aMenu } ) + cn )
+      SendOut( hb_jsonEncode( { "menu", aMenu } ) )
       aMenu := aMenuStack := Nil
    ELSE
       aMenuStack := ASize( aMenuStack, Len(aMenuStack)-1 )
@@ -215,7 +216,7 @@ FUNCTION eGUI_AddMenuSeparator()
 
 FUNCTION eGUI_EvalProc( cCode )
 
-   Send2SocketOut( '+' + hb_jsonEncode( { "evalcode", cCode } ) + cn )
+   SendOut( hb_jsonEncode( { "evalcode", cCode } ) )
 
    RETURN Nil
 
@@ -223,8 +224,8 @@ FUNCTION eGUI_CreateFont( cName, cFamily, nHeight, lBold, lItalic, lUnderline, l
 
    LOCAL oFont := EFont():New( cName, cFamily, nHeight, lBold, lItalic, lUnderline, lStrikeout, nCharset )
 
-   Send2SocketOut( '+' + hb_jsonEncode( { "crfont", oFont:cName, oFont:cFamily, ;
-         oFont:nHeight, oFont:lBold, oFont:lItalic, oFont:lUnderline, oFont:lStrikeout, oFont:nCharset } ) + cn )
+   SendOut( hb_jsonEncode( { "crfont", oFont:cName, oFont:cFamily, ;
+         oFont:nHeight, oFont:lBold, oFont:lItalic, oFont:lUnderline, oFont:lStrikeout, oFont:nCharset } ) )
 
    RETURN oFont
 
@@ -232,15 +233,15 @@ FUNCTION eGUI_CreateStyle( cName, aColors, nOrient, aCorners, nBorder, tColor, c
 
    LOCAL oStyle := EStyle():New( cName, aColors, nOrient, aCorners, nBorder, tColor, cBitmap )
 
-   Send2SocketOut( '+' + hb_jsonEncode( { "crstyle", oStyle:cName, oStyle:aColors, ;
-         oStyle:nOrient, oStyle:aCorners, oStyle:nBorder, oStyle:tColor, oStyle:cBitmap } ) + cn )
+   SendOut( hb_jsonEncode( { "crstyle", oStyle:cName, oStyle:aColors, ;
+         oStyle:nOrient, oStyle:aCorners, oStyle:nBorder, oStyle:tColor, oStyle:cBitmap } ) )
 
    RETURN oStyle
 
 FUNCTION eGUI_EvalFunc( cCode )
 
    LOCAL cRes
-   cRes := Send2SocketOut( '+' + hb_jsonEncode( { "evalcode", cCode, "t" } ) + cn )
+   cRes := SendOut( hb_jsonEncode( { "evalcode", cCode, "t" } ) )
    IF !Empty(cRes) .AND. Left( cRes, 1 ) == '"' .AND. Right( cRes,1 ) == '"'
       cRes := Substr( cRes,2,Len(cRes)-2 )
    ENDIF
@@ -250,7 +251,7 @@ FUNCTION eGUI_EvalFunc( cCode )
 FUNCTION eGUI_GetValues( oWnd, aNames )
 
    LOCAL cRes, arr
-   cRes := Send2SocketOut( '+' + hb_jsonEncode( { "getvalues", oWnd:cName, aNames } ) + cn )
+   cRes := SendOut( hb_jsonEncode( { "getvalues", oWnd:cName, aNames } ) )
    IF !Empty(cRes)
       hb_jsonDecode( cRes, @arr )
       RETURN arr
@@ -260,71 +261,88 @@ FUNCTION eGUI_GetValues( oWnd, aNames )
 
 FUNCTION eGUI_MsgInfo( cMessage, cTitle, cFunc, cName )
 
-   Send2SocketOut( '+' + hb_jsonEncode( { "common", "minfo", cFunc, cName, cMessage, cTitle } ) + cn )
+   SendOut( hb_jsonEncode( { "common", "minfo", cFunc, cName, cMessage, cTitle } ) )
 
    RETURN Nil
 
 FUNCTION eGUI_MsgStop( cMessage, cTitle, cFunc, cName )
 
-   Send2SocketOut( '+' + hb_jsonEncode( { "common", "mstop", cFunc, cName, cMessage, cTitle } ) + cn )
+   SendOut( hb_jsonEncode( { "common", "mstop", cFunc, cName, cMessage, cTitle } ) )
 
    RETURN Nil
 
 FUNCTION eGUI_MsgYesNo( cMessage, cTitle, cFunc, cName )
 
-   Send2SocketOut( '+' + hb_jsonEncode( { "common", "myesno", cFunc, cName, cMessage, cTitle } ) + cn )
+   SendOut( hb_jsonEncode( { "common", "myesno", cFunc, cName, cMessage, cTitle } ) )
 
    RETURN Nil
 
 FUNCTION eGUI_MsgGet( cMessage, cTitle, nStyle, cFunc, cName )
 
    nStyle := Iif( Empty(nStyle), 0, nStyle )
-   Send2SocketOut( '+' + hb_jsonEncode( { "common", "myesno", cFunc, cName, cMessage, cTitle, nStyle } ) + cn )
+   SendOut( hb_jsonEncode( { "common", "myesno", cFunc, cName, cMessage, cTitle, nStyle } ) )
 
    RETURN Nil
 
 FUNCTION eGUI_Choice( arr, cTitle, cFunc, cName )
 
-   Send2SocketOut( '+' + hb_jsonEncode( { "common", "mchoi", cFunc, cName, arr, cTitle } ) + cn )
+   SendOut( hb_jsonEncode( { "common", "mchoi", cFunc, cName, arr, cTitle } ) )
 
    RETURN Nil
 
 FUNCTION eGUI_SelectFile( cPath, cFunc, cName )
 
-   Send2SocketOut( '+' + hb_jsonEncode( { "common", "cfile", cFunc, cName, cPath } ) + cn )
+   SendOut( hb_jsonEncode( { "common", "cfile", cFunc, cName, cPath } ) )
 
    RETURN Nil
 
 FUNCTION eGUI_SelectColor( nColor, cFunc, cName )
 
-   Send2SocketOut( '+' + hb_jsonEncode( { "common", "ccolor", cFunc, cName, nColor } ) + cn )
+   SendOut( hb_jsonEncode( { "common", "ccolor", cFunc, cName, nColor } ) )
 
    RETURN Nil
 
 FUNCTION eGUI_SelectFont( cFunc, cName )
 
    LOCAL oFont := EFont():New( cName )
-   Send2SocketOut( '+' + hb_jsonEncode( { "common", "cfont", cFunc, oFont:cName } ) + cn )
+   SendOut( hb_jsonEncode( { "common", "cfont", cFunc, oFont:cName } ) )
 
    RETURN Nil
 
 FUNCTION eGUI_SetImagePath( cPath )
 
-   Send2SocketOut( '+' + hb_jsonEncode( { "setparam", "bmppath", cPath } ) + cn )
+   SendOut( hb_jsonEncode( { "setparam", "bmppath", cPath } ) )
 
    RETURN Nil
 
 FUNCTION eGUI_SetPath( cPath )
 
-   Send2SocketOut( '+' + hb_jsonEncode( { "setparam", "path", cPath } ) + cn )
+   SendOut( hb_jsonEncode( { "setparam", "path", cPath } ) )
+
+   RETURN Nil
+
+FUNCTION SendOut( s )
+
+   IF lPacket
+      cPacketBuff += ',' + s
+   ELSE
+      RETURN Send2SocketOut( '+' + s + cn )
+   ENDIF
 
    RETURN Nil
 
 FUNCTION eGUI_StartPacket()
 
+   lPacket := .T.
+   cPacketBuff := '["packet"'
+
    RETURN Nil
 
 FUNCTION eGUI_EndPacket()
+
+   lPacket := .F.
+   SendOut( cPacketBuff + ']' )
+   cPacketBuff := ""
 
    RETURN Nil
 

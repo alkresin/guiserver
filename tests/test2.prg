@@ -94,6 +94,7 @@ FUNCTION openfile()
 
    LOCAL oFont, arr1 := { "First", "Second", "Third"}
 
+   eGUI_StartPacket()
    oFont := eGUI_CreateFont( "f1", "Georgia", 22 )
    oDlg := eGUI_InitDialog( 300, 200, 220, 400, "GetValues", {{"Font",oFont}} )
 
@@ -114,6 +115,7 @@ FUNCTION openfile()
    oLastWidget:SetCallbackProc( "onclick","fclose" )
 
    eGUI_ActivateDialog()
+   eGUI_EndPacket()
 
    RETURN Nil
 

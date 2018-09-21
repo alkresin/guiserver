@@ -165,7 +165,7 @@ METHOD AddWidget( cWidg, cName, x1, y1, w, h, cTitle, aProps ) CLASS EWidget
 
    s := '["addwidg","' + cWidg + '","' + FullWidgName( oWidg ) + '",' + ;
          hb_jsonEncode({ x1,y1,w,h,cTitle}) + sProps + "]"
-   Send2SocketOut( '+' + s + cn )
+   SendOut( s )
 
    RETURN oWidg
 
@@ -174,27 +174,27 @@ METHOD SetText( cText ) CLASS EWidget
    LOCAL cName := FullWidgName( Self )
 
    ::cTitle := cText
-   Send2SocketOut( '+' + hb_jsonEncode( { "set", cName, "text", cText } ) + cn )
+   SendOut( hb_jsonEncode( { "set", cName, "text", cText } ) )
    RETURN Nil
 
 METHOD SetColor( tColor, bColor ) CLASS EWidget
 
    LOCAL cName := FullWidgName( Self )
 
-   Send2SocketOut( '+' + hb_jsonEncode( { "set", cName, "color", {tColor,bColor} } ) + cn )
+   SendOut( hb_jsonEncode( { "set", cName, "color", {tColor,bColor} } ) )
    RETURN Nil
 
 METHOD SetFont( oFont ) CLASS EWidget
    LOCAL cName := FullWidgName( Self )
 
-   Send2SocketOut( '+' + hb_jsonEncode( { "set", cName, "font", oFont:cName } ) + cn )
+   SendOut( hb_jsonEncode( { "set", cName, "font", oFont:cName } ) )
    RETURN Nil
 
 METHOD GetText() CLASS EWidget
 
    LOCAL cName := FullWidgName( Self ), cRes
 
-   cRes := Send2SocketOut( '+' + hb_jsonEncode( { "get", cName, "text" } ) + cn )
+   cRes := SendOut( hb_jsonEncode( { "get", cName, "text" } ) )
    ::cTitle := Substr( cRes,2,Len(cRes)-2 )
 
    RETURN ::cTitle
@@ -203,7 +203,7 @@ METHOD SetImage( cImage ) CLASS EWidget
 
    LOCAL cName := FullWidgName( Self )
 
-   Send2SocketOut( '+' + hb_jsonEncode( { "set", cName, "image", cImage } ) + cn )
+   SendOut( hb_jsonEncode( { "set", cName, "image", cImage } ) )
 
    RETURN Nil
 
@@ -221,7 +221,7 @@ METHOD SetCallbackProc( cbName, cProc, ... ) CLASS EWidget
       cCode := arr[3]
    ENDIF
 
-   Send2SocketOut( '+' + hb_jsonEncode( { "set", cName, "cb." + Lower(cbName), cCode } ) + cn )
+   SendOut( hb_jsonEncode( { "set", cName, "cb." + Lower(cbName), cCode } ) )
 
    RETURN Nil
 
@@ -240,7 +240,7 @@ METHOD SetCallbackFunc( cbName, cFunc, ... ) CLASS EWidget
       cCode := arr[3]
    ENDIF
 
-   Send2SocketOut( '+' + hb_jsonEncode( { "set", cName, "cb." + Lower(cbName), cCode } ) + cn )
+   SendOut( hb_jsonEncode( { "set", cName, "cb." + Lower(cbName), cCode } ) )
 
    RETURN Nil
 
@@ -289,7 +289,7 @@ METHOD Delete() CLASS EWindow
 METHOD Close() CLASS EWindow
 
    IF ::cType == "main" .OR. ::cType == "dialog"
-      Send2SocketOut( '+' + hb_jsonEncode( { "close", ::cName } ) + cn )
+      SendOut( hb_jsonEncode( { "close", ::cName } ) )
    ENDIF
 
    RETURN Nil

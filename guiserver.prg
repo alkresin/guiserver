@@ -485,6 +485,18 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
                bSize,, tcolor, bcolor, aLeft, aRight, nFrom, nTo )
       ENDIF
       EXIT
+
+   CASE 'u'
+      IF cWidg == "updown"
+         IF !Empty( hash )
+            nFrom := hb_hGetDef( hash, "From", Nil )
+            nTo := hb_hGetDef( hash, "To", Nil )
+         ENDIF
+         oCtrl := HUpDown():New( oParent,,,, nStyle, x1, y1, w, h, ;
+            oFont,, bSize,,,, cTooltip, tcolor, bcolor,, nFrom, nTo )
+      ENDIF
+      EXIT
+
    END
 
    IF !Empty(cName) .AND. !Empty(oCtrl)
@@ -844,38 +856,24 @@ STATIC FUNCTION TimerFunc()
    CheckSocket()
    RETURN Nil
 
-FUNCTION MainHandler()
 
-   LOCAL cBuffer := GetRecvBuffer()
-   LOCAL arr, c, cCommand, cRes
-   LOCAL oForm, oWnd, lErr := .F.
+STATIC FUNCTION Parse( arr, lPacket )
 
-   gWritelog( "> "+ cBuffer )
+   LOCAL cCommand := Lower( arr[1] ), c := Left( cCommand, 1 )
+   LOCAL oForm, oWnd, lErr := .F., cRes, i
 
-   hb_jsonDecode( cBuffer, @arr )
-   IF Valtype(arr) != "A" .OR. Empty(arr)
-      Send2SocketIn( "+Wrong" + cn )
-      RETURN Nil
-   ENDIF
-
-   cCommand := Lower( arr[1] )
-   c := Left( cCommand, 1 )
    SWITCH c
    CASE 's'
       IF cCommand == "set"
          lErr := ( Len(arr)<4 )
-         IF lErr
-            Send2SocketIn( "+Err" + cn )
-         ELSE
-            Send2SocketIn( "+Ok" + cn )
+         IF !lErr
+            IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
             SetProperty( Lower(arr[2]), Lower(arr[3]),  arr[4] )
          ENDIF
       ELSEIF cCommand == "setparam"
          lErr := ( Len(arr)<3 )
-         IF lErr
-            Send2SocketIn( "+Err" + cn )
-         ELSE
-            Send2SocketIn( "+Ok" + cn )
+         IF !lErr
+            IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
             SetParam( Lower(arr[2]), arr[3] )
          ENDIF
       ENDIF
@@ -884,18 +882,14 @@ FUNCTION MainHandler()
    CASE 'g'
       IF cCommand == "get"
          lErr := ( Len(arr)<3 )
-         IF lErr
-            Send2SocketIn( "+Err" + cn )
-         ELSE
+         IF !lErr
             cRes := GetProperty( arr[2], Lower(arr[3]) )
             Send2SocketIn( "+" + hb_jsonEncode(cRes) + cn )
          ENDIF
 
       ELSEIF cCommand == "getvalues"
          lErr := ( Len(arr)<3 )
-         IF lErr
-            Send2SocketIn( "+Err" + cn )
-         ELSE
+         IF !lErr
             arr := GetValues( arr[2], arr[3] )
             Send2SocketIn( "+" + hb_jsonEncode(arr) + cn )
          ENDIF
@@ -906,18 +900,14 @@ FUNCTION MainHandler()
       IF cCommand == "addwidg"
 
          lErr := ( Len(arr)<4 )
-         IF lErr
-            Send2SocketIn( "+Err" + cn )
-         ELSE
-            Send2SocketIn( "+Ok" + cn )
+         IF !lErr
+            IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
             AddWidget( Lower(arr[2]), Lower(arr[3]),  arr[4], Iif( Len(arr)>4,arr[5],Nil ) )
          ENDIF
       ELSEIF cCommand == "actmainwnd"
          lErr := ( Len(arr)<2 )
-         IF lErr
-            Send2SocketIn( "+Err" + cn )
-         ELSE
-            Send2SocketIn( "+Ok" + cn )
+         IF !lErr
+            IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
             ActMainWnd( arr[2] )
             lEnd := .T.
          ENDIF
@@ -925,10 +915,8 @@ FUNCTION MainHandler()
       ELSEIF cCommand == "actdialog"
 
          lErr := ( Len(arr)<3 .OR. Valtype(arr[2]) != "C" .OR. Valtype(arr[3]) != "C" )
-         IF lErr
-            Send2SocketIn( "+Err" + cn )
-         ELSE
-            Send2SocketIn( "+Ok" + cn )
+         IF !lErr
+            IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
             ActDialog( arr[2], arr[3] )
             lEnd := .T.
          ENDIF
@@ -939,14 +927,12 @@ FUNCTION MainHandler()
    CASE 'e'
       IF cCommand == "evalcode"
          lErr := ( Len(arr)<2 )
-         IF lErr
-            Send2SocketIn( "+Err" + cn )
-         ELSE
+         IF !lErr
             IF Len( arr ) > 2 .AND. Lower( arr[3] ) == "t"
                cRes := DoScript( RdScript( ,arr[2] ) )
                Send2SocketIn( "+" + hb_jsonEncode(cRes) + cn )
             ELSE
-               Send2SocketIn( "+Ok" + cn )
+               IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
                DoScript( RdScript( ,arr[2] ) )
             ENDIF
          ENDIF
@@ -955,39 +941,33 @@ FUNCTION MainHandler()
          IF ( oWnd := HWindow():GetMain() ) != Nil
             oWnd:Close()
          ENDIF
-         Send2SocketIn( "+Ok" + cn )
-         ENDIF
+         IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
+      ENDIF
       EXIT
 
    CASE 'o'
       IF cCommand == "openform"
          lErr := ( Len(arr)<2 )
-         IF lErr
-            Send2SocketIn( "+Err" + cn )
-         ELSE
+         IF !lErr
+            IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
             oForm := HFormTmpl():Read( arr[2] )
-            Send2SocketIn( "+Ok" + cn )
             oForm:Show()
          ENDIF
       ELSEIF cCommand == "openformmain"
          lErr := ( Len(arr)<2 )
-         IF lErr
-            Send2SocketIn( "+Err" + cn )
-         ELSE
+         IF !lErr
+            IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
             oForm := HFormTmpl():Read( arr[2] )
             SetFormTimer( oForm )
-            Send2SocketIn( "+Ok" + cn )
             oForm:ShowMain()
             lEnd := .T.
          ENDIF
 
       ELSEIF cCommand == "openreport"
          lErr := ( Len(arr)<2 )
-         IF lErr
-            Send2SocketIn( "+Err" + cn )
-         ELSE
+         IF !lErr
+            IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
             oForm := HRepTmpl():Read( arr[2] )
-            Send2SocketIn( "+Ok" + cn )
             oForm:Print()
          ENDIF
       ENDIF
@@ -996,10 +976,8 @@ FUNCTION MainHandler()
    CASE 'm'
       IF cCommand == "menu"
          lErr := ( Len(arr)<2 )
-         IF lErr
-            Send2SocketIn( "+Err" + cn )
-         ELSE
-            Send2SocketIn( "+Ok" + cn )
+         IF !lErr
+            IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
             SetMenu( arr[2] )
          ENDIF
       ENDIF
@@ -1008,10 +986,8 @@ FUNCTION MainHandler()
    CASE 'c'
       IF cCommand == "common"
          lErr := ( Len(arr)<4 )
-         IF lErr
-            Send2SocketIn( "+Err" + cn )
-         ELSE
-            Send2SocketIn( "+Ok" + cn )
+         IF !lErr
+            IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
             IF arr[2] == "minfo"
                f_MsgInfo( Iif(Len(arr)>4,arr[5],""), Iif(Len(arr)>5,arr[6],""), arr[3], arr[4] )
             ELSEIF arr[2] == "mstop"
@@ -1033,55 +1009,77 @@ FUNCTION MainHandler()
 
       ELSEIF cCommand == "crmainwnd"
          lErr := ( Len(arr)<2 )
-         IF lErr
-            Send2SocketIn( "+Err" + cn )
-         ELSE
-            Send2SocketIn( "+Ok" + cn )
+         IF !lErr
+            IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
             CrMainWnd( arr[2], Iif( Len(arr)>2,arr[3],Nil ) )
          ENDIF
       ELSEIF cCommand == "crdialog"
          lErr := ( Len(arr)<3 .OR. Valtype(arr[2]) != "C" .OR. Valtype(arr[3]) != "A" )
-         IF lErr
-            Send2SocketIn( "+Err" + cn )
-         ELSE
-            Send2SocketIn( "+Ok" + cn )
+         IF !lErr
+            IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
             CrDialog( arr[2], arr[3], Iif( Len(arr)>3,arr[4],Nil ) )
          ENDIF
       ELSEIF cCommand == "close"
          lErr := ( Len(arr)<2 )
-         IF lErr
-            Send2SocketIn( "+Err" + cn )
-         ELSE
-            Send2SocketIn( "+Ok" + cn )
+         IF !lErr
+            IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
             WinClose( arr[2] )
          ENDIF
 
       ELSEIF cCommand == "crfont"
          lErr := ( Len(arr)<9 )
-         IF lErr
-            Send2SocketIn( "+Err" + cn )
-         ELSE
-            Send2SocketIn( "+Ok" + cn )
+         IF !lErr
+            IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
             CrFont( arr[2], arr[3], arr[4], arr[5], arr[6], arr[7], arr[8], arr[9] )
          ENDIF
 
       ELSEIF cCommand == "crstyle"
          lErr := ( Len(arr)<8 )
-         IF lErr
-            Send2SocketIn( "+Err" + cn )
-         ELSE
-            Send2SocketIn( "+Ok" + cn )
+         IF !lErr
+            IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
             CrStyle( arr[2], arr[3], arr[4], arr[5], arr[6], arr[7], arr[8] )
+         ENDIF
+      ENDIF
+      EXIT
+
+   CASE 'p'
+      IF cCommand == "packet"
+         lErr := lPacket
+         IF !lErr
+            Send2SocketIn( "+Ok" + cn )
+            FOR i := 2 TO Len( arr )
+               IF Valtype(arr[i]) != "A" .OR. !Parse( arr[i], .T. )
+                  RETURN .F.
+               ENDIF
+            NEXT
          ENDIF
       ENDIF
       EXIT
 
    OTHERWISE
       lErr := .T.
-      Send2SocketIn( "+Wrong" + cn )
 
    END
-   IF lErr
+
+   IF lErr .AND. !lPacket
+      Send2SocketIn( "+Err" + cn )
+   ENDIF
+
+   RETURN !lErr
+
+FUNCTION MainHandler()
+
+   LOCAL arr, cBuffer := GetRecvBuffer()
+
+   gWritelog( "> "+ cBuffer )
+
+   hb_jsonDecode( cBuffer, @arr )
+   IF Valtype(arr) != "A" .OR. Empty(arr)
+      Send2SocketIn( "+Wrong" + cn )
+      RETURN Nil
+   ENDIF
+ 
+   IF !Parse( arr, .F. )
       gWritelog( "Parsing error" )
    ENDIF
 
