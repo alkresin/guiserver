@@ -107,6 +107,8 @@ STATIC FUNCTION CnvVal( xRes )
       cRes := "Nil"
    ELSEIF cRes == "C"
       cRes := xRes
+   ELSEIF cRes == "L"
+      cRes := Iif( xRes, "t", "f" )
    ELSE
       cRes := Trim( Transform( xReS, "@B" ) )
    ENDIF
@@ -328,7 +330,7 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
    LOCAL nStyle, tColor, bColor, cTooltip, cPicture, lTransp, bSize, oFont, oStyle
    LOCAL cImage, lResou, trColor, aItems, lEdit, lText, nDisplay, lVert
    LOCAL lFlat, lCheck, aStyles, aParts
-   LOCAL aLeft, aRight, nFrom, nTo
+   LOCAL aLeft, aRight, nInit, nFrom, nTo
 
    oParent := GetWidg( Left( cName, nPos-1 ) )
    cName := Substr( cName, nPos+1 )
@@ -489,10 +491,11 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
    CASE 'u'
       IF cWidg == "updown"
          IF !Empty( hash )
+            nInit := hb_hGetDef( hash, "Init", 0 )
             nFrom := hb_hGetDef( hash, "From", Nil )
             nTo := hb_hGetDef( hash, "To", Nil )
          ENDIF
-         oCtrl := HUpDown():New( oParent,,,, nStyle, x1, y1, w, h, ;
+         oCtrl := HUpDown():New( oParent,, nInit,, nStyle, x1, y1, w, h, ;
             oFont,, bSize,,,, cTooltip, tcolor, bcolor,, nFrom, nTo )
       ENDIF
       EXIT
