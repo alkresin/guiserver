@@ -599,6 +599,8 @@ STATIC FUNCTION SetCallback( oWidg, cbName, cCode )
       oWidg:bClick := block
    ELSEIF cbName == "onsize"
       oWidg:bSize := block
+   ELSEIF cbName == "onpaint"
+      oWidg:bPaint := block
    ENDIF
 
    RETURN .T.
