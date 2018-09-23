@@ -462,12 +462,12 @@ FUNCTION eGUI_GetWidg( cWidgName )
    cWidgName := Lower(Substr( cWidgName, nPos+1 ))
 
    IF !Empty( oWnd := eGUI_GetWnd( cWnd ) )
-      IF (nPos := At( ".", cWidgName )) != 0
+      DO WHILE (nPos := At( ".", cWidgName )) != 0
          IF ( oWnd := GetItemByName( oWnd:aWidgets, Left( cWidgName, nPos-1 ) ) ) == Nil
             RETURN Nil
          ENDIF
          cWidgName := Substr( cWidgName, nPos+1 )
-      ENDIF
+      ENDDO
       RETURN GetItemByName( oWnd:aWidgets, cWidgName )
    ENDIF
 

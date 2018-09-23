@@ -469,15 +469,15 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
       IF cWidg == "splitter"
          IF !Empty( hash )
             IF hb_hHaskey( hash, "ALeft" )
-               aLeft := hash["ALefts"]
+               aLeft := hash["ALeft"]
                FOR i := 1 TO Len( aLeft )
-                  aLeft[i] := GetWidg( aLeft[i] )
+                  aLeft[i] := GetWidg( aLeft[i], oParent )
                NEXT
             ENDIF
             IF hb_hHaskey( hash, "ARight" )
                aRight := hash["ARight"]
                FOR i := 1 TO Len( aRight )
-                  aRight[i] := GetWidg( aRight[i] )
+                  aRight[i] := GetWidg( aRight[i], oParent )
                NEXT
             ENDIF
             nFrom := hb_hGetDef( hash, "From", Nil )
@@ -570,7 +570,9 @@ STATIC FUNCTION SetCB( oWidg, cCode )
       Return DoScript( aScript, {oWidg} )
    }
 
-   IF cn $ cCode
+   IF Left(cCode,1) == '{'
+      block := &( cCode )
+   ELSEIF cn $ cCode
       aScript := RdScript( ,cCode )
    ELSE
       cCode := AllTrim(cCode)
@@ -595,6 +597,8 @@ STATIC FUNCTION SetCallback( oWidg, cbName, cCode )
       oWidg:bInit := block
    ELSEIF cbName == "onclick"
       oWidg:bClick := block
+   ELSEIF cbName == "onsize"
+      oWidg:bSize := block
    ENDIF
 
    RETURN .T.
@@ -789,19 +793,21 @@ FUNCTION GetWidg( cWidgName, oWnd )
       ENDIF
    ELSE
       cWidgName := Upper( cWidgName )
+      IF (nPos := Rat( ".", cWidgName )) != 0
+         cWidgName := Substr( cWidgName, nPos+1 )
+      ENDIF
    ENDIF
    IF !Empty( oWnd )
-      IF (nPos := At( ".", cWidgName )) != 0
+      DO WHILE (nPos := At( ".", cWidgName )) != 0
          IF ( oWnd := GetItemByName( oWnd:aControls, Left( cWidgName, nPos-1 ) ) ) == Nil
             RETURN Nil
          ENDIF
          cWidgName := Substr( cWidgName, nPos+1 )
-      ENDIF
+      ENDDO
       RETURN GetItemByName( oWnd:aControls, cWidgName )
    ENDIF
 
    RETURN Nil
-
 
 STATIC FUNCTION SetFormTimer( oForm )
 
