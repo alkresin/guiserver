@@ -350,9 +350,6 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
       lTransp := Iif( hb_hHaskey( hash, "Transpa" ), .T., Nil )
       cImage := hb_hGetDef( hash, "Image", Nil )
       lVert := Iif( hb_hHaskey( hash, "Vertical" ), .T., Nil )
-      IF hb_hHaskey( hash, "AItems" )
-         aItems := hash["AItems"]
-      ENDIF
       IF hb_hHaskey( hash, "Font" )
          oFont := GetFont( hash["Font"] )
       ENDIF
@@ -400,6 +397,11 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
                cCaption, oFont,, bSize,,, cTooltip, tColor, bColor,, lTransp )
       ELSEIF cWidg == "combo"
 
+         IF !Empty( hash )
+            IF hb_hHaskey( hash, "AItems" )
+               aItems := hash["AItems"]
+            ENDIF
+         ENDIF
          oCtrl := HCombobox():New( oParent,,,, nStyle, x1, y1, w, h, ;
                aItems, oFont,, bSize,,, cTooltip, lEdit, lText,, tcolor, bcolor,, nDisplay )
       ENDIF
@@ -488,6 +490,19 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
       ENDIF
       EXIT
 
+   CASE 't'
+      IF cWidg == "tree"
+         IF !Empty( hash )
+            lEdit := hb_hGetDef( hash, "Editlabel", Nil )
+            IF hb_hHaskey( hash, "AImages" )
+               aItems := hash["AImages"]
+            ENDIF
+         ENDIF
+         oCtrl := HTree():New( oParent,, nStyle, x1, y1, w, h, oFont,, ;
+            bSize, tcolor, bcolor, aItems, lResou, lEdit )
+      ENDIF
+      EXIT
+
    CASE 'u'
       IF cWidg == "updown"
          IF !Empty( hash )
@@ -510,7 +525,7 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
 
 STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
 
-   LOCAL oWnd, lWidg := .T.
+   LOCAL oWnd, lWidg := .T., o
 
    //A window or a dialog ?
    lWidg := ("." $ cWidgName)
@@ -560,6 +575,18 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
       IF __ObjHasMsg( oWnd, "REPLACEBITMAP" )
          oWnd:ReplaceBitmap( xProp )
       ENDIF
+
+   ELSEIF cPropName == "node"
+      IF __ObjHasMsg( oWnd, "ADDNODE" ) .AND. Valtype(xProp) == "A"
+         o := Iif( Empty(xProp[1]), oWnd, GetNode( oWnd,xProp[1] ) )
+         IF !Empty( o )
+            o := o:AddNode( xProp[3], Iif( Empty(xProp[4]), Nil, GetNode(o,xProp[4]) ), ;
+               Iif( Empty(xProp[5]), Nil, GetNode(o,xProp[5]) ),, ;
+               Iif( Empty(xProp[6]), Nil, xProp[6] ) )
+            o:objName := xProp[2]
+         ENDIF
+      ENDIF
+
    ENDIF
 
    RETURN .T.
@@ -808,6 +835,23 @@ FUNCTION GetWidg( cWidgName, oWnd )
       ENDDO
       RETURN GetItemByName( oWnd:aControls, cWidgName )
    ENDIF
+
+   RETURN Nil
+
+STATIC FUNCTION GetNode( o, cNodeName )
+
+   LOCAL aItems := o:aItems, i, nlen := Len( aItems ), oNode
+
+   FOR i := 1 TO nlen
+      IF aItems[i]:objname == cNodeName
+         RETURN aItems[i]
+      ELSEIF ! Empty( aItems[i]:aItems )
+         IF ( oNode := GetNode( aItems[i],cNodeName ) ) != Nil
+            RETURN oNode
+         ENDIF
+      ENDIF
+   NEXT
+   RETURN Nil
 
    RETURN Nil
 

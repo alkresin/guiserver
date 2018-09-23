@@ -298,12 +298,3 @@ METHOD GetText() CLASS EWindow
 
    RETURN ::cTitle
 
-STATIC FUNCTION FullWidgName( oWidg )
-
-   LOCAL cName := oWidg:cName
-   DO WHILE !Empty( oWidg:oParent )
-      oWidg := oWidg:oParent
-      cName := oWidg:cName + "." + cName
-   ENDDO
-
-   RETURN cName

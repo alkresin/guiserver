@@ -36,6 +36,6 @@ FUNCTION Main
 
 FUNCTION openfile()
 
-   eGUI_OpenForm( "..\forms\testget2.xml" )
+   eGUI_OpenForm( "forms\testget2.xml" )
 
    RETURN Nil

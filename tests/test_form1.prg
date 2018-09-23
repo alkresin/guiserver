@@ -10,7 +10,7 @@ FUNCTION Main
 
    eGUI_Init()
 
-   eGUI_OpenMainForm( "..\forms\example.xml" )
+   eGUI_OpenMainForm( "forms\example.xml" )
 
    eGUI_Exit()
 

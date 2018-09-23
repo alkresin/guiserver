@@ -309,6 +309,14 @@ FUNCTION eGUI_SelectFont( cFunc, cName )
 
    RETURN Nil
 
+FUNCTION eGUI_InsertNode( oTree, cNodeName, cNodeNew, cTitle, cNodePrev, cNodeNext, aImages )
+
+   LOCAL cName := FullWidgName( oTree )
+
+   SendOut( hb_jsonEncode( { "set", cName, "node", {cNodeName,cNodeNew,cTitle,cNodePrev,cNodeNext,aImages} } ) )
+
+   RETURN Nil
+
 FUNCTION eGUI_SetImagePath( cPath )
 
    SendOut( hb_jsonEncode( { "setparam", "bmppath", cPath } ) )
@@ -412,6 +420,10 @@ FUNCTION setprops( aProps )
             sProps += ',"From": ' + Ltrim(Str(aProps[i,2]))
          ELSEIF cProp == "to"
             sProps += ',"To": ' + Ltrim(Str(aProps[i,2]))
+         ELSEIF cProp == "aimages"
+            sProps += ',"AImages": ' + hb_jsonEncode(aProps[i,2])
+         ELSEIF cProp == "editlabel"
+            sProps += ',"Editlabel": "t"'
          ENDIF
       NEXT
       IF !Empty( sProps )
@@ -472,6 +484,17 @@ FUNCTION eGUI_GetWidg( cWidgName )
    ENDIF
 
    RETURN Nil
+
+FUNCTION FullWidgName( oWidg )
+
+   LOCAL cName := oWidg:cName
+   DO WHILE !Empty( oWidg:oParent )
+      oWidg := oWidg:oParent
+      cName := oWidg:cName + "." + cName
+   ENDDO
+
+   RETURN cName
+
 
 FUNCTION GUIHandler()
 
