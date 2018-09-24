@@ -640,6 +640,10 @@ STATIC FUNCTION SetCallback( oWidg, cbName, cCode )
       oWidg:bSize := block
    ELSEIF cbName == "onpaint"
       oWidg:bPaint := block
+   ELSEIF cbName == "onrclick"
+      oWidg:bRClick := block
+   ELSEIF cbName == "ondblclick"
+      oWidg:bdblClick := block
    ELSE
       gWritelog( "Wrong event name" )
    ENDIF
