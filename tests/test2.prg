@@ -24,7 +24,7 @@ Memvar oLastWidget
 FUNCTION Main
 
    LOCAL oMainWindow, oPane, oEdi, oTree, oStyle1, oStyle2, oStyle3, oStyle4
-   LOCAL cInitString := ""
+   LOCAL cInitString := Memoread( "test.ini" )
 
    IF !eGUI_Init( cInitString )
       ? "No connection..."
@@ -46,10 +46,11 @@ FUNCTION Main
    oPane:AddWidget( "ownbtn",, 0,0, 64, 36, "Date", {{"HStyles",{oStyle1,oStyle2,oStyle3}}} )
    oLastWidget:SetCallbackProc( "onclick",, "hwg_WriteStatus(HWindow():GetMain(),1,Dtoc(Date()),.T.)" )
 
-   oPane := oMainWindow:AddWidget( "panel",, 0, 40, 200, 208 )
-   oPane:SetCallBackProc( "onsize",, "{|o,x,y|o:Move(,,,y-72)}")
+   //oPane := oMainWindow:AddWidget( "panel",, 0, 40, 200, 208 )
+   //oPane:SetCallBackProc( "onsize",, "{|o,x,y|o:Move(,,,y-72)}")
 
-   oTree := oPane:AddWidget( "tree",, 0,0, 200, 200,, {{"AImages",{"cl_fl.bmp","op_fl.bmp"}}}  )
+   oTree := oMainWindow:AddWidget( "tree",, 0,40, 200, 208,, {{"AImages",{"cl_fl.bmp","op_fl.bmp"}}}  )
+   oTree:SetCallBackProc( "onsize",, "{|o,x,y|o:Move(,,,y-72)}")
    eGUI_InsertNode( oTree, "", "n1", "First" )
    eGUI_InsertNode( oTree, "", "n2", "Second" )
    eGUI_InsertNode( oTree, "n2", "n2a", "second-1" )
@@ -58,7 +59,7 @@ FUNCTION Main
    oEdi := oMainWindow:AddWidget( "edit","edim", 204,40, 196, 180,, {{"Winstyle",ES_MULTILINE}})
    oEdi:SetCallBackProc( "onsize",, "{|o,x,y|o:Move(,,x-o:nLeft,y-72)}")
 
-   oMainWindow:AddWidget( "splitter",, 200,40, 4, 208,, {{"ALeft",{oPane}},{"ARight",{oEdi}}} )
+   oMainWindow:AddWidget( "splitter",, 200,40, 4, 208,, {{"ALeft",{oTree}},{"ARight",{oEdi}}} )
    oLastWidget:SetCallbackProc( "onsize",, "{|o,x,y|o:Move(,,,y-72)}" )
 
    oMainWindow:AddWidget( "panelbot",, 0,0, 400, 32,, {{"HStyle",oStyle4},{"AParts",{120,120,0}}})

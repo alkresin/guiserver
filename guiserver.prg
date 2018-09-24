@@ -525,7 +525,7 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
 
 STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
 
-   LOCAL oWnd, lWidg := .T., o
+   LOCAL oWnd, lWidg := .T., o, lErr := .F.
 
    //A window or a dialog ?
    lWidg := ("." $ cWidgName)
@@ -538,7 +538,8 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
    IF Left( cPropName,3 ) == "cb."
       SetCallback( oWnd, Substr(cPropName,4), xProp )
    ELSEIF cPropName == "text"
-      IF Valtype(xProp) == "C"
+      lErr := !(Valtype(xProp) == "C")
+      IF !lErr
          IF lWidg
             oWnd:SetText( xProp )
          ELSE
@@ -554,13 +555,15 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
       ENDIF
 
    ELSEIF cPropName == "color"
-      IF Valtype(xProp) == "A"
+      lErr := !(Valtype(xProp) == "A")
+      IF !lErr
          oWnd:SetColor( Iif(xProp[1]!=Nil.AND.xProp[1]==-1,Nil,xProp[1]), ;
             Iif(xProp[2]!=Nil.AND.xProp[2]==-1,Nil,xProp[2]), .T. )
       ENDIF
 
    ELSEIF cPropName == "font"
-      IF Valtype(xProp) == "C" .AND. ( xProp := GetFont( xProp ) ) != Nil
+      lErr := !(Valtype(xProp) == "C" .AND. ( xProp := GetFont( xProp ) ) != Nil)
+      IF !lErr
          oWnd:oFont := xProp
          IF lWidg
 #ifdef __GTK__
@@ -572,12 +575,14 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
       ENDIF
 
    ELSEIF cPropName == "image"
-      IF __ObjHasMsg( oWnd, "REPLACEBITMAP" )
+      lErr := !( __ObjHasMsg( oWnd, "REPLACEBITMAP" ))
+      IF !lErr
          oWnd:ReplaceBitmap( xProp )
       ENDIF
 
    ELSEIF cPropName == "node"
-      IF __ObjHasMsg( oWnd, "ADDNODE" ) .AND. Valtype(xProp) == "A"
+      lErr := !(__ObjHasMsg( oWnd, "ADDNODE" ) .AND. Valtype(xProp) == "A")
+      IF !lErr
          o := Iif( Empty(xProp[1]), oWnd, GetNode( oWnd,xProp[1] ) )
          IF !Empty( o )
             o := o:AddNode( xProp[3], Iif( Empty(xProp[4]), Nil, GetNode(o,xProp[4]) ), ;
@@ -587,6 +592,12 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
          ENDIF
       ENDIF
 
+   ELSE
+      lErr := .T.
+   ENDIF
+
+   IF lErr
+      gWritelog( "Parameter error" )
    ENDIF
 
    RETURN .T.
@@ -615,6 +626,7 @@ STATIC FUNCTION SetCallback( oWidg, cbName, cCode )
 
    LOCAL block
    IF !__ObjHasMsg( oWidg, "B" + Substr(Upper(cbname),3) )
+      gWritelog( "Wrong event name" )
       RETURN .F.
    ENDIF
 
@@ -628,6 +640,8 @@ STATIC FUNCTION SetCallback( oWidg, cbName, cCode )
       oWidg:bSize := block
    ELSEIF cbName == "onpaint"
       oWidg:bPaint := block
+   ELSE
+      gWritelog( "Wrong event name" )
    ENDIF
 
    RETURN .T.
@@ -642,6 +656,8 @@ STATIC FUNCTION SetParam( cName, xValue )
       SET PATH TO &xValue
       cDefPath := xValue
 
+   ELSE
+      gWritelog( "Wrong parameter name" )
    ENDIF
 
    RETURN Nil
