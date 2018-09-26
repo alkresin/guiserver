@@ -309,11 +309,15 @@ FUNCTION eGUI_SelectFont( cFunc, cName )
 
    RETURN Nil
 
-FUNCTION eGUI_InsertNode( oTree, cNodeName, cNodeNew, cTitle, cNodePrev, cNodeNext, aImages )
+FUNCTION eGUI_InsertNode( oTree, cNodeName, cNodeNew, cTitle, cNodeNext, aImages, cProc, cCode )
 
    LOCAL cName := FullWidgName( oTree )
 
-   SendOut( hb_jsonEncode( { "set", cName, "node", {cNodeName,cNodeNew,cTitle,cNodePrev,cNodeNext,aImages} } ) )
+   IF !Empty( cProc )
+      cCode := 'pgo("' + cProc + '",{"' + cName + '","' + cNodeNew + '"})'
+   ENDIF
+
+   SendOut( hb_jsonEncode( { "set", cName, "node", {cNodeName,cNodeNew,cTitle,cNodeNext,aImages,cCode} } ) )
 
    RETURN Nil
 

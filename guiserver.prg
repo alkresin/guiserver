@@ -585,10 +585,12 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
       IF !lErr
          o := Iif( Empty(xProp[1]), oWnd, GetNode( oWnd,xProp[1] ) )
          IF !Empty( o )
-            o := o:AddNode( xProp[3], Iif( Empty(xProp[4]), Nil, GetNode(o,xProp[4]) ), ;
-               Iif( Empty(xProp[5]), Nil, GetNode(o,xProp[5]) ),, ;
-               Iif( Empty(xProp[6]), Nil, xProp[6] ) )
+            o := o:AddNode( xProp[3],, Iif( Empty(xProp[4]), Nil, GetNode(o,xProp[4]) ),, ;
+               Iif( Empty(xProp[5]), Nil, xProp[5] ) )
             o:objName := xProp[2]
+            IF !Empty( xProp[6] )
+               SetCallback( o, "onclick", xProp[6] )
+            ENDIF
          ENDIF
       ENDIF
 

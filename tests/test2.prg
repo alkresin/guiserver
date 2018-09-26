@@ -53,7 +53,7 @@ FUNCTION Main
    oTree:SetCallBackProc( "onsize",, "{|o,x,y|o:Move(,,,y-72)}")
    eGUI_InsertNode( oTree, "", "n1", "First" )
    eGUI_InsertNode( oTree, "", "n2", "Second" )
-   eGUI_InsertNode( oTree, "n2", "n2a", "second-1" )
+   eGUI_InsertNode( oTree, "n2", "n2a", "second-1",, {"book.bmp"},, "hwg_MsgInfo('n2a')" )
    eGUI_InsertNode( oTree, "", "n3", "Third" )
 
    oEdi := oMainWindow:AddWidget( "edit","edim", 204,40, 196, 180,, {{"Winstyle",ES_MULTILINE}})
