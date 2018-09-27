@@ -330,7 +330,8 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
    LOCAL nStyle, tColor, bColor, cTooltip, cPicture, lTransp, bSize, oFont, oStyle
    LOCAL cImage, lResou, trColor, aItems, lEdit, lText, nDisplay, lVert
    LOCAL lFlat, lCheck, aStyles, aParts
-   LOCAL aLeft, aRight, nInit, nFrom, nTo
+   LOCAL aLeft, aRight, nInit, nFrom, nTo, nMaxPos, nRange
+   LOCAL lNoVScroll, lNoBorder, lAppend, lAutoedit
 
    oParent := GetWidg( Left( cName, nPos-1 ) )
    cName := Substr( cName, nPos+1 )
@@ -387,6 +388,11 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
 
          oCtrl := HSayBmp():New( oParent,, x1, y1, w, h, cImage, lResou,,, cTooltip,,, ;
                lTransp,, trcolor, bColor )
+
+      ELSEIF cWidg == "browse"
+
+         oCtrl := HBrowse():New( 1, oParent,, nStyle, x1, y1, w, h, oFont, ;
+            , bSize,,,,, lNoVScroll, lNoBorder, lAppend, lAutoedit,,,,, )
       ENDIF
       EXIT
 
@@ -464,6 +470,13 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
             ENDIF
          ENDIF
          oCtrl := HPanelSts():New( oParent,, h, oFont,,, bcolor, oStyle, aParts )
+
+      ELSEIF cWidg == "progress"
+         IF !Empty( hash )
+            nMaxPos := hb_hGetDef( hash, "Maxpos", Nil )
+         ENDIF
+         oCtrl := HProgressBar():New( oParent,, x1, y1, w, h, nMaxPos, nMaxPos,, bSize,, cTooltip,, lVert )
+
       ENDIF
       EXIT
 
@@ -500,6 +513,9 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
          ENDIF
          oCtrl := HTree():New( oParent,, nStyle, x1, y1, w, h, oFont,, ;
             bSize, tcolor, bcolor, aItems, lResou, lEdit )
+
+      ELSEIF cWidg == "tab"
+         oCtrl := HTab():New( oParent,, nStyle, x1, y1, w, h, oFont,, bSize )
       ENDIF
       EXIT
 
@@ -592,6 +608,18 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
                SetCallback( o, "onclick", xProp[6] )
             ENDIF
          ENDIF
+      ENDIF
+
+   ELSEIF cPropName == "step"
+      lErr := !( __ObjHasMsg( oWnd, "STEP" ))
+      IF !lErr
+         oWnd:Step()
+      ENDIF
+
+   ELSEIF cPropName == "setval"
+      lErr := !( __ObjHasMsg( oWnd, "STEP" ))
+      IF !lErr
+         oWnd:Set( ,xProp )
       ENDIF
 
    ELSE

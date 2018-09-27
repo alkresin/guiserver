@@ -321,6 +321,22 @@ FUNCTION eGUI_InsertNode( oTree, cNodeName, cNodeNew, cTitle, cNodeNext, aImages
 
    RETURN Nil
 
+FUNCTION eGUI_PBarStep( oBar )
+
+   LOCAL cName := FullWidgName( oBar )
+
+   SendOut( hb_jsonEncode( { "set", cName, "step", 1 } ) )
+
+   RETURN Nil
+
+FUNCTION eGUI_PBarSet( oBar, nPos )
+
+   LOCAL cName := FullWidgName( oBar )
+
+   SendOut( hb_jsonEncode( { "set", cName, "setval", nPos } ) )
+
+   RETURN Nil
+
 FUNCTION eGUI_SetImagePath( cPath )
 
    SendOut( hb_jsonEncode( { "setparam", "bmppath", cPath } ) )
