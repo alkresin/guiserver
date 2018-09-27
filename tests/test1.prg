@@ -24,7 +24,7 @@ Memvar oLastWidget
 FUNCTION Main
 
    LOCAL oMainWindow, oPane, oStyle1, oStyle2, oStyle3, oStyle4
-   LOCAL cInitString := ""
+   LOCAL cInitString := Memoread( "test.ini" )
 
    IF !eGUI_Init( cInitString )
       ? "No connection..."
@@ -99,7 +99,9 @@ FUNCTION openfile()
    oDlg := eGUI_InitDialog( 300, 200, 220, 400, "GetValues", {{"Font",oFont}} )
 
    oDlg:AddWidget( "label",, 20,20, 180, 24, "Имя:" )
-   oEdi1 := oDlg:AddWidget( "edit","edi1", 20,44, 180, 26 )
+   oEdi1 := oDlg:AddWidget( "edit","edi1", 20,44, 120, 26 )
+   oDlg:AddWidget( "button",, 150, 44, 50, 26, "==" )
+   oLastWidget:SetCallbackProc( "onclick","fthird" )
 
    oDlg:AddWidget( "label",, 20,72, 180, 24, "Фамилия:" )
    oDlg:AddWidget( "edit","edi2", 20,96, 180, 26 )
@@ -128,6 +130,29 @@ FUNCTION fclose()
       ? arr[1], arr[2]
       ? arr[3]
    ENDIF
+   oDlg:Close()
+
+   RETURN Nil
+
+FUNCTION fthird()
+
+   LOCAL oDlg3
+
+   oDlg3 := eGUI_InitDialog( 100, 100, 220, 180, "3" )
+
+   oDlg3:AddWidget( "label",, 20,20, 180, 24, "Name:" )
+   oDlg3:AddWidget( "edit",, 20,44, 180, 26 )
+
+   oDlg3:AddWidget( "button",, 60, 120, 100, 32, "Set" )
+   oLastWidget:SetCallbackProc( "onclick","fclose3" )
+
+   eGUI_ActivateDialog()
+
+   RETURN Nil
+
+FUNCTION fclose3( arr )
+
+   LOCAL oDlg := eGUI_GetWidg(arr[1]):oParent
    oDlg:Close()
 
    RETURN Nil

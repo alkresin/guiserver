@@ -201,13 +201,6 @@ STATIC FUNCTION CrDialog( cName, arr, hash )
             ( Len(HDialog():aModalDialogs) + Len(HDialog():aDialogs) == 1 ))
             SET TIMER oMTimer OF oMainWnd VALUE nInterval ACTION {||TimerFunc()}
          ENDIF
-         /*
-         IF HWindow():GetMain() == Nil .AND. ;
-            ( Len(HDialog():aModalDialogs) + Len(HDialog():aDialogs) == 1 )
-            oMTimer:End()
-            oMTimer := Nil
-         ENDIF
-         */
          Send2SocketOut( '+["exit","' + o:objName + '"]' + cn )
       ENDIF
 
@@ -1014,8 +1007,8 @@ STATIC FUNCTION Parse( arr, lPacket )
          IF !lErr
             IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
             ActMainWnd( arr[2] )
-            lEnd := .T.
          ENDIF
+         lEnd := .T.
 
       ELSEIF cCommand == "actdialog"
 
@@ -1023,7 +1016,6 @@ STATIC FUNCTION Parse( arr, lPacket )
          IF !lErr
             IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
             ActDialog( arr[2], arr[3] )
-            lEnd := .T.
          ENDIF
          lEnd := .T.
       ENDIF
@@ -1058,6 +1050,8 @@ STATIC FUNCTION Parse( arr, lPacket )
             oForm := HFormTmpl():Read( arr[2] )
             oForm:Show()
          ENDIF
+         lEnd := .T.
+
       ELSEIF cCommand == "openformmain"
          lErr := ( Len(arr)<2 )
          IF !lErr
@@ -1065,8 +1059,8 @@ STATIC FUNCTION Parse( arr, lPacket )
             oForm := HFormTmpl():Read( arr[2] )
             SetFormTimer( oForm )
             oForm:ShowMain()
-            lEnd := .T.
          ENDIF
+         lEnd := .T.
 
       ELSEIF cCommand == "openreport"
          lErr := ( Len(arr)<2 )
