@@ -262,7 +262,7 @@ METHOD New( cType, cName, nTop, nLeft, nWidth, nHeight, cTitle ) CLASS EWindow
    IF cType == "main"
       ::oMain := Self
       cName := "main"
-   ELSEIF cType == "dialog"
+   ELSEIF cType == "dialog" .AND. Empty(cName)
       cName := "d" + Ltrim(Str(::nIdCount++))
    ENDIF
    ::cType := cType

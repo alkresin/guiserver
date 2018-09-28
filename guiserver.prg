@@ -615,6 +615,24 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
          oWnd:Set( ,xProp )
       ENDIF
 
+   ELSEIF cPropName == "radioend"
+      lErr := Valtype(oWnd:cargo) != "O" .OR. !( __ObjHasMsg( oWnd:cargo, "ENDGROUP" ))
+      IF !lErr
+         oWnd:cargo:EndGroup( xProp )
+      ENDIF
+
+   ELSEIF cPropName == "pagestart"
+      lErr := !( __ObjHasMsg( oWnd, "STARTPAGE" ))
+      IF !lErr
+         oWnd:StartPage( xProp )
+      ENDIF
+
+   ELSEIF cPropName == "pageend"
+      lErr := !( __ObjHasMsg( oWnd, "ENDPAGE" ))
+      IF !lErr
+         oWnd:EndPage()
+      ENDIF
+
    ELSE
       lErr := .T.
    ENDIF

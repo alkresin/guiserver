@@ -92,11 +92,11 @@ FUNCTION newfile( arr )
 
 FUNCTION openfile()
 
-   LOCAL oFont, arr1 := { "First", "Second", "Third"}
+   LOCAL oFont, o, arr1 := { "First", "Second", "Third"}
 
    eGUI_StartPacket()
    oFont := eGUI_CreateFont( "f1", "Georgia", 22 )
-   oDlg := eGUI_InitDialog( 300, 200, 220, 400, "GetValues", {{"Font",oFont}} )
+   oDlg := eGUI_InitDialog( "dlg1", 300, 200, 220, 400, "GetValues", {{"Font",oFont}} )
 
    oDlg:AddWidget( "label",, 20,20, 180, 24, "Имя:" )
    oEdi1 := oDlg:AddWidget( "edit","edi1", 20,44, 120, 26 )
@@ -106,9 +106,10 @@ FUNCTION openfile()
    oDlg:AddWidget( "label",, 20,72, 180, 24, "Фамилия:" )
    oDlg:AddWidget( "edit","edi2", 20,96, 180, 26 )
 
-   oDlg:AddWidget( "radiogr","rg", 20,130, 180, 80, "Group" )
+   o := oDlg:AddWidget( "radiogr","rg", 20,130, 180, 80, "Group" )
    oDlg:AddWidget( "radio",, 50,160, 120, 24, "radio1" )
    oDlg:AddWidget( "radio",, 50,186, 120, 24, "radio2" )
+   egui_RadioEnd( o,1 )
 
    oDlg:AddWidget( "combo",, 20,220, 180, 26,, {{"AItems",arr1}})
 
@@ -138,10 +139,10 @@ FUNCTION fthird()
 
    LOCAL oDlg3
 
-   oDlg3 := eGUI_InitDialog( 100, 100, 220, 180, "3" )
+   oDlg3 := eGUI_InitDialog( "dlg3", 100, 100, 220, 180, "3" )
 
    oDlg3:AddWidget( "label",, 20,20, 180, 24, "Name:" )
-   oDlg3:AddWidget( "edit",, 20,44, 180, 26 )
+   oDlg3:AddWidget( "edit", "edi", 20,44, 180, 26 )
 
    oDlg3:AddWidget( "button",, 60, 120, 100, 32, "Set" )
    oLastWidget:SetCallbackProc( "onclick","fclose3" )
@@ -153,6 +154,14 @@ FUNCTION fthird()
 FUNCTION fclose3( arr )
 
    LOCAL oDlg := eGUI_GetWidg(arr[1]):oParent
+   LOCAL oEdi := eGUI_GetWidg( "dlg3.edi" )
+   LOCAL oEdi1 := eGUI_GetWidg( "dlg1.edi1" )
+   LOCAL s := oEdi:GetText()
+
+   IF !Empty( s )
+      oEdi1:SetText( s )
+   ENDIF
+
    oDlg:Close()
 
    RETURN Nil

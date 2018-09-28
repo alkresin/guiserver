@@ -122,7 +122,7 @@ FUNCTION eGUI_ActivateMainWindow( lCenter )
 
    RETURN Nil
 
-FUNCTION eGUI_InitDialog( x1, y1, w, h, cTitle, aProps )
+FUNCTION eGUI_InitDialog( cName, x1, y1, w, h, cTitle, aProps )
 
    LOCAL oDlg, sProps, s
    IF Empty( x1 ); x1 := 0; ENDIF
@@ -131,7 +131,7 @@ FUNCTION eGUI_InitDialog( x1, y1, w, h, cTitle, aProps )
    IF Empty( h ); h := 100; ENDIF
    IF Empty( cTitle ); cTitle := ""; ENDIF
 
-   oLastWindow := oDlg := EWindow():New( "dialog", "", x1, y1, w, h, cTitle )
+   oLastWindow := oDlg := EWindow():New( "dialog", cName, x1, y1, w, h, cTitle )
    EWindow():oCurrWindow := oDlg
 
    sProps := setprops( aProps )
@@ -334,6 +334,30 @@ FUNCTION eGUI_PBarSet( oBar, nPos )
    LOCAL cName := FullWidgName( oBar )
 
    SendOut( hb_jsonEncode( { "set", cName, "setval", nPos } ) )
+
+   RETURN Nil
+
+FUNCTION eGUI_RadioEnd( oRg, nSelected )
+
+   LOCAL cName := FullWidgName( oRg )
+
+   SendOut( hb_jsonEncode( { "set", cName, "radioend", nSelected } ) )
+
+   RETURN Nil
+
+FUNCTION eGUI_TabPage( oTab, cCaption )
+
+   LOCAL cName := FullWidgName( oRg )
+
+   SendOut( hb_jsonEncode( { "set", cName, "pagestart", cCaption } ) )
+
+   RETURN Nil
+
+FUNCTION eGUI_TabPageEnd( oTab )
+
+   LOCAL cName := FullWidgName( oRg )
+
+   SendOut( hb_jsonEncode( { "set", cName, "pageend", 1 } ) )
 
    RETURN Nil
 
