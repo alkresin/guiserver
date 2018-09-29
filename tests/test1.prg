@@ -6,6 +6,8 @@
  * www - http://www.kresin.ru
  */
 
+#include "../extgui.ch"
+
 #define  CLR_LBLUE   16759929  // #79BCFF
 #define  CLR_LIGHT1  15132390
 #define  CLR_LIGHT2  12632256  // #C0C0C0
@@ -43,6 +45,7 @@ FUNCTION Main
       egui_Menu( "File" )
          eGUI_AddMenuItem( "New", "newfile", "New file item" )
          eGUI_AddMenuItem( "Open", "openfile" )
+         eGUI_AddMenuItem( "Browse", "fbrowse" )
          eGUI_AddMenuSeparator()
          eGUI_AddMenuItem( "msgbox", "mbox" )
          eGUI_AddMenuItem( "Select color", "SetLblColor" )
@@ -113,7 +116,7 @@ FUNCTION openfile()
 
    oDlg:AddWidget( "combo",, 20,220, 180, 26,, {{"AItems",arr1}})
 
-   oDlg:AddWidget( "button",, 50, 350, 100, 32, "Ok" )
+   oDlg:AddWidget( "button",, 50, 350, 100, 32, "Ok",{{"Anchor",ANCHOR_HORFIX+ANCHOR_BOTTOMABS}} )
    //oBtnOk:SetCallbackProc( "onclick",,"hwg_EndDialog()" )
    oLastWidget:SetCallbackProc( "onclick","fclose" )
 
@@ -165,6 +168,25 @@ FUNCTION fclose3( arr )
    oDlg:Close()
 
    RETURN Nil
+
+FUNCTION fbrowse()
+
+   LOCAL oDlg3, oBrw
+   LOCAL aSample := { {"Alex",17,1200}, {"Victor",42,1600}, {"John",31,1000} }
+
+   oDlg3 := eGUI_InitDialog( "dlgb", 100, 100, 300, 280, "Browse" )
+
+   oBrw := oDlg3:AddWidget( "browse",, 10,10, 280, 210,, {{"Anchor",ANCHOR_TOPABS+ANCHOR_BOTTOMABS+ANCHOR_LEFTABS+ANCHOR_RIGHTABS}} )
+   oBrw:SetParam( "lDispHead", .F. )
+   eGUI_BrwSetArray( oBrw, aSample )
+
+   oDlg3:AddWidget( "button",, 100, 240, 100, 32, "Close", {{"Anchor",ANCHOR_HORFIX+ANCHOR_BOTTOMABS}} )
+   oLastWidget:SetCallbackProc( "onclick",,"hwg_EndDialog()" )
+
+   eGUI_ActivateDialog()
+
+   RETURN Nil
+
 
 FUNCTION MBox( aParams )
 

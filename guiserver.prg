@@ -316,11 +316,16 @@ STATIC FUNCTION SetMenu2( arr )
    RETURN Nil
 
 
+STATIC FUNCTION Get_setget()
+
+   LOCAL x
+   RETURN {|v|Iif(v==Nil,x,x:=v)}
+
 STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
 
    LOCAL oParent, oCtrl, nPos := Rat( '.', cName ), i, xTemp
    LOCAL x1 := arr[1], y1 := arr[2], w := arr[3], h := arr[4], cCaption := arr[5]
-   LOCAL nStyle, tColor, bColor, cTooltip, cPicture, lTransp, bSize, oFont, oStyle
+   LOCAL nStyle, tColor, bColor, cTooltip, bSetGet, cPicture, lTransp, bSize, oFont, oStyle
    LOCAL cImage, lResou, trColor, aItems, lEdit, lText, nDisplay, lVert
    LOCAL lFlat, lCheck, aStyles, aParts
    LOCAL aLeft, aRight, nInit, nFrom, nTo, nMaxPos, nRange
@@ -367,7 +372,11 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
    CASE 'e'
       IF cWidg == "edit"
 
-         oCtrl := HEdit():New( oParent,, cCaption,, nStyle, x1, y1, w, h, oFont,, bSize,,, ;
+         IF !Empty( cPicture )
+            bSetGet := Get_setget()
+            Eval( bSetGet, cCaption )
+         ENDIF
+         oCtrl := HEdit():New( oParent,, cCaption, bSetGet, nStyle, x1, y1, w, h, oFont,, bSize,,, ;
                cTooltip, tColor, bColor, cPicture )
       ENDIF
       EXIT
@@ -534,7 +543,7 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
 
 STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
 
-   LOCAL oWnd, lWidg := .T., o, lErr := .F.
+   LOCAL oWnd, lWidg := .T., o, lErr := .F., i
 
    //A window or a dialog ?
    lWidg := ("." $ cWidgName)
@@ -544,98 +553,148 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
       RETURN .F.
    ENDIF
 
-   IF Left( cPropName,3 ) == "cb."
-      SetCallback( oWnd, Substr(cPropName,4), xProp )
-   ELSEIF cPropName == "text"
-      lErr := !(Valtype(xProp) == "C")
-      IF !lErr
-         IF lWidg
-            oWnd:SetText( xProp )
-         ELSE
-            oWnd:SetTitle( xProp )
+   i := Left( cPropName,1 )
+   SWITCH i
+   CASE 'c'
+
+      IF Left( cPropName,3 ) == "cb."
+         SetCallback( oWnd, Substr(cPropName,4), xProp )
+      ELSEIF cPropName == "color"
+         lErr := !(Valtype(xProp) == "A")
+         IF !lErr
+            oWnd:SetColor( Iif(xProp[1]!=Nil.AND.xProp[1]==-1,Nil,xProp[1]), ;
+               Iif(xProp[2]!=Nil.AND.xProp[2]==-1,Nil,xProp[2]), .T. )
          ENDIF
       ENDIF
+      EXIT
 
-   ELSEIF cPropName == "value"
-      IF __ObjHasMsg( oWnd, "SETVALUE" )
-         oWnd:SetValue( xProp )
-      ELSE
-         oWnd:SetText( xProp )
-      ENDIF
-
-   ELSEIF cPropName == "color"
-      lErr := !(Valtype(xProp) == "A")
-      IF !lErr
-         oWnd:SetColor( Iif(xProp[1]!=Nil.AND.xProp[1]==-1,Nil,xProp[1]), ;
-            Iif(xProp[2]!=Nil.AND.xProp[2]==-1,Nil,xProp[2]), .T. )
-      ENDIF
-
-   ELSEIF cPropName == "font"
-      lErr := !(Valtype(xProp) == "C" .AND. ( xProp := GetFont( xProp ) ) != Nil)
-      IF !lErr
-         oWnd:oFont := xProp
-         IF lWidg
-#ifdef __GTK__
-            hwg_SetCtrlFont( oWnd:handle,, xProp:handle )
-#else
-            hwg_Setctrlfont( oWnd:oParent:handle, oWnd:id, xProp:handle )
-#endif
-         ENDIF
-      ENDIF
-
-   ELSEIF cPropName == "image"
-      lErr := !( __ObjHasMsg( oWnd, "REPLACEBITMAP" ))
-      IF !lErr
-         oWnd:ReplaceBitmap( xProp )
-      ENDIF
-
-   ELSEIF cPropName == "node"
-      lErr := !(__ObjHasMsg( oWnd, "ADDNODE" ) .AND. Valtype(xProp) == "A")
-      IF !lErr
-         o := Iif( Empty(xProp[1]), oWnd, GetNode( oWnd,xProp[1] ) )
-         IF !Empty( o )
-            o := o:AddNode( xProp[3],, Iif( Empty(xProp[4]), Nil, GetNode(o,xProp[4]) ),, ;
-               Iif( Empty(xProp[5]), Nil, xProp[5] ) )
-            o:objName := xProp[2]
-            IF !Empty( xProp[6] )
-               SetCallback( o, "onclick", xProp[6] )
+   CASE 't'
+      IF cPropName == "text"
+         lErr := !(Valtype(xProp) == "C")
+         IF !lErr
+            IF lWidg
+               oWnd:SetText( xProp )
+            ELSE
+               oWnd:SetTitle( xProp )
             ENDIF
          ENDIF
       ENDIF
+      EXIT
 
-   ELSEIF cPropName == "step"
-      lErr := !( __ObjHasMsg( oWnd, "STEP" ))
-      IF !lErr
-         oWnd:Step()
+   CASE 'v'
+      IF cPropName == "value"
+         IF __ObjHasMsg( oWnd, "SETVALUE" )
+            oWnd:SetValue( xProp )
+         ELSE
+            oWnd:SetText( xProp )
+         ENDIF
       ENDIF
+      EXIT
 
-   ELSEIF cPropName == "setval"
-      lErr := !( __ObjHasMsg( oWnd, "STEP" ))
-      IF !lErr
-         oWnd:Set( ,xProp )
+   CASE 'b'
+      IF cPropName == "brwarr"
+         lErr := !( __ObjHasMsg( oWnd, "INITBRW" )) .OR. Valtype(xProp) != "A"
+         IF !lErr
+            oWnd:aColumns := {}
+            hwg_CREATEARLIST( oWnd, xProp )
+         ENDIF
       ENDIF
+      EXIT
 
-   ELSEIF cPropName == "radioend"
-      lErr := Valtype(oWnd:cargo) != "O" .OR. !( __ObjHasMsg( oWnd:cargo, "ENDGROUP" ))
-      IF !lErr
-         oWnd:cargo:EndGroup( xProp )
+   CASE 'x'
+      IF cPropName == "xparam"
+         lErr := !(Valtype(xProp) == "A") .OR. !(Valtype(xProp[1]) == "C") .OR. ;
+               !( __ObjHasMsg( oWnd, Upper(xProp[1]) ))
+         IF !lErr
+            __objSendMsg( oWnd, '_'+xProp[1], xProp[2] )
+         ENDIF
       ENDIF
+      EXIT
 
-   ELSEIF cPropName == "pagestart"
-      lErr := !( __ObjHasMsg( oWnd, "STARTPAGE" ))
-      IF !lErr
-         oWnd:StartPage( xProp )
+   CASE 'f'
+      IF cPropName == "font"
+         lErr := !(Valtype(xProp) == "C" .AND. ( xProp := GetFont( xProp ) ) != Nil)
+         IF !lErr
+            oWnd:oFont := xProp
+            IF lWidg
+#ifdef __GTK__
+               hwg_SetCtrlFont( oWnd:handle,, xProp:handle )
+#else
+               hwg_Setctrlfont( oWnd:oParent:handle, oWnd:id, xProp:handle )
+#endif
+            ENDIF
+         ENDIF
       ENDIF
+      EXIT
 
-   ELSEIF cPropName == "pageend"
-      lErr := !( __ObjHasMsg( oWnd, "ENDPAGE" ))
-      IF !lErr
-         oWnd:EndPage()
+   CASE 'i'
+      IF cPropName == "image"
+         lErr := !( __ObjHasMsg( oWnd, "REPLACEBITMAP" ))
+         IF !lErr
+            oWnd:ReplaceBitmap( xProp )
+         ENDIF
       ENDIF
+      EXIT
 
-   ELSE
+   CASE 'n'
+      IF cPropName == "node"
+         lErr := !(__ObjHasMsg( oWnd, "ADDNODE" ) .AND. Valtype(xProp) == "A")
+         IF !lErr
+            o := Iif( Empty(xProp[1]), oWnd, GetNode( oWnd,xProp[1] ) )
+            IF !Empty( o )
+               o := o:AddNode( xProp[3],, Iif( Empty(xProp[4]), Nil, GetNode(o,xProp[4]) ),, ;
+                  Iif( Empty(xProp[5]), Nil, xProp[5] ) )
+               o:objName := xProp[2]
+               IF !Empty( xProp[6] )
+                  SetCallback( o, "onclick", xProp[6] )
+               ENDIF
+            ENDIF
+         ENDIF
+      ENDIF
+      EXIT
+
+   CASE 'p'
+      IF cPropName == "pagestart"
+         lErr := !( __ObjHasMsg( oWnd, "STARTPAGE" ))
+         IF !lErr
+            oWnd:StartPage( xProp )
+         ENDIF
+
+      ELSEIF cPropName == "pageend"
+         lErr := !( __ObjHasMsg( oWnd, "ENDPAGE" ))
+         IF !lErr
+            oWnd:EndPage()
+         ENDIF
+      ENDIF
+      EXIT
+
+   CASE 'r'
+      IF cPropName == "radioend"
+         lErr := Valtype(oWnd:cargo) != "O" .OR. !( __ObjHasMsg( oWnd:cargo, "ENDGROUP" ))
+         IF !lErr
+            oWnd:cargo:EndGroup( xProp )
+         ENDIF
+      ENDIF
+      EXIT
+
+   CASE 's'
+      IF cPropName == "step"
+         lErr := !( __ObjHasMsg( oWnd, "STEP" ))
+         IF !lErr
+            oWnd:Step()
+         ENDIF
+
+      ELSEIF cPropName == "setval"
+         lErr := !( __ObjHasMsg( oWnd, "STEP" ))
+         IF !lErr
+            oWnd:Set( ,xProp )
+         ENDIF
+      ENDIF
+      EXIT
+
+   OTHERWISE
       lErr := .T.
-   ENDIF
+   END
 
    IF lErr
       gWritelog( "Parameter error" )

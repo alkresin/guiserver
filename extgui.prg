@@ -347,7 +347,7 @@ FUNCTION eGUI_RadioEnd( oRg, nSelected )
 
 FUNCTION eGUI_TabPage( oTab, cCaption )
 
-   LOCAL cName := FullWidgName( oRg )
+   LOCAL cName := FullWidgName( oTab )
 
    SendOut( hb_jsonEncode( { "set", cName, "pagestart", cCaption } ) )
 
@@ -355,9 +355,17 @@ FUNCTION eGUI_TabPage( oTab, cCaption )
 
 FUNCTION eGUI_TabPageEnd( oTab )
 
-   LOCAL cName := FullWidgName( oRg )
+   LOCAL cName := FullWidgName( oTab )
 
    SendOut( hb_jsonEncode( { "set", cName, "pageend", 1 } ) )
+
+   RETURN Nil
+
+FUNCTION eGUI_BrwSetArray( oBrw, arr )
+
+   LOCAL cName := FullWidgName( oBrw )
+
+   SendOut( hb_jsonEncode( { "set", cName, "brwarr", arr } ) )
 
    RETURN Nil
 
@@ -440,6 +448,8 @@ FUNCTION setprops( aProps )
             sProps += ',"HStyle": "' + aProps[i,2]:cName + '"'
          ELSEIF cProp == "tooltip"
             sProps += ',"Tooltip": "' + aProps[i,2] + '"'
+         ELSEIF cProp == "anchor"
+            sProps += ',"Anchor": ' + Ltrim(Str(aProps[i,2]))
          ELSEIF cProp == "picture"
             sProps += ',"Picture": "' + aProps[i,2] + '"'
          ELSEIF cProp == "transpa"

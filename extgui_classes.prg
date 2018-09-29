@@ -127,6 +127,7 @@ CLASS EWidget
    METHOD SetColor( tColor, bColor )
    METHOD SetFont( oFont )
    METHOD SetImage( cImage )
+   METHOD SetParam( cParam, xParam )
    METHOD SetCallbackProc( cbName, cProc, ... )
    METHOD SetCallbackFunc( cbName, cFunc, ... )
 ENDCLASS
@@ -204,6 +205,14 @@ METHOD SetImage( cImage ) CLASS EWidget
    LOCAL cName := FullWidgName( Self )
 
    SendOut( hb_jsonEncode( { "set", cName, "image", cImage } ) )
+
+   RETURN Nil
+
+METHOD SetParam( cParam, xParam ) CLASS EWidget
+
+   LOCAL cName := FullWidgName( Self )
+
+   SendOut( hb_jsonEncode( { "set", cName, "xparam", {cParam,xParam} } ) )
 
    RETURN Nil
 
