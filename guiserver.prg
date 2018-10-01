@@ -744,6 +744,10 @@ STATIC FUNCTION SetCallback( oWidg, cbName, cCode )
       oWidg:bRClick := block
    ELSEIF cbName == "ondblclick"
       oWidg:bdblClick := block
+   ELSEIF cbName == "onenter"
+      oWidg:bEnter := block
+   ELSEIF cbName == "onposchanged"
+      oWidg:bPosChanged := block
    ELSE
       gWritelog( "Wrong event name" )
    ENDIF
