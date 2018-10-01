@@ -6,7 +6,7 @@
  * www - http://www.kresin.ru
  */
 
-#include "../extgui.ch"
+#include "extgui.ch"
 
 #define  CLR_LBLUE   16759929  // #79BCFF
 #define  CLR_LIGHT1  15132390
