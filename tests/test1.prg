@@ -97,7 +97,7 @@ FUNCTION openfile()
 
    LOCAL oFont, o, arr1 := { "First", "Second", "Third"}
 
-   eGUI_StartPacket()
+   eGUI_BeginPacket()
    oFont := eGUI_CreateFont( "f1", "Georgia", 22 )
    oDlg := eGUI_InitDialog( "dlg1", 300, 200, 220, 400, "GetValues", {{"Font",oFont}} )
 

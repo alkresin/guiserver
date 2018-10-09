@@ -391,7 +391,7 @@ FUNCTION SendOut( s )
 
    RETURN Nil
 
-FUNCTION eGUI_StartPacket()
+FUNCTION eGUI_BeginPacket()
 
    lPacket := .T.
    cPacketBuff := '["packet"'
