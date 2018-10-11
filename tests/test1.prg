@@ -172,13 +172,16 @@ FUNCTION fclose3( arr )
 FUNCTION fbrowse()
 
    LOCAL oDlg3, oBrw
-   LOCAL aSample := { {"Alex",17,1200}, {"Victor",42,1600}, {"John",31,1000} }
+   LOCAL aSample := { {"Alex",23,1500}, {"Victor",42,2400}, {"John",31,2800} }
 
    oDlg3 := eGUI_InitDialog( "dlgb", 100, 100, 300, 280, "Browse" )
 
    oBrw := oDlg3:AddWidget( "browse",, 10,10, 280, 210,, {{"Anchor",ANCHOR_TOPABS+ANCHOR_BOTTOMABS+ANCHOR_LEFTABS+ANCHOR_RIGHTABS}} )
-   oBrw:SetParam( "lDispHead", .F. )
+   //oBrw:SetParam( "lDispHead", .F. )
    eGUI_BrwSetArray( oBrw, aSample )
+   eGUI_BrwSetColumn( oBrw, 1, "Name", 1 )
+   eGUI_BrwSetColumn( oBrw, 2, "Age", 1 )
+   eGUI_BrwSetColumn( oBrw, 3, "Salary", 1, 2, .T. )
 
    oDlg3:AddWidget( "button",, 100, 240, 100, 32, "Close", {{"Anchor",ANCHOR_HORFIX+ANCHOR_BOTTOMABS}} )
    oLastWidget:SetCallbackProc( "onclick",,"hwg_EndDialog()" )

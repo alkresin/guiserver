@@ -592,7 +592,26 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
       EXIT
 
    CASE 'b'
-      IF cPropName == "brwarr"
+      IF cPropName == "brwcol"
+         lErr := !( __ObjHasMsg( oWnd, "INITBRW" )) .OR. Valtype(xProp) != "A" ;
+               .OR. Len(xProp) < 2 .OR. Valtype(i := xProp[1]) != "N" .OR. ;
+               i <= 0 .OR. i > Len( oWnd:aColumns )
+         IF !lErr
+            IF Valtype(xProp[2]) == "C" .AND. !Empty( xProp[2] )
+               oWnd:aColumns[i]:heading := xProp[2]
+            ENDIF
+            IF Valtype(xProp[3]) == "N" .AND. xProp[3] > 0
+               oWnd:aColumns[i]:nJusHead := xProp[3]
+            ENDIF
+            IF Valtype(xProp[4]) == "N" .AND. xProp[4] > 0
+               oWnd:aColumns[i]:nJusLin := xProp[4]
+            ENDIF
+            IF Valtype(xProp[5]) == "L"
+               oWnd:aColumns[i]:lEditable := xProp[5]
+            ENDIF
+         ENDIF
+
+      ELSEIF cPropName == "brwarr"
          lErr := !( __ObjHasMsg( oWnd, "INITBRW" )) .OR. Valtype(xProp) != "A"
          IF !lErr
             oWnd:aColumns := {}
