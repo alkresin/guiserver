@@ -1,7 +1,7 @@
 # GuiServer
 A server application, providing GUI service via tcp/ip connection, providing an opportunity to create GUI frameworks for different programming languages.
 It is written on Harbour (см. http://www.kresin.ru/en/harbour.html) and C, GUI layer is provided by HwGUI library (http://www.kresin.ru/en/hwgui.html).
-The official web page is http://www.kresin.ru/guisrv.html
+The official web page is http://www.kresin.ru/en/guisrv.html
 
 ### Preface
 

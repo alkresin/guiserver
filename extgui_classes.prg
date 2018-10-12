@@ -212,7 +212,11 @@ METHOD SetParam( cParam, xParam ) CLASS EWidget
 
    LOCAL cName := FullWidgName( Self )
 
-   SendOut( hb_jsonEncode( { "set", cName, "xparam", {cParam,xParam} } ) )
+   IF Valtype( xParam ) == "O" .AND. __ObjHasMsg( xParam, "CNAME" )
+      SendOut( hb_jsonEncode( { "set", cName, "xparam", {cParam,xParam:cName,.T.} } ) )
+   ELSE
+      SendOut( hb_jsonEncode( { "set", cName, "xparam", {cParam,xParam} } ) )
+   ENDIF
 
    RETURN Nil
 

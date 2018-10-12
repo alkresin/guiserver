@@ -19,13 +19,13 @@
 #define  CLR_LBLUE3  16772062  // #DEEBFF
 #define  CLR_LBLUE4  16775920  // #F0FAFF
 
-Static oDlg, oLabel, oEdi1
+Static oDlg, oLabel, oEdi1, oStyle1
 
 Memvar oLastWidget
 
 FUNCTION Main
 
-   LOCAL oMainWindow, oPane, oStyle1, oStyle2, oStyle3, oStyle4
+   LOCAL oMainWindow, oPane, oStyle2, oStyle3, oStyle4
    LOCAL cInitString := Memoread( "test.ini" )
 
    IF !eGUI_Init( cInitString )
@@ -177,7 +177,7 @@ FUNCTION fbrowse()
    oDlg3 := eGUI_InitDialog( "dlgb", 100, 100, 300, 280, "Browse" )
 
    oBrw := oDlg3:AddWidget( "browse",, 10,10, 280, 210,, {{"Anchor",ANCHOR_TOPABS+ANCHOR_BOTTOMABS+ANCHOR_LEFTABS+ANCHOR_RIGHTABS}} )
-   //oBrw:SetParam( "lDispHead", .F. )
+   oBrw:SetParam( "oStyleHead", oStyle1 )
    eGUI_BrwSetArray( oBrw, aSample )
    eGUI_BrwSetColumn( oBrw, 1, "Name", 1 )
    eGUI_BrwSetColumn( oBrw, 2, "Age", 1 )

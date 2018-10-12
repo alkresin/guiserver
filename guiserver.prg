@@ -612,10 +612,16 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
          ENDIF
 
       ELSEIF cPropName == "brwarr"
-         lErr := !( __ObjHasMsg( oWnd, "INITBRW" )) .OR. Valtype(xProp) != "A"
+         lErr := !( __ObjHasMsg( oWnd, "INITBRW" )) .OR. Valtype(xProp) != "A" ;
+               .OR. Valtype(xProp[1]) != "A"
          IF !lErr
-            oWnd:aColumns := {}
-            hwg_CREATEARLIST( oWnd, xProp )
+            IF !Empty( oWnd:aColumns ) .AND. Len( oWnd:aColumns ) == Len( xProp[1] )
+               oWnd:aArray := xProp
+               oWnd:Refresh()
+            ELSE
+               oWnd:aColumns := {}
+               hwg_CREATEARLIST( oWnd, xProp )
+            ENDIF
          ENDIF
       ENDIF
       EXIT
@@ -625,7 +631,14 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
          lErr := !(Valtype(xProp) == "A") .OR. !(Valtype(xProp[1]) == "C") .OR. ;
                !( __ObjHasMsg( oWnd, Upper(xProp[1]) ))
          IF !lErr
-            __objSendMsg( oWnd, '_'+xProp[1], xProp[2] )
+            IF Len( xProp ) == 3 .AND. Valtype( xProp[3] ) == "L" .AND. xProp[3]
+               IF !Empty( o := GetStyle(xProp[2]) ) .OR. !Empty( o := GetFont(xProp[2]) ) ;
+                     .OR. !Empty( o := GetWidg(xProp[2]) )
+                  __objSendMsg( oWnd, '_'+xProp[1], o )
+               ENDIF
+            ELSE
+               __objSendMsg( oWnd, '_'+xProp[1], xProp[2] )
+            ENDIF
          ENDIF
       ENDIF
       EXIT
