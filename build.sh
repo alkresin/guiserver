@@ -1,6 +1,6 @@
 #!/bin/bash
-export HB_INS=/home/alkresin/apps/harbour
-export HWGUI_DIR=/home/alkresin/apps/hwgui-code
+export HB_INS=$HOME/apps/harbour
+export HWGUI_DIR=$HOME/apps/hwgui-code
 export HWGUI_INC=$HWGUI_DIR/include
 export HWGUI_LIB=$HWGUI_DIR/lib
 export SYSTEM_LIBS="-lm -lrt"

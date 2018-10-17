@@ -1,5 +1,5 @@
 #!/bin/bash
-export HB_INS=/home/alkresin/apps/harbour
+export HB_INS=$HOME/apps/harbour
 export SYSTEM_LIBS="-lm -lrt -lglib-2.0"
 export HARBOUR_LIBS="-lhbdebug -lhbvm -lhbrtl -lgttrm -lhblang -lhbrdd -lhbmacro -lhbpp -lrddntx -lrddcdx -lrddfpt -lhbsix -lhbcommon -lhbcpage -lhbsqlit3 -lhbct"
 
