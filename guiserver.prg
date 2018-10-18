@@ -676,6 +676,7 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
          lErr := !( __ObjHasMsg( oWnd, "REPLACEBITMAP" ))
          IF !lErr
             oWnd:ReplaceBitmap( xProp )
+            oWnd:Refresh()
          ENDIF
       ENDIF
       EXIT
