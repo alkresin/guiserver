@@ -390,6 +390,13 @@ FUNCTION eGUI_SetPath( cPath )
 
    RETURN Nil
 
+FUNCTION eGUI_SetDateFormat( cFormat )
+
+   SendOut( hb_jsonEncode( { "setparam", "datef", cFormat } ) )
+
+   RETURN Nil
+
+
 FUNCTION SendOut( s )
 
    IF lPacket

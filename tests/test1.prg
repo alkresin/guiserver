@@ -65,6 +65,8 @@ FUNCTION Main
    oLastWidget:SetCallbackProc( "onclick",, "hwg_WriteStatus(HWindow():GetMain(),1,Dtoc(Date()),.T.)" )
    oPane:AddWidget( "ownbtn",, 64,0, 64, 36, "Time", {{"HStyles",{oStyle1,oStyle2,oStyle3}}} )
    oLastWidget:SetCallbackProc( "onclick",, "hwg_WriteStatus(HWindow():GetMain(),2,Time(),.T.)" )
+   oPane:AddWidget( "ownbtn",, 128,0, 64, 36, "Get", {{"HStyles",{oStyle1,oStyle2,oStyle3}}} )
+   oLastWidget:SetCallbackProc( "onclick","openfile" )
 
    oLabel := oMainWindow:AddWidget( "label","l1", 20,50, 180, 24, "This is a label", {{"tcolor",255},{"Transpa",.T.}} )
 
@@ -98,26 +100,29 @@ FUNCTION openfile()
    LOCAL oFont, o, arr1 := { "First", "Second", "Third"}
 
    eGUI_BeginPacket()
+   eGUI_SetDateFormat( "DD.MM.YYYY" )
    oFont := eGUI_CreateFont( "f1", "Georgia", 22 )
    oDlg := eGUI_InitDialog( "dlg1", 300, 200, 220, 400, "GetValues", {{"Font",oFont}} )
 
-   oDlg:AddWidget( "label",, 20,20, 180, 24, "Имя:" )
-   oEdi1 := oDlg:AddWidget( "edit","edi1", 20,44, 120, 26 )
-   oDlg:AddWidget( "button",, 150, 44, 50, 26, "==" )
+   oDlg:AddWidget( "label",, 20, 20, 180, 24, "Идентификатор:" )
+   oEdi1 := oDlg:AddWidget( "edit","edi1", 20,44, 180, 26,, {{"Picture","@!R /XXX:XXX/"}})
+
+   oDlg:AddWidget( "label",, 20, 72, 180, 24, "Параметр:" )
+   oDlg:AddWidget( "edit","edi2", 20, 96, 120, 26 )
+   oDlg:AddWidget( "button",, 150, 96, 50, 26, "==" )
    oLastWidget:SetCallbackProc( "onclick","fthird" )
 
-   oDlg:AddWidget( "label",, 20,72, 180, 24, "Фамилия:" )
-   oDlg:AddWidget( "edit","edi2", 20,96, 180, 26 )
+   oDlg:AddWidget( "label",, 20, 122, 180, 24, "Дата изменения:" )
+   oDlg:AddWidget( "edit","edi2", 20, 144, 120, 26, Dtos(Date()), {{"Picture","D@D"}})
 
-   o := oDlg:AddWidget( "radiogr","rg", 20,130, 180, 80, "Group" )
-   oDlg:AddWidget( "radio",, 50,160, 120, 24, "radio1" )
-   oDlg:AddWidget( "radio",, 50,186, 120, 24, "radio2" )
+   o := oDlg:AddWidget( "radiogr","rg", 20, 190, 180, 80, "Group" )
+   oDlg:AddWidget( "radio",, 50, 220, 120, 24, "radio1" )
+   oDlg:AddWidget( "radio",, 50, 246, 120, 24, "radio2" )
    egui_RadioEnd( o,1 )
 
-   oDlg:AddWidget( "combo",, 20,220, 180, 26,, {{"AItems",arr1}})
+   oDlg:AddWidget( "combo",, 20, 280, 180, 26,, {{"AItems",arr1}})
 
    oDlg:AddWidget( "button",, 50, 350, 100, 32, "Ok",{{"Anchor",ANCHOR_HORFIX+ANCHOR_BOTTOMABS}} )
-   //oBtnOk:SetCallbackProc( "onclick",,"hwg_EndDialog()" )
    oLastWidget:SetCallbackProc( "onclick","fclose" )
 
    eGUI_ActivateDialog()
@@ -158,7 +163,7 @@ FUNCTION fclose3( arr )
 
    LOCAL oDlg := eGUI_GetWidg(arr[1]):oParent
    LOCAL oEdi := eGUI_GetWidg( "dlg3.edi" )
-   LOCAL oEdi1 := eGUI_GetWidg( "dlg1.edi1" )
+   LOCAL oEdi1 := eGUI_GetWidg( "dlg1.edi2" )
    LOCAL s := oEdi:GetText()
 
    IF !Empty( s )

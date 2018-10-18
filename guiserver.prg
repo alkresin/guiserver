@@ -53,6 +53,7 @@ FUNCTION Main( ... )
    IF hwg__isUnicode()
       hb_cdpSelect( "UTF8" )
    ENDIF
+   SET CONFIRM ON
 
    FOR i := 1 TO Len( aParams )
       IF Left( aParams[i],1 ) $ "-/"       
@@ -369,10 +370,21 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
          oCtrl := HLine():New( oParent,, lVert, x1, y1, w, bSize )
       ENDIF
       EXIT
+
    CASE 'e'
       IF cWidg == "edit"
 
          IF !Empty( cPicture )
+            IF Left( cPicture,1 ) $ "ND"
+               IF Valtype( cCaption ) == "C"
+                  IF Left( cPicture,1 ) == "N"
+                     cCaption := Val( cCaption )
+                  ELSE
+                     cCaption := Stod( cCaption )
+                  ENDIF
+               ENDIF
+               cPicture := Substr( cPicture,2 )
+            ENDIF
             bSetGet := Get_setget()
             Eval( bSetGet, cCaption )
          ENDIF
@@ -796,6 +808,9 @@ STATIC FUNCTION SetParam( cName, xValue )
       SET PATH TO &xValue
       cDefPath := xValue
 
+   ELSEIF cName == "datef"
+      SET DATE FORMAT xValue
+
    ELSE
       gWritelog( "Wrong parameter name" )
    ENDIF
@@ -816,7 +831,10 @@ STATIC FUNCTION GetProperty( cWidgName, cPropName )
 
    IF cPropName == "text"
       IF lWidg
-         IF __ObjHasMsg( oWnd, "GETTEXT" )
+         IF __ObjHasMsg( oWnd, "CPICFUNC" ) .AND. ;
+               ( !Empty(oWnd:cPicFunc) .OR. !Empty(oWnd:cPicMask) )
+            cRes := CnvVal( oWnd:Value() )
+         ELSEIF __ObjHasMsg( oWnd, "GETTEXT" )
             cRes := oWnd:GetText()
          ELSE
             cRes := ""
