@@ -238,6 +238,17 @@ FUNCTION eGUI_CreateStyle( cName, aColors, nOrient, aCorners, nBorder, tColor, c
 
    RETURN oStyle
 
+FUNCTION eGUI_InitPrinter( cName, cPrinter )
+
+   LOCAL oPrinter := EPrinter():New( cName, cPrinter )
+
+   IF Valtype( cPrinter ) != "C"
+      cPrinter := "..."
+   ENDIF
+   SendOut( hb_jsonEncode( { "print", "init", oPrinter:cName, {cPrinter} } ) )
+
+   RETURN oStyle
+
 FUNCTION eGUI_EvalFunc( cCode )
 
    LOCAL cRes

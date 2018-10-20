@@ -45,6 +45,7 @@ STATIC lLogOn := .F., cLogFile := "guiserver.log"
 
 STATIC oMainWnd, oCurrWindow, cCurrwindow := ""
 STATIC cDefPath := ""
+STATIC aPrinters := {}
 
 FUNCTION Main( ... )
 
@@ -975,6 +976,69 @@ STATIC FUNCTION f_SeleColor( nColor, cFunc, cName )
 
    RETURN Nil
 
+STATIC FUNCTION PrintFuncs( cFunc, cName, aParams )
+
+   LOCAL oPrinter, i, oFont
+
+   IF cFunc == "init"
+      IF cName == "..."
+         cName := Nil
+      ENDIF
+      oPrinter := HPrinter():New( aParams[1], .T. )
+      oPrinter:objname := cName
+      Aadd( aPrinters, oPrinter )
+   ELSE
+      FOR i := 1 TO Len(aPrinters)
+         IF aPrinters[i]:objname == cName
+            oPrinter := aPrinters[i]
+            EXIT
+         ENDIF
+      NEXT
+      IF Empty( oPrinter )
+         gWritelog( "Printer not found: " + cName )
+         RETURN Nil
+      ENDIF
+      IF cFunc == "text"
+         oPrinter:Say( aParams[1], aParams[2], aParams[3], aParams[4], aParams[5], aParams[6] )
+
+      ELSEIF cFunc == "box"
+         oPrinter:Box( aParams[1], aParams[2], aParams[3], aParams[4] )
+
+      ELSEIF cFunc == "line"
+         oPrinter:Line( aParams[1], aParams[2], aParams[3], aParams[4] )
+
+      ELSEIF cFunc == "bitmap"
+
+      ELSEIF cFunc == "fontadd"
+         oFont := oPrinter:AddFont( aParams[1], aParams[2], aParams[3], aParams[4], ;
+            aParams[5], aParams[6] )
+         oFont:objname := cName
+
+      ELSEIF cFunc == "fontset"
+
+      ELSEIF cFunc == "startpage"
+         oPrinter:StartPage()
+
+      ELSEIF cFunc == "endpage"
+         oPrinter:EndPage()
+
+      ELSEIF cFunc == "startdoc"
+         oPrinter:StartDoc( aParams[1] )
+
+      ELSEIF cFunc == "enddoc"
+         oPrinter:EndDoc()
+
+      ELSEIF cFunc == "preview"
+         oPrinter:Preview()
+
+      ELSEIF cFunc == "end"
+         oPrinter:End()
+
+      ENDIF
+   ENDIF
+
+   RETURN Nil
+
 STATIC FUNCTION GetItemByName( arr, cName )
 
    LOCAL oItem
@@ -1301,7 +1365,14 @@ STATIC FUNCTION Parse( arr, lPacket )
       EXIT
 
    CASE 'p'
-      IF cCommand == "packet"
+      IF cCommand == "print"
+         lErr := ( Len(arr)<4 .OR. Valtype(arr[2]) != "C" .OR. Valtype(arr[3]) != "C" )
+         IF !lErr
+            IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
+            PrintFuncs( Lower(arr[2]), Upper(arr[3]), arr[4] )
+         ENDIF
+
+      ELSEIF cCommand == "packet"
          lErr := lPacket
          IF !lErr
             Send2SocketIn( "+Ok" + cn )
