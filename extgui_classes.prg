@@ -130,6 +130,8 @@ CLASS EWidget
    METHOD SetParam( cParam, xParam )
    METHOD SetCallbackProc( cbName, cProc, ... )
    METHOD SetCallbackFunc( cbName, cFunc, ... )
+   METHOD Move( nLeft, nTop, nWidth, nHeight )
+   METHOD Enable( lEnable )
 ENDCLASS
 
 METHOD New( cType, cName, nTop, nLeft, nWidth, nHeight, cTitle ) CLASS EWidget
@@ -254,6 +256,23 @@ METHOD SetCallbackFunc( cbName, cFunc, ... ) CLASS EWidget
    ENDIF
 
    SendOut( hb_jsonEncode( { "set", cName, "cb." + Lower(cbName), cCode } ) )
+
+   RETURN Nil
+
+METHOD Move( nLeft, nTop, nWidth, nHeight ) CLASS EWidget
+
+   LOCAL cName := FullWidgName( Self )
+
+   SendOut( hb_jsonEncode( { "set", cName, "move", {nLeft,nTop,nWidth,nHeight} } ) )
+
+   RETURN Nil
+
+METHOD Enable( lEnable ) CLASS EWidget
+
+   LOCAL cName := FullWidgName( Self )
+
+   IF lEnable == Nil; lEnable := .T.; ENDIF
+   SendOut( hb_jsonEncode( { "set", cName, "enable", lEnable } ) )
 
    RETURN Nil
 

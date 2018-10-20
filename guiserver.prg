@@ -257,7 +257,7 @@ STATIC FUNCTION CrStyle( cName, aColors, nOrient, aCorners, nBorder, tColor, cBi
 
 STATIC FUNCTION WinClose( cName )
 
-   LOCAL oDlg := GetWnd( cName )
+   LOCAL oDlg := Wnd( cName )
 
    IF !Empty( oDlg )
       oDlg:Close()
@@ -267,13 +267,13 @@ STATIC FUNCTION WinClose( cName )
 
 STATIC FUNCTION GetValues( cName, aNames )
 
-   LOCAL oWnd := GetWnd( cName ), i, oWidg, xRes, ares := {}
+   LOCAL oWnd := Wnd( cName ), i, oWidg, xRes, ares := {}
 
    IF Empty( oWnd )
       RETURN Nil
    ENDIF
    FOR i := 1 TO Len( aNames )
-      IF !Empty( oWidg := GetWidg( aNames[i], oWnd ) )
+      IF !Empty( oWidg := Widg( aNames[i], oWnd ) )
          IF __ObjHasMsg( oWidg, "VALUE" )
             xRes := oWidg:Value()
          ELSEIF Valtype(oWidg:cargo) == "O" .AND. __ObjHasMsg( oWidg:cargo, "VALUE" )
@@ -332,7 +332,7 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
    LOCAL aLeft, aRight, nInit, nFrom, nTo, nMaxPos, nRange
    LOCAL lNoVScroll, lNoBorder, lAppend, lAutoedit
 
-   oParent := GetWidg( Left( cName, nPos-1 ) )
+   oParent := Widg( Left( cName, nPos-1 ) )
    cName := Substr( cName, nPos+1 )
 
    IF Valtype(x1) != "N"; x1 := 0; ENDIF
@@ -500,13 +500,13 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
             IF hb_hHaskey( hash, "ALeft" )
                aLeft := hash["ALeft"]
                FOR i := 1 TO Len( aLeft )
-                  aLeft[i] := GetWidg( aLeft[i], oParent )
+                  aLeft[i] := Widg( aLeft[i], oParent )
                NEXT
             ENDIF
             IF hb_hHaskey( hash, "ARight" )
                aRight := hash["ARight"]
                FOR i := 1 TO Len( aRight )
-                  aRight[i] := GetWidg( aRight[i], oParent )
+                  aRight[i] := Widg( aRight[i], oParent )
                NEXT
             ENDIF
             nFrom := hb_hGetDef( hash, "From", Nil )
@@ -560,7 +560,7 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
    //A window or a dialog ?
    lWidg := ("." $ cWidgName)
 
-   oWnd := GetWidg( cWidgName )
+   oWnd := Widg( cWidgName )
    IF Empty( oWnd )
       RETURN .F.
    ENDIF
@@ -645,11 +645,24 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
          IF !lErr
             IF Len( xProp ) == 3 .AND. Valtype( xProp[3] ) == "L" .AND. xProp[3]
                IF !Empty( o := GetStyle(xProp[2]) ) .OR. !Empty( o := GetFont(xProp[2]) ) ;
-                     .OR. !Empty( o := GetWidg(xProp[2]) )
+                     .OR. !Empty( o := Widg(xProp[2]) )
                   __objSendMsg( oWnd, '_'+xProp[1], o )
                ENDIF
             ELSE
                __objSendMsg( oWnd, '_'+xProp[1], xProp[2] )
+            ENDIF
+         ENDIF
+      ENDIF
+      EXIT
+
+   CASE 'e'
+      IF cPropName == "enable"
+         lErr := !(Valtype(xProp) == "L") .OR. !__ObjHasMsg( oWnd, "ENABLE" )
+         IF !lErr
+            IF xProp
+               oWnd:Enable()
+            ELSE
+               oWnd:Disable()
             ENDIF
          ENDIF
       ENDIF
@@ -673,10 +686,24 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
 
    CASE 'i'
       IF cPropName == "image"
-         lErr := !( __ObjHasMsg( oWnd, "REPLACEBITMAP" ))
+         lErr := !__ObjHasMsg( oWnd, "REPLACEBITMAP" )
          IF !lErr
             oWnd:ReplaceBitmap( xProp )
             oWnd:Refresh()
+         ENDIF
+      ENDIF
+      EXIT
+
+   CASE 'm'
+      IF cPropName == "move"
+         lErr := Valtype(xProp) != "A" .OR. Len(xProp) != 4
+         IF !lErr
+            FOR i := 1 TO 4
+               IF xProp[i] < 0
+                  xProp[i] := Nil
+               ENDIF
+            NEXT
+            oWnd:Move( xProp[1], xProp[2], xProp[3], xProp[4] )
          ENDIF
       ENDIF
       EXIT
@@ -825,7 +852,7 @@ STATIC FUNCTION GetProperty( cWidgName, cPropName )
    //A window or a dialog ?
    lWidg := ("." $ cWidgName)
 
-   oWnd := GetWidg( cWidgName )
+   oWnd := Widg( cWidgName )
    IF Empty( oWnd )
       RETURN .F.
    ENDIF
@@ -967,7 +994,7 @@ STATIC FUNCTION GetFont( cName )
 
    RETURN GetItemByName( HFont():aFonts, cName )
 
-STATIC FUNCTION GetWnd( cName )
+FUNCTION Wnd( cName )
 
    LOCAL oWnd
 
@@ -984,15 +1011,15 @@ STATIC FUNCTION GetWnd( cName )
    ENDIF
    RETURN oWnd
    
-FUNCTION GetWidg( cWidgName, oWnd )
+FUNCTION Widg( cWidgName, oWnd )
 
    LOCAL nPos
 
    IF oWnd == Nil
       IF (nPos := At( ".", cWidgName )) == 0
-         RETURN GetWnd( cWidgName )
+         RETURN Wnd( cWidgName )
       ELSE
-         oWnd := GetWnd( Left( cWidgName, nPos-1 ) )
+         oWnd := Wnd( Left( cWidgName, nPos-1 ) )
          cWidgName := Upper(Substr( cWidgName, nPos+1 ))
       ENDIF
    ELSE
