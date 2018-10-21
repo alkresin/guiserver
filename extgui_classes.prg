@@ -337,6 +337,8 @@ CLASS EPrinter
    DATA cPrinter
 
    METHOD New( cName, cPrinter )
+   METHOD AddFont( cName, fontName, nHeight, lBold, lItalic, lUnderline, nCharset )
+   METHOD SetFont( oFont )
    METHOD Say( nLeft, nTop, nRight, nBottom, cText, nOpt )
    METHOD Box( nLeft, nTop, nRight, nBottom )
    METHOD Line( nLeft, nTop, nRight, nBottom )
@@ -357,6 +359,18 @@ METHOD New( cName, cPrinter ) CLASS EPrinter
    ::cPrinter := cPrinter
 
    RETURN Self
+
+METHOD AddFont( cName, fontName, nHeight, lBold, lItalic, lUnderline, nCharset ) CLASS EPrinter
+
+   LOCAL oFont := EFont():New( cName, fontName, nHeight, lBold, lItalic, lUnderline, nCharset )
+
+   SendOut( hb_jsonEncode( { "print", "fontadd", ::cName, {oFont:cName, fontName, nHeight, lBold, lItalic, lUnderline, nCharset} } ) )
+   RETURN oFont
+
+METHOD SetFont( oFont ) CLASS EPrinter
+
+   SendOut( hb_jsonEncode( { "print", "fontset", ::cName, {oFont:cName} } ) )
+   RETURN Nil
 
 METHOD Say( nLeft, nTop, nRight, nBottom, cText, nOpt ) CLASS EPrinter
 

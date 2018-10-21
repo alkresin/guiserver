@@ -247,7 +247,7 @@ FUNCTION eGUI_InitPrinter( cName, cPrinter )
    ENDIF
    SendOut( hb_jsonEncode( { "print", "init", oPrinter:cName, {cPrinter} } ) )
 
-   RETURN oStyle
+   RETURN oPrinter
 
 FUNCTION eGUI_EvalFunc( cCode )
 

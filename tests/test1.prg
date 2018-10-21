@@ -52,6 +52,8 @@ FUNCTION Main
          eGUI_AddMenuItem( "Select font", "SetLblFont" )
          eGUI_AddMenuItem( "Select file", "SeleFile" )
          eGUI_AddMenuSeparator()
+         eGUI_AddMenuItem( "Printing", "PrnTest" )
+         eGUI_AddMenuSeparator()
          eGUI_AddMenuItem( "Exit",,"hwg_EndWindow()" )
       egui_EndMenu()
       egui_Menu( "Help" )
@@ -252,5 +254,31 @@ FUNCTION SeleFile( aParams )
          egui_MsgInfo( aParams[2], "File selected" )
       ENDIF
    ENDIF
+
+   RETURN Nil
+
+FUNCTION PrnTest()
+
+   LOCAL oPrinter, oFont
+
+   oPrinter := eGUI_InitPrinter( ,"" )
+
+   oFont := oPrinter:AddFont( ,"Times New Roman",10 )
+
+   oPrinter:StartDoc( .T. )
+   oPrinter:StartPage()
+   oPrinter:SetFont( oFont )
+   oPrinter:Box( 5,5,200,282 )
+   oPrinter:Say( "Windows printing first sample !", 50,10,165,26,DT_CENTER,oFont  )
+   oPrinter:Line( 45,30,170,30 )
+   oPrinter:Line( 45,5,45,30 )
+   oPrinter:Line( 170,5,170,30 )
+   oPrinter:Say( "----------", 50,120,150,132,DT_CENTER  )
+   oPrinter:Box( 50,134,160,146 )
+   oPrinter:Say( "End Of Report", 50,135,160,146,DT_CENTER  )
+   oPrinter:EndPage()
+   oPrinter:EndDoc()
+   oPrinter:Preview()
+   oPrinter:End()
 
    RETURN Nil

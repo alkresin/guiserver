@@ -981,8 +981,8 @@ STATIC FUNCTION PrintFuncs( cFunc, cName, aParams )
    LOCAL oPrinter, i, oFont
 
    IF cFunc == "init"
-      IF cName == "..."
-         cName := Nil
+      IF aParams[1] == "..."
+         aParams[1] := Nil
       ENDIF
       oPrinter := HPrinter():New( aParams[1], .T. )
       oPrinter:objname := cName
@@ -1010,11 +1010,14 @@ STATIC FUNCTION PrintFuncs( cFunc, cName, aParams )
       ELSEIF cFunc == "bitmap"
 
       ELSEIF cFunc == "fontadd"
-         oFont := oPrinter:AddFont( aParams[1], aParams[2], aParams[3], aParams[4], ;
-            aParams[5], aParams[6] )
-         oFont:objname := cName
+         oFont := oPrinter:AddFont( aParams[2], aParams[3], aParams[4], ;
+            aParams[5], aParams[6], aParams[7] )
+         oFont:objname := aParams[1]
 
       ELSEIF cFunc == "fontset"
+         IF ( oFont := GetPrinterFont( aParams[1] ) ) != Nil
+            oPrinter:SetFont( oFont )
+         ENDIF
 
       ELSEIF cFunc == "startpage"
          oPrinter:StartPage()
@@ -1057,6 +1060,14 @@ STATIC FUNCTION GetStyle( cName )
 STATIC FUNCTION GetFont( cName )
 
    RETURN GetItemByName( HFont():aFonts, cName )
+
+STATIC FUNCTION GetPrinterFont( cName )
+
+#ifdef __GTK__
+   RETURN GetItemByName( HGP_Font():aFonts, cName )
+#else
+   RETURN GetItemByName( HFont():aFonts, cName )
+#endif
 
 FUNCTION Wnd( cName )
 

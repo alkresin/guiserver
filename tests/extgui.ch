@@ -19,3 +19,7 @@
 #define ANCHOR_RIGHTREL        128 // Anchors control to right border of container and maintains relative distance between the right border.
 #define ANCHOR_HORFIX          256 // Anchors center of control relative to left and right borders but remains fixed in size.
 #define ANCHOR_VERTFIX         512 // Anchors center of control relative to top and bottom borders but remains fixed in size.
+
+#define DT_LEFT                0
+#define DT_CENTER              1
+#define DT_RIGHT               2
