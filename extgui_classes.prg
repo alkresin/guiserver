@@ -342,11 +342,11 @@ CLASS EPrinter
    METHOD Say( nLeft, nTop, nRight, nBottom, cText, nOpt )
    METHOD Box( nLeft, nTop, nRight, nBottom )
    METHOD Line( nLeft, nTop, nRight, nBottom )
-   METHOD StartDoc( lPreview )
-   METHOD EndDoc()
+   //METHOD StartDoc( lPreview )
+   //METHOD EndDoc()
    METHOD StartPage()
    METHOD EndPage()
-   METHOD Preview()
+   //METHOD Preview()
    METHOD End()
 ENDCLASS
 
@@ -387,6 +387,7 @@ METHOD Line( nLeft, nTop, nRight, nBottom ) CLASS EPrinter
    SendOut( hb_jsonEncode( { "print", "line", ::cName, {nLeft, nTop, nRight, nBottom} } ) )
    RETURN Nil
 
+/*
 METHOD StartDoc( lPreview ) CLASS EPrinter
 
    SendOut( hb_jsonEncode( { "print", "startdoc", ::cName, {lPreview} } ) )
@@ -396,7 +397,7 @@ METHOD EndDoc() CLASS EPrinter
 
    SendOut( hb_jsonEncode( { "print", "enddoc", ::cName, {} } ) )
    RETURN Nil
-
+*/
 METHOD StartPage() CLASS EPrinter
 
    SendOut( hb_jsonEncode( { "print", "startpage", ::cName, {} } ) )
@@ -407,11 +408,12 @@ METHOD EndPage() CLASS EPrinter
    SendOut( hb_jsonEncode( { "print", "endpage", ::cName, {} } ) )
    RETURN Nil
 
+/*
 METHOD Preview() CLASS EPrinter
 
    SendOut( hb_jsonEncode( { "print", "preview", ::cName, {} } ) )
    RETURN Nil
-
+*/
 METHOD End() CLASS EPrinter
 
    SendOut( hb_jsonEncode( { "print", "end", ::cName, {} } ) )

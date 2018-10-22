@@ -12,7 +12,7 @@ Static cn := e"\n"
 Static aMenu := Nil, aMenuStack
 Static lPacket := .F., cPacketBuff
 
-Memvar oLastWindow, oLastWidget
+Memvar oLastWindow, oLastWidget, oLastPrinter
 
 #ifdef __PLATFORM__UNIX
 //ANNOUNCE HB_GTSYS
@@ -24,7 +24,7 @@ FUNCTION eGUI_Init( cOptions )
    LOCAL cServer := "guiserver.exe", cIp := "localhost", nPort := 3101, cLogFile := "ac.log", lLog := .F.
    LOCAL cSep := e"\r\n", arr, i, s
 
-   PUBLIC oLastWindow, oLastWidget
+   PUBLIC oLastWindow, oLastWidget, oLastPrinter
 
    IF cOptions != Nil
       IF !( cSep $ cOptions )
@@ -238,16 +238,17 @@ FUNCTION eGUI_CreateStyle( cName, aColors, nOrient, aCorners, nBorder, tColor, c
 
    RETURN oStyle
 
-FUNCTION eGUI_InitPrinter( cName, cPrinter )
+FUNCTION eGUI_InitPrinter( cName, cPrinter, lPreview, nFormType, lLandscape, cFunc, cMet )
 
    LOCAL oPrinter := EPrinter():New( cName, cPrinter )
 
    IF Valtype( cPrinter ) != "C"
       cPrinter := "..."
    ENDIF
-   SendOut( hb_jsonEncode( { "print", "init", oPrinter:cName, {cPrinter} } ) )
+   SendOut( hb_jsonEncode( { "prninit", oPrinter:cName, {cPrinter,!Empty(lPreview), ;
+         nFormType,!Empty(lLandscape)}, cFunc, cMet } ) )
 
-   RETURN oPrinter
+   RETURN ( oLastPrinter := oPrinter )
 
 FUNCTION eGUI_EvalFunc( cCode )
 

@@ -257,28 +257,27 @@ FUNCTION SeleFile( aParams )
 
    RETURN Nil
 
-FUNCTION PrnTest()
+FUNCTION PrnTest( aParams )
 
-   LOCAL oPrinter, oFont
+   LOCAL oFont, oPrinter
 
-   oPrinter := eGUI_InitPrinter( ,"" )
+   IF aParams == Nil
+      oPrinter := eGUI_InitPrinter( ,, .T.,,, "prntest", "mm1" )
+   ELSE
+      oPrinter := m->oLastPrinter
+      oFont := oPrinter:AddFont( ,"Times New Roman",10 )
 
-   oFont := oPrinter:AddFont( ,"Times New Roman",10 )
-
-   oPrinter:StartDoc( .T. )
-   oPrinter:StartPage()
-   oPrinter:SetFont( oFont )
-   oPrinter:Box( 5,5,200,282 )
-   oPrinter:Say( "Windows printing first sample !", 50,10,165,26,DT_CENTER,oFont  )
-   oPrinter:Line( 45,30,170,30 )
-   oPrinter:Line( 45,5,45,30 )
-   oPrinter:Line( 170,5,170,30 )
-   oPrinter:Say( "----------", 50,120,150,132,DT_CENTER  )
-   oPrinter:Box( 50,134,160,146 )
-   oPrinter:Say( "End Of Report", 50,135,160,146,DT_CENTER  )
-   oPrinter:EndPage()
-   oPrinter:EndDoc()
-   oPrinter:Preview()
-   oPrinter:End()
-
+      oPrinter:StartPage()
+      oPrinter:SetFont( oFont )
+      oPrinter:Box( 5,5,200,282 )
+      oPrinter:Say( "Windows printing first sample !", 50,10,165,26,DT_CENTER,oFont  )
+      oPrinter:Line( 45,30,170,30 )
+      oPrinter:Line( 45,5,45,30 )
+      oPrinter:Line( 170,5,170,30 )
+      oPrinter:Say( "----------", 50,120,150,132,DT_CENTER  )
+      oPrinter:Box( 50,134,160,146 )
+      oPrinter:Say( "End Of Report", 50,135,160,146,DT_CENTER  )
+      oPrinter:EndPage()
+      oPrinter:End()
+   ENDIF
    RETURN Nil

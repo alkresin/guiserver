@@ -23,3 +23,8 @@
 #define DT_LEFT                0
 #define DT_CENTER              1
 #define DT_RIGHT               2
+
+#define DMPAPER_A3             8  /* A3 297 x 420 mm  */
+#define DMPAPER_A4             9  /* A4 210 x 297 mm  */
+#define DMPAPER_A5            11  /* A5 148 x 210 mm  */
+#define DMPAPER_A6            70  /* A6 105 x 148 mm  */

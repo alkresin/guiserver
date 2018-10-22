@@ -976,68 +976,86 @@ STATIC FUNCTION f_SeleColor( nColor, cFunc, cName )
 
    RETURN Nil
 
+STATIC FUNCTION PrintInit( cName, aParams, cFunc, cMet )
+
+   LOCAL nFormType := Iif( Empty(aParams[3]), Nil, aParams[3] ), n
+
+   IF aParams[1] == "..."
+      aParams[1] := Nil
+   ELSE
+      cFunc := cMet := Nil
+   ENDIF
+
+   oPrinter := HPrinter():New( aParams[1], .T., nFormType,, !Empty(aParams[4]) )
+   oPrinter:objname := cName
+   Aadd( aPrinters, oPrinter )
+
+   IF !Empty( cFunc )
+      Send2SocketOut( "+" + hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cMet} ) } ) + cn )
+   ENDIF
+
+   oPrinter:StartDoc( aParams[2] )
+
+   RETURN Nil
+
 STATIC FUNCTION PrintFuncs( cFunc, cName, aParams )
 
    LOCAL oPrinter, i, oFont
 
-   IF cFunc == "init"
-      IF aParams[1] == "..."
-         aParams[1] := Nil
+   FOR i := 1 TO Len(aPrinters)
+      IF aPrinters[i]:objname == cName
+         oPrinter := aPrinters[i]
+         EXIT
       ENDIF
-      oPrinter := HPrinter():New( aParams[1], .T. )
-      oPrinter:objname := cName
-      Aadd( aPrinters, oPrinter )
-   ELSE
-      FOR i := 1 TO Len(aPrinters)
-         IF aPrinters[i]:objname == cName
-            oPrinter := aPrinters[i]
-            EXIT
-         ENDIF
-      NEXT
-      IF Empty( oPrinter )
-         gWritelog( "Printer not found: " + cName )
-         RETURN Nil
+   NEXT
+   IF Empty( oPrinter )
+      gWritelog( "Printer not found: " + cName )
+      RETURN Nil
+   ENDIF
+   IF cFunc == "text"
+      oPrinter:Say( aParams[1], aParams[2], aParams[3], aParams[4], aParams[5], aParams[6] )
+
+   ELSEIF cFunc == "box"
+      oPrinter:Box( aParams[1], aParams[2], aParams[3], aParams[4] )
+
+   ELSEIF cFunc == "line"
+      oPrinter:Line( aParams[1], aParams[2], aParams[3], aParams[4] )
+
+   ELSEIF cFunc == "bitmap"
+
+   ELSEIF cFunc == "fontadd"
+      oFont := oPrinter:AddFont( aParams[2], aParams[3], aParams[4], ;
+         aParams[5], aParams[6], aParams[7] )
+      oFont:objname := aParams[1]
+
+   ELSEIF cFunc == "fontset"
+      IF ( oFont := GetPrinterFont( aParams[1] ) ) != Nil
+         oPrinter:SetFont( oFont )
       ENDIF
-      IF cFunc == "text"
-         oPrinter:Say( aParams[1], aParams[2], aParams[3], aParams[4], aParams[5], aParams[6] )
 
-      ELSEIF cFunc == "box"
-         oPrinter:Box( aParams[1], aParams[2], aParams[3], aParams[4] )
+   ELSEIF cFunc == "startpage"
+      oPrinter:StartPage()
 
-      ELSEIF cFunc == "line"
-         oPrinter:Line( aParams[1], aParams[2], aParams[3], aParams[4] )
+   ELSEIF cFunc == "endpage"
+      oPrinter:EndPage()
 
-      ELSEIF cFunc == "bitmap"
+/*
+   ELSEIF cFunc == "startdoc"
+      oPrinter:StartDoc( aParams[1] )
 
-      ELSEIF cFunc == "fontadd"
-         oFont := oPrinter:AddFont( aParams[2], aParams[3], aParams[4], ;
-            aParams[5], aParams[6], aParams[7] )
-         oFont:objname := aParams[1]
+   ELSEIF cFunc == "enddoc"
+      oPrinter:EndDoc()
 
-      ELSEIF cFunc == "fontset"
-         IF ( oFont := GetPrinterFont( aParams[1] ) ) != Nil
-            oPrinter:SetFont( oFont )
-         ENDIF
-
-      ELSEIF cFunc == "startpage"
-         oPrinter:StartPage()
-
-      ELSEIF cFunc == "endpage"
-         oPrinter:EndPage()
-
-      ELSEIF cFunc == "startdoc"
-         oPrinter:StartDoc( aParams[1] )
-
-      ELSEIF cFunc == "enddoc"
-         oPrinter:EndDoc()
-
-      ELSEIF cFunc == "preview"
+   ELSEIF cFunc == "preview"
+      oPrinter:Preview()
+*/
+   ELSEIF cFunc == "end"
+      oPrinter:EndDoc()
+      IF oPrinter:lPreview()
          oPrinter:Preview()
-
-      ELSEIF cFunc == "end"
-         oPrinter:End()
-
       ENDIF
+      oPrinter:End()
+
    ENDIF
 
    RETURN Nil
@@ -1381,6 +1399,14 @@ STATIC FUNCTION Parse( arr, lPacket )
          IF !lErr
             IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
             PrintFuncs( Lower(arr[2]), Upper(arr[3]), arr[4] )
+         ENDIF
+
+      ELSEIF cCommand == "prninit"
+         lErr := ( Len(arr)<3 .OR. Valtype(arr[2]) != "C" )
+         IF !lErr
+            IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
+            PrintInit( Upper(arr[2]), arr[3], Iif(Len(arr)>3,arr[4],Nil), ;
+                  Iif(Len(arr)>4,arr[5],Nil) )
          ENDIF
 
       ELSEIF cCommand == "packet"
