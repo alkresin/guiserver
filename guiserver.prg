@@ -34,6 +34,8 @@ ANNOUNCE HB_GTSYS
 REQUEST HB_GT_GUI_DEFAULT
 #endif
 
+#define GUIS_VERSION   "1.1"
+
 STATIC nPort := 3101
 STATIC lEnd := .F., oMTimer := Nil, nInterval := 20
 STATIC cn := e"\n"
@@ -76,7 +78,7 @@ FUNCTION Main( ... )
    IF lLogOn
       SetLogFile( "ac.log" )
    ENDIF
-   SetVersion( "1.1" )
+   SetVersion( GUIS_VERSION )
    SetHandler( "MAINHANDLER" )
    gWritelog( "Start at port "+ Ltrim(Str(nPort)) )
    CreateSocket( nPort )
@@ -1457,3 +1459,6 @@ STATIC FUNCTION gWritelog( s )
       hwg_writelog( s, cLogFile )
    ENDIF
    RETURN Nil
+
+FUNCTION gVersion()
+   RETURN "GuiServer " + GUIS_VERSION

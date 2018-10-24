@@ -10,8 +10,6 @@
 #include "hbvm.h"
 #include "hbapifs.h"
 
-#define PROTOCOL_VER  "1.1"
-
 #if defined( HB_OS_WIN_32 )
    #define HB_SOCKET_T SOCKET
 #else
@@ -264,7 +262,7 @@ static int sock_Listen( void )
             hSocketIn = incoming;
             hb_ip_rfd_set( incoming );
 
-            sprintf( szBuf, "+v%s/%s\n", PROTOCOL_VER, szVersion );
+            sprintf( szBuf, "+v%s\n", szVersion );
             socket_Send( hSocketIn, szBuf, strlen(szBuf) );
             _writelog( pLogFile, 0, "hSocketIn: %lu\r\n", hSocketIn );
 
