@@ -381,6 +381,17 @@ FUNCTION eGUI_BrwSetArray( oBrw, arr )
 
    RETURN Nil
 
+FUNCTION eGUI_BrwGetArray( oBrw )
+
+   LOCAL cRes, arr
+   cRes := SendOut( hb_jsonEncode( { "get", oBrw:cName, "brwarr" } ) )
+   IF !Empty(cRes)
+      hb_jsonDecode( cRes, @arr )
+      RETURN arr
+   ENDIF
+
+   RETURN Nil
+
 FUNCTION eGUI_BrwSetColumn( oBrw, nColumn, cHeadName, nAlignHead, nAlignData, lEditable )
 
    LOCAL cName := FullWidgName( oBrw )

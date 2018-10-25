@@ -53,6 +53,7 @@ static long int lBufferInLen = 0, lBufferOutLen = 0, lLastReceived = 0;
 static const char * pLogFile = NULL;
 static char szPrefix[16] = "";
 static char szVersion[16] = "1.0";
+int iSockIn_Check = 0;
 
 static PHB_DYNS s_pSymHandler = NULL;
 
@@ -302,9 +303,12 @@ static int sockIn_Check( void )
    HB_SOCKET_T incoming;
    long int lTemp;
 
+   if( iSockIn_Check > 2 )
+      return 0;
+   iSockIn_Check ++;
    if( iIpActive && hb_ip_rfd_select( 1 ) > 0 )
    {
-      _writelog( pLogFile, 0, "check-0\r\n" );
+      _writelog( pLogFile, 0, "check-0 %d\r\n", iSockIn_Check );
       if( hSocketIn != (HB_SOCKET_T)-1 && hb_ip_rfd_isset( hSocketIn ) )
       {
          _writelog( pLogFile, 0, "check-3\r\n" );
@@ -317,6 +321,7 @@ static int sockIn_Check( void )
                hb_vmPushNil();
                hb_vmDo( 0 );
             }
+            iSockIn_Check --;
             return 1;
          }
          else if( hb_iperrorcode() )
@@ -327,6 +332,7 @@ static int sockIn_Check( void )
          }
       }
    }
+   iSockIn_Check --;
    return 0;
 
 }

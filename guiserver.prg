@@ -884,6 +884,11 @@ STATIC FUNCTION GetProperty( cWidgName, cPropName )
       ENDIF
       
    ELSEIF cPropName == "color"
+
+   ELSEIF cPropName == "brwarr"
+      IF __ObjHasMsg( oWnd, "AARRAY" )
+         cRes := oWnd:aArray
+      ENDIF
    ENDIF
 
    RETURN cRes

@@ -134,14 +134,10 @@ FUNCTION openfile()
 
 FUNCTION fclose()
 
-   LOCAL arr
-   ? oEdi1:GetText()
-   arr := egui_GetValues( oDlg, {"edi1","edi2","rg"} )
-   IF Valtype(arr) == "A"
-      ? arr[1], arr[2]
-      ? arr[3]
-   ENDIF
+   LOCAL arr := egui_GetValues( oDlg, {"edi1","edi2","rg"} )
+
    oDlg:Close()
+   egui_MsgInfo( "Ид: "+arr[1]+Chr(13)+Chr(10)+"Пар: "+arr[2]+Chr(13)+Chr(10)+"Радио: "+arr[3]+Chr(13)+Chr(10), "Answer" )
 
    RETURN Nil
 
