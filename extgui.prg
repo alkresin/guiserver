@@ -292,7 +292,7 @@ FUNCTION eGUI_MsgYesNo( cMessage, cTitle, cFunc, cName )
 FUNCTION eGUI_MsgGet( cMessage, cTitle, nStyle, cFunc, cName )
 
    nStyle := Iif( Empty(nStyle), 0, nStyle )
-   SendOut( hb_jsonEncode( { "common", "myesno", cFunc, cName, cMessage, cTitle, nStyle } ) )
+   SendOut( hb_jsonEncode( { "common", "mget", cFunc, cName, cMessage, cTitle, nStyle } ) )
 
    RETURN Nil
 

@@ -49,7 +49,7 @@ static int iIpActive = 0;
 static int iServerPort;
 static HB_SOCKET_T hSocketMain1 = (HB_SOCKET_T)-1, hSocketMain2 = (HB_SOCKET_T)-1, hSocketIn = (HB_SOCKET_T)-1, hSocketOut = (HB_SOCKET_T)-1;
 static char * pBufferIn = NULL, * pBufferOut = NULL;
-static long int lBufferInLen = 0, lBufferOutLen = 0, lLastReceived = 0;
+static long int lBufferInLen = 0, lBufferOutLen = 0, lLastRcvIn = 0, lLastRcvOut = 0;
 static const char * pLogFile = NULL;
 static char szPrefix[16] = "";
 static char szVersion[16] = "1.0";
@@ -140,13 +140,14 @@ static unsigned long s2l16( char * ptr1, char * ptr2 )
 static void return_buffer( int bOut )
 {
    char * ptr = (bOut)? pBufferOut : pBufferIn;
+   long int lLastReceived = (bOut)? lLastRcvOut : lLastRcvIn;
    if( *ptr == '+' )
       hb_retclen_const( (const char*) (ptr+1), lLastReceived-1 );
    else if( *ptr == '!' )
       hb_retclen_const( (const char*) (ptr+8), lLastReceived-8 );
 }
 
-static long int socket_Recv( HB_SOCKET_T hSocket, int iTimeout, char ** pBuffer, long int * pBufferLen )
+static long int socket_Recv( HB_SOCKET_T hSocket, int iTimeout, char ** pBuffer, long int * pBufferLen, long int * pLastReceived )
 {
    int iRet;
    char szRet[HB_SENDRECV_BUFFER_SIZE], * ptr;
@@ -157,7 +158,7 @@ static long int socket_Recv( HB_SOCKET_T hSocket, int iTimeout, char ** pBuffer,
       return 0;
 
    ptr = *pBuffer;
-   lLastReceived = 0;
+   *pLastReceived = 0;
    do
    {
       _writelog( pLogFile, 0, "recv1: %d\r\n", hSocket );
@@ -211,16 +212,16 @@ static long int socket_Recv( HB_SOCKET_T hSocket, int iTimeout, char ** pBuffer,
    if( !lLen && *(ptr-1) == '\n' )
       ptr --;
    *ptr = '\0';
-   lLastReceived = (long int) (ptr - *pBuffer);
-   _writelog( pLogFile, 0, "recv10: %d %s\r\n", lLastReceived, *pBuffer );
-   return lLastReceived;
+   *pLastReceived = (long int) (ptr - *pBuffer);
+   _writelog( pLogFile, 0, "recv10: %d %s\r\n", *pLastReceived, *pBuffer );
+   return *pLastReceived;
 }
 
 static long int sockIn_Recv( int iTimeout )
 {
    long int lRes;
    _writelog( pLogFile, 0, "Inrecv1 %d\r\n", hSocketIn );
-   lRes = socket_Recv( hSocketIn, iTimeout, &pBufferIn, &lBufferInLen );
+   lRes = socket_Recv( hSocketIn, iTimeout, &pBufferIn, &lBufferInLen, &lLastRcvIn );
    _writelog( pLogFile, 0, "Inrecv2 %ld \r\n", lRes );
    return lRes;
 }
@@ -229,7 +230,7 @@ static long int sockOut_Recv( int iTimeout )
 {
    long int lRes;
    _writelog( pLogFile, 0, "Outrecv1 %d\r\n", hSocketOut );
-   lRes = socket_Recv( hSocketOut, iTimeout, &pBufferOut, &lBufferOutLen );
+   lRes = socket_Recv( hSocketOut, iTimeout, &pBufferOut, &lBufferOutLen, &lLastRcvOut );
    _writelog( pLogFile, 0, "Outrecv2 %ld \r\n", lRes );
    return lRes;
 }
@@ -303,15 +304,14 @@ static int sockIn_Check( void )
    HB_SOCKET_T incoming;
    long int lTemp;
 
-   if( iSockIn_Check > 2 )
-      return 0;
    iSockIn_Check ++;
-   if( iIpActive && hb_ip_rfd_select( 1 ) > 0 )
+   //if( iIpActive && hb_ip_rfd_select( 1 ) > 0 )
+   if( iIpActive && hSocketIn != (HB_SOCKET_T)-1 && hb_ipDataReady( hSocketIn,2 ) != 0 )
    {
       _writelog( pLogFile, 0, "check-0 %d\r\n", iSockIn_Check );
-      if( hSocketIn != (HB_SOCKET_T)-1 && hb_ip_rfd_isset( hSocketIn ) )
-      {
-         _writelog( pLogFile, 0, "check-3\r\n" );
+      //if( hSocketIn != (HB_SOCKET_T)-1 && hb_ip_rfd_isset( hSocketIn ) )
+      //{
+      //   _writelog( pLogFile, 0, "check-3\r\n" );
          lTemp = sockIn_Recv( TIMEOUT );
          if( lTemp > 0 )
          {
@@ -330,7 +330,7 @@ static int sockIn_Check( void )
             hb_ipclose( hSocketIn );
             hSocketIn = (HB_SOCKET_T)-1;
          }
-      }
+      //}
    }
    iSockIn_Check --;
    return 0;
@@ -402,7 +402,7 @@ HB_FUNC( SEND2SOCKETOUT )
    _writelog( pLogFile, 0, "sendOut: %s \r\n", szBuf );
    if( iIpActive && hSocketOut != (HB_SOCKET_T)-1 )
    {
-      _writelog( pLogFile, 0, "sendOut2:\r\n" );
+      _writelog( pLogFile, 0, "sendOut2\r\n" );
       socket_Send( hSocketOut, szBuf, strlen(szBuf) );
       while( iIpActive )
       {
@@ -421,7 +421,7 @@ HB_FUNC( SEND2SOCKETOUT )
             return;
          }
       }
-      _writelog( pLogFile, 0, "sendOut3 %d:\r\n", lLastReceived );
+      _writelog( pLogFile, 0, "sendOut3 %d\r\n", lLastRcvOut );
    }        
 }
 

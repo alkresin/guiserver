@@ -48,6 +48,7 @@ STATIC lLogOn := .F., cLogFile := "guiserver.log"
 STATIC oMainWnd, oCurrWindow, cCurrwindow := ""
 STATIC cDefPath := ""
 STATIC aPrinters := {}
+STATIC cWinClose
 
 FUNCTION Main( ... )
 
@@ -197,6 +198,7 @@ STATIC FUNCTION CrDialog( cName, arr, hash )
    LOCAL bExit := {|o|
       LOCAL lRes := .T.
       IF lRes
+         o:bDestroy := Nil
          IF oMTimer != Nil
             oMTimer:End()
             oMTimer := Nil
@@ -206,6 +208,7 @@ STATIC FUNCTION CrDialog( cName, arr, hash )
             SET TIMER oMTimer OF oMainWnd VALUE nInterval ACTION {||TimerFunc()}
          ENDIF
          Send2SocketOut( '+["exit","' + o:objName + '"]' + cn )
+
       ENDIF
 
       RETURN lRes
@@ -1210,6 +1213,10 @@ STATIC FUNCTION SetFormTimer( oForm )
 
 STATIC FUNCTION TimerFunc()
 
+   IF !Empty( cWinClose )
+      WinClose( cWinClose )
+      cWinClose := Nil
+   ENDIF
    CheckSocket()
    RETURN Nil
 
@@ -1381,7 +1388,8 @@ STATIC FUNCTION Parse( arr, lPacket )
          lErr := ( Len(arr)<2 )
          IF !lErr
             IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
-            WinClose( arr[2] )
+            //WinClose( arr[2] )
+            cWinClose := arr[2]
          ENDIF
 
       ELSEIF cCommand == "crfont"
