@@ -1,0 +1,23 @@
+
+2018-10-27 18:00 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  + Changelog
+    + Changelog file added.
+  * extgui.prg
+    * Evaluating of a procedure, sent from server ("runproc" command) is deferred to
+      the idle state queue.
+    * eGUI_Writelog( cText, cLogName ) added
+    * eGUI_Init() checks the server's protocol version now and failed if it isn't
+      equal to the local's.
+    * The call of eGUI_Init() returns numeric value now:
+      0 - Ok
+      1 - No connection
+      2 - protocol versions differs
+  * guiserver.prg
+    * Evaluating of some commands is deferred to the TimerFunc().
+  * listen.c
+    * Some fixes and optimizations.
+  * tests/test1.prg
+  * tests/test2.prg
+  * tests/test_form2.prg
+    * Checking of the return value of eGUI_Init() modified.
+  

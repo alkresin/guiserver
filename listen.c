@@ -10,6 +10,8 @@
 #include "hbvm.h"
 #include "hbapifs.h"
 
+#define PROTOCOL_VER "1.1"
+
 #if defined( HB_OS_WIN_32 )
    #define HB_SOCKET_T SOCKET
 #else
@@ -264,7 +266,7 @@ static int sock_Listen( void )
             hSocketIn = incoming;
             hb_ip_rfd_set( incoming );
 
-            sprintf( szBuf, "+v%s\n", szVersion );
+            sprintf( szBuf, "+v%s/%s\n", szVersion, PROTOCOL_VER );
             socket_Send( hSocketIn, szBuf, strlen(szBuf) );
             _writelog( pLogFile, 0, "hSocketIn: %lu\r\n", hSocketIn );
 
@@ -298,43 +300,47 @@ static int sock_Listen( void )
    return 0;
 }
 
+static void runHandler( void )
+{
+   if( s_pSymHandler )
+   {
+      unsigned long ulms = milliSec();
+      _writelog( pLogFile, 0, "run_handler_1\r\n" );
+      hb_vmPushDynSym( s_pSymHandler );
+      hb_vmPushNil();
+      hb_vmDo( 0 );
+      _writelog( pLogFile, 0, "run_handler_2 at: %lu\r\n", ulms );
+   }
+}
+
 static int sockIn_Check( void )
 {
-   char szBuf[64];
-   HB_SOCKET_T incoming;
-   long int lTemp;
 
    iSockIn_Check ++;
-   //if( iIpActive && hb_ip_rfd_select( 1 ) > 0 )
    if( iIpActive && hSocketIn != (HB_SOCKET_T)-1 && hb_ipDataReady( hSocketIn,2 ) != 0 )
    {
-      _writelog( pLogFile, 0, "check-0 %d\r\n", iSockIn_Check );
-      //if( hSocketIn != (HB_SOCKET_T)-1 && hb_ip_rfd_isset( hSocketIn ) )
-      //{
-      //   _writelog( pLogFile, 0, "check-3\r\n" );
-         lTemp = sockIn_Recv( TIMEOUT );
-         if( lTemp > 0 )
-         {
-            if( s_pSymHandler )
-            {
-               hb_vmPushDynSym( s_pSymHandler );
-               hb_vmPushNil();
-               hb_vmDo( 0 );
-            }
-            iSockIn_Check --;
-            return 1;
-         }
-         else if( hb_iperrorcode() )
-         {
-            hb_ip_rfd_clr( hSocketIn );
-            hb_ipclose( hSocketIn );
-            hSocketIn = (HB_SOCKET_T)-1;
-         }
-      //}
+      _writelog( pLogFile, 0, "check-1 %d\r\n", iSockIn_Check );
+      if( sockIn_Recv( TIMEOUT ) > 0 )
+      {
+         runHandler();
+         iSockIn_Check --;
+         return 1;
+      }
+      else if( hb_iperrorcode() )
+      {
+         hb_ip_rfd_clr( hSocketIn );
+         hb_ipclose( hSocketIn );
+         hSocketIn = (HB_SOCKET_T)-1;
+      }
    }
    iSockIn_Check --;
    return 0;
 
+}
+
+HB_FUNC( PROTO_VERSION )
+{
+   hb_retc( PROTOCOL_VER );
 }
 
 HB_FUNC( SLEEP_NS )
@@ -417,11 +423,11 @@ HB_FUNC( SEND2SOCKETOUT )
          }
          else if( hb_iperrorcode() || TIMEOUT < (int)(milliSec()-ulms) )
          {
-            _writelog( pLogFile, 0, "sendOut2a:\r\n" );
+            _writelog( pLogFile, 0, "sendOut2a started: %lu\r\n", ulms );
             return;
          }
       }
-      _writelog( pLogFile, 0, "sendOut3 %d\r\n", lLastRcvOut );
+      _writelog( pLogFile, 0, "sendOut3 %d started: %lu\r\n", lLastRcvOut, ulms );
    }        
 }
 
@@ -457,7 +463,7 @@ HB_FUNC( CONNECTSOCKET )
                      {
                         if( sockIn_Recv( TIMEOUT ) > 0 )
                         {
-                           return_buffer( 0 );
+                           return_buffer( 1 );
                            return;
                         }
                      }

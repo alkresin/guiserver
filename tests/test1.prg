@@ -26,10 +26,10 @@ Memvar oLastWidget
 FUNCTION Main
 
    LOCAL oMainWindow, oPane, oStyle2, oStyle3, oStyle4
-   LOCAL cInitString := Memoread( "test.ini" )
+   LOCAL cInitString := Memoread( "test.ini" ), nInitRes
 
-   IF !eGUI_Init( cInitString )
-      ? "No connection..."
+   IF ( nInitRes := eGUI_Init( cInitString ) ) != 0
+      ? Iif( nInitRes==1, "No connection...", "Protocol differs" )
       RETURN Nil
    ENDIF
 

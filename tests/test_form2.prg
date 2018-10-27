@@ -8,10 +8,10 @@
 
 FUNCTION Main
 
-   LOCAL cInitString := ""
+   LOCAL cInitString := "", nInitRes
 
-   IF !eGUI_Init( cInitString )
-      ? "No connection..."
+   IF ( nInitRes := eGUI_Init( cInitString ) ) != 0
+      ? Iif( nInitRes==1, "No connection...", "Protocol differs" )
       RETURN Nil
    ENDIF
 

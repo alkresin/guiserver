@@ -48,7 +48,7 @@ STATIC lLogOn := .F., cLogFile := "guiserver.log"
 STATIC oMainWnd, oCurrWindow, cCurrwindow := ""
 STATIC cDefPath := ""
 STATIC aPrinters := {}
-STATIC cWinClose
+STATIC aDeferred := {,,,,}, nDeferred := 0
 
 FUNCTION Main( ... )
 
@@ -87,7 +87,7 @@ FUNCTION Main( ... )
    DO WHILE !lEnd
       Sleep_ns( nInterval )
       ListenSocket()
-      CheckSocket()
+      TimerFunc()
    ENDDO
 
    Send2SocketOut( '+["endapp"]' + cn )
@@ -1213,13 +1213,49 @@ STATIC FUNCTION SetFormTimer( oForm )
 
 STATIC FUNCTION TimerFunc()
 
-   IF !Empty( cWinClose )
-      WinClose( cWinClose )
-      cWinClose := Nil
-   ENDIF
+   LOCAL arr, cCommand
+
+   DO WHILE nDeferred > 0
+      arr := aDeferred[1]
+      DelDeferred( 1 )
+      IF ( cCommand := arr[1] ) == "close"
+         WinClose( arr[2] )
+      ELSEIF cCommand == "common"
+         IF arr[2] == "minfo"
+            f_MsgInfo( Iif(Len(arr)>4,arr[5],""), Iif(Len(arr)>5,arr[6],""), arr[3], arr[4] )
+         ELSEIF arr[2] == "mstop"
+            f_MsgStop( Iif(Len(arr)>4,arr[5],""), Iif(Len(arr)>5,arr[6],""), arr[3], arr[4] )
+         ELSEIF arr[2] == "myesno"
+            f_MsgYesNo( Iif(Len(arr)>4,arr[5],""), Iif(Len(arr)>5,arr[6],""), arr[3], arr[4] )
+         ELSEIF arr[2] == "mget"
+            f_MsgGet( Iif(Len(arr)>4,arr[5],""), Iif(Len(arr)>5,arr[6],""), Iif(Len(arr)>6,arr[7],0), arr[3], arr[4] )
+         ELSEIF arr[2] == "mchoi"
+            f_Choice( Iif(Len(arr)>4,arr[5],{}), Iif(Len(arr)>5,arr[6],""), arr[3], arr[4] )
+         ELSEIF arr[2] == "cfont"
+            f_selefont( arr[3], arr[4] )
+         ELSEIF arr[2] == "cfile"
+            f_selefile( Iif(Len(arr)>4,arr[5],""), arr[3], arr[4] )
+         ELSEIF arr[2] == "ccolor"
+            f_selecolor( Iif(Len(arr)>4,arr[5],""), arr[3], arr[4] )
+         ENDIF
+      ENDIF
+   ENDDO
    CheckSocket()
    RETURN Nil
 
+STATIC FUNCTION Add2Deferred( arr )
+
+   IF ++ nDeferred > Len( aDeferred )
+      aDeferred := ASize( aDeferred, Len(aDeferred)+5 )
+   ENDIF
+   aDeferred[nDeferred] := arr
+   RETURN Nil
+
+STATIC FUNCTION DelDeferred( n )
+
+   ADel( aDeferred, n )
+   nDeferred --
+   RETURN Nil
 
 STATIC FUNCTION Parse( arr, lPacket )
 
@@ -1353,23 +1389,7 @@ STATIC FUNCTION Parse( arr, lPacket )
          lErr := ( Len(arr)<4 )
          IF !lErr
             IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
-            IF arr[2] == "minfo"
-               f_MsgInfo( Iif(Len(arr)>4,arr[5],""), Iif(Len(arr)>5,arr[6],""), arr[3], arr[4] )
-            ELSEIF arr[2] == "mstop"
-               f_MsgStop( Iif(Len(arr)>4,arr[5],""), Iif(Len(arr)>5,arr[6],""), arr[3], arr[4] )
-            ELSEIF arr[2] == "myesno"
-               f_MsgYesNo( Iif(Len(arr)>4,arr[5],""), Iif(Len(arr)>5,arr[6],""), arr[3], arr[4] )
-            ELSEIF arr[2] == "mget"
-               f_MsgGet( Iif(Len(arr)>4,arr[5],""), Iif(Len(arr)>5,arr[6],""), Iif(Len(arr)>6,arr[7],0), arr[3], arr[4] )
-            ELSEIF arr[2] == "mchoi"
-               f_Choice( Iif(Len(arr)>4,arr[5],{}), Iif(Len(arr)>5,arr[6],""), arr[3], arr[4] )
-            ELSEIF arr[2] == "cfont"
-               f_selefont( arr[3], arr[4] )
-            ELSEIF arr[2] == "cfile"
-               f_selefile( Iif(Len(arr)>4,arr[5],""), arr[3], arr[4] )
-            ELSEIF arr[2] == "ccolor"
-               f_selecolor( Iif(Len(arr)>4,arr[5],""), arr[3], arr[4] )
-            ENDIF
+            Add2Deferred( arr )
          ENDIF
 
       ELSEIF cCommand == "crmainwnd"
@@ -1389,7 +1409,7 @@ STATIC FUNCTION Parse( arr, lPacket )
          IF !lErr
             IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
             //WinClose( arr[2] )
-            cWinClose := arr[2]
+            Add2Deferred( arr )
          ENDIF
 
       ELSEIF cCommand == "crfont"

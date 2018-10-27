@@ -8,9 +8,11 @@
  * www - http://www.kresin.ru
  */
 
-Static cn := e"\n"
-Static aMenu := Nil, aMenuStack
-Static lPacket := .F., cPacketBuff
+STATIC cn := e"\n"
+STATIC aMenu := Nil, aMenuStack
+STATIC lPacket := .F., cPacketBuff
+STATIC aRunProc := {,,}, nRunProc := 0
+STATIC cInitialPath
 
 Memvar oLastWindow, oLastWidget, oLastPrinter
 
@@ -21,11 +23,12 @@ Memvar oLastWindow, oLastWidget, oLastPrinter
 
 FUNCTION eGUI_Init( cOptions )
 
-   LOCAL cServer := "guiserver.exe", cIp := "localhost", nPort := 3101, cLogFile := "ac.log", lLog := .F.
+   LOCAL cServer := "guiserver.exe", cIp := "localhost", nPort := 3101, cLogFile := "ac1.log", lLog := .F.
    LOCAL cSep := e"\r\n", arr, i, s
 
    PUBLIC oLastWindow, oLastWidget, oLastPrinter
 
+   cInitialPath := hb_fnameDir( hb_argv(0) )
    IF cOptions != Nil
       IF !( cSep $ cOptions )
          IF !( ( cSep := cn ) $ cOptions )
@@ -64,19 +67,25 @@ FUNCTION eGUI_Init( cOptions )
    hb_idleSleep( 0.2 )
    //Sleep_ns( 200 )
 
-
-   IF ConnectSocket( cIp, nPort ) == Nil
+   IF ( s := ConnectSocket( cIp, nPort ) ) == Nil
       hb_idleSleep( 2 )
-      IF ConnectSocket( cIp, nPort ) == Nil
+      IF ( s := ConnectSocket( cIp, nPort ) ) == Nil
          ipExit()
-         RETURN .F.
+         eGUI_Writelog( "No connection" )
+         RETURN 1
       ENDIF
+   ENDIF
+   i := At( '/', s )
+   s := Substr( s, i+1 )
+   IF s != proto_Version()
+      eGUI_Writelog( "Wrong protocol version. Need " + proto_Version() + ", received: " + s )
+      RETURN 2
    ENDIF
 
    SetHandler( "GUIHANDLER" )
    hb_IdleAdd( {|| FIdle() } )
 
-   RETURN .T.
+   RETURN 0
 
 FUNCTION eGUI_OpenMainForm( cFormName )
 
@@ -147,7 +156,6 @@ FUNCTION eGUI_ActivateDialog( lNoModal, lCenter )
    SendOut( hb_jsonEncode( { "actdialog", oDlg:cName, Iif(Empty(lNoModal),"f","t"), { Iif(Empty(lCenter),"f","t") } } ) )
    IF Empty( lNoModal )
       oDlg:lWait := .T.
-      //eGUI_WaitDlg( oDlg )
    ENDIF
 
    RETURN Nil
@@ -453,19 +461,34 @@ FUNCTION eGUI_Wait()
 
    RETURN Nil
 
-FUNCTION eGUI_WaitDlg( oDlg )
+FUNCTION FIdle()
 
-   DO WHILE oDlg:lWait
-      Inkey(1)
-      //hb_idleSleep(1)
+   LOCAL xRes, arr, arrp
+
+   DO WHILE nRunProc > 0
+      arr := aRunProc[1]
+      DelRproc( 1 )
+
+      xRes := &( "{|a|"+Lower(arr[1])+"(a)}" )
+      hb_jsonDecode( arr[2], @arrp )
+      Eval( xRes, arrp )
    ENDDO
+   CheckSocket()
 
    RETURN Nil
 
-FUNCTION FIdle()
+STATIC FUNCTION Add2Rproc( arr )
 
-   CheckSocket()
+   IF ++ nRunProc > Len( aRunProc )
+      aRunProc := ASize( aRunProc, Len(aRunProc)+5 )
+   ENDIF
+   aRunProc[nRunProc] := arr
+   RETURN Nil
 
+STATIC FUNCTION DelRproc( n )
+
+   ADel( aRunProc, n )
+   nRunProc --
    RETURN Nil
 
 FUNCTION setprops( aProps )
@@ -589,6 +612,22 @@ FUNCTION FullWidgName( oWidg )
    RETURN cName
 
 
+FUNCTION eGUI_Writelog( cText, fname )
+
+   LOCAL nHand
+
+   fname := cInitialPath + IIf( fname == Nil, "extgui.log", fname )
+   IF ! File( fname )
+      nHand := FCreate( fname )
+   ELSE
+      nHand := FOpen( fname, 1 )
+   ENDIF
+   FSeek( nHand, 0, 2 )
+   FWrite( nHand, cText + cn )
+   FClose( nHand )
+
+   RETURN Nil
+
 FUNCTION GUIHandler()
 
    LOCAL cBuffer := GetRecvBuffer(), arr, arrp, cCommand, cFunc, lSend := .F., xRes, o
@@ -605,12 +644,7 @@ FUNCTION GUIHandler()
 
       Send2SocketIn( "+Ok"+cn )
       lSend := .T.
-      cFunc := Lower( arr[2] )
-      xRes := &( "{|a|"+cFunc+"(a)}" )
-      IF Len( arr ) > 2
-         hb_jsonDecode( arr[3], @arrp )
-      ENDIF
-      Eval( xRes, arrp )
+      Add2Rproc( { arr[2], Iif( Len(arr)>2,arr[3],{} ) } )
 
    ELSEIF cCommand == "runfunc"
 
@@ -634,7 +668,6 @@ FUNCTION GUIHandler()
    ELSEIF cCommand == "endapp"
       lSend := .T.
       Send2SocketIn( "+Ok"+cn )
-      //? "Quitting"
       ipExit()
       Quit
 
