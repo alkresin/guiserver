@@ -125,14 +125,14 @@ FUNCTION openfile()
    oDlg:AddWidget( "combo",, 20, 280, 180, 26,, {{"AItems",arr1}})
 
    oDlg:AddWidget( "button",, 50, 350, 100, 32, "Ok",{{"Anchor",ANCHOR_HORFIX+ANCHOR_BOTTOMABS}} )
-   oLastWidget:SetCallbackProc( "onclick","fclose" )
+   oLastWidget:SetCallbackProc( "onclick","fclose1" )
 
    eGUI_ActivateDialog()
    eGUI_EndPacket()
 
    RETURN Nil
 
-FUNCTION fclose()
+FUNCTION fclose1()
 
    LOCAL arr := egui_GetValues( oDlg, {"edi1","edi2","rg"} )
 
