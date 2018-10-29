@@ -551,6 +551,18 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
       ENDIF
       EXIT
 
+   CASE 'm'
+      IF cWidg == "monthcal"
+         IF !Empty( hash )
+            lNoToday := hb_hGetDef( hash, "NoToday", Nil )
+            lNoTodayCircle := hb_hGetDef( hash, "NoTodayCirc", Nil )
+            lWeekNumbers := hb_hGetDef( hash, "WeekNumb", Nil )
+         ENDIF
+         oCtrl := HMonthCalendar():New( oParent,,, nStyle, x1, y1, w, h, ;
+            oFont,,, cTooltip, lNoToday, lNoTodayCircle, lWeekNumbers )
+      ENDIF
+      EXIT
+
    END
 
    IF !Empty(cName) .AND. !Empty(oCtrl)
@@ -1213,13 +1225,16 @@ STATIC FUNCTION SetFormTimer( oForm )
 
 STATIC FUNCTION TimerFunc()
 
-   LOCAL arr, cCommand
+   LOCAL arr, cCommand, i
+
+   CheckSocket()
 
    DO WHILE nDeferred > 0
       arr := aDeferred[1]
       DelDeferred( 1 )
       IF ( cCommand := arr[1] ) == "close"
          WinClose( arr[2] )
+
       ELSEIF cCommand == "common"
          IF arr[2] == "minfo"
             f_MsgInfo( Iif(Len(arr)>4,arr[5],""), Iif(Len(arr)>5,arr[6],""), arr[3], arr[4] )
@@ -1238,9 +1253,27 @@ STATIC FUNCTION TimerFunc()
          ELSEIF arr[2] == "ccolor"
             f_selecolor( Iif(Len(arr)>4,arr[5],""), arr[3], arr[4] )
          ENDIF
+
+      ELSEIF cCommand == "packet"
+         FOR i := 2 TO Len( arr )
+            IF Valtype(arr[i]) != "A" .OR. !Parse( arr[i], .T. )
+               RETURN .F.
+            ENDIF
+         NEXT
+
+      ELSEIF cCommand == "prninit"
+         PrintInit( Upper(arr[2]), arr[3], Iif(Len(arr)>3,arr[4],Nil), ;
+               Iif(Len(arr)>4,arr[5],Nil) )
+
+      ELSEIF cCommand == "actmainwnd"
+         ActMainWnd( arr[2] )
+
+      ELSEIF cCommand == "actdialog"
+         ActDialog( arr[2], arr[3] )
+
       ENDIF
    ENDDO
-   CheckSocket()
+
    RETURN Nil
 
 STATIC FUNCTION Add2Deferred( arr )
@@ -1308,7 +1341,7 @@ STATIC FUNCTION Parse( arr, lPacket )
          lErr := ( Len(arr)<2 )
          IF !lErr
             IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
-            ActMainWnd( arr[2] )
+            Add2Deferred( arr )
          ENDIF
          lEnd := .T.
 
@@ -1317,7 +1350,8 @@ STATIC FUNCTION Parse( arr, lPacket )
          lErr := ( Len(arr)<3 .OR. Valtype(arr[2]) != "C" .OR. Valtype(arr[3]) != "C" )
          IF !lErr
             IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
-            ActDialog( arr[2], arr[3] )
+            Add2Deferred( arr )
+            //ActDialog( arr[2], arr[3] )
          ENDIF
          lEnd := .T.
       ENDIF
@@ -1440,19 +1474,14 @@ STATIC FUNCTION Parse( arr, lPacket )
          lErr := ( Len(arr)<3 .OR. Valtype(arr[2]) != "C" )
          IF !lErr
             IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
-            PrintInit( Upper(arr[2]), arr[3], Iif(Len(arr)>3,arr[4],Nil), ;
-                  Iif(Len(arr)>4,arr[5],Nil) )
+            Add2Deferred( arr )
          ENDIF
 
       ELSEIF cCommand == "packet"
          lErr := lPacket
          IF !lErr
             Send2SocketIn( "+Ok" + cn )
-            FOR i := 2 TO Len( arr )
-               IF Valtype(arr[i]) != "A" .OR. !Parse( arr[i], .T. )
-                  RETURN .F.
-               ENDIF
-            NEXT
+            Add2Deferred( arr )
          ENDIF
       ENDIF
       EXIT

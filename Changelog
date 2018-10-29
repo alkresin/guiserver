@@ -1,5 +1,10 @@
 
 
+2018-10-29 15:55 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * guiserver.prg
+    * Evaluating of some commands is deferred to the TimerFunc().
+    * MonthCalendar control added to AddWidget()
+
 2018-10-28 14:05 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * tests/test1.prg
     ! Small fix.
