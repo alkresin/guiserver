@@ -90,7 +90,7 @@ FUNCTION Main( ... )
       TimerFunc()
    ENDDO
 
-   Send2SocketOut( '+["endapp"]' + cn )
+   SendOut( '["endapp"]' )
    Sleep_ns( nInterval*2 )
    ipExit()
    Sleep_ns( nInterval*2 )
@@ -131,13 +131,13 @@ STATIC FUNCTION CnvVal( xRes )
 
 FUNCTION pGO( cFunc, aParams )
 
-   Send2SocketOut( "+" + hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( aParams ) } ) + cn )
+   SendOut( hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( aParams ) } ) )
 
    RETURN Nil
 
 FUNCTION fGO( cFunc, aParams )
 
-   LOCAL cRes := Send2SocketOut( "+" + hb_jsonEncode( { "runfunc", cFunc, hb_jsonEncode( aParams ) } ) + cn )
+   LOCAL cRes := SendOut( hb_jsonEncode( { "runfunc", cFunc, hb_jsonEncode( aParams ) } ) )
 
    IF Left( cRes,1 ) == '"'
       RETURN Substr( cRes, 2, Len(cRes)-2 )
@@ -154,7 +154,7 @@ STATIC FUNCTION CrMainWnd( arr, hash )
       IF lRes
          oMTimer:End()
          oMTimer := Nil
-         Send2SocketOut( '+["exit","main"]' + cn )
+         SendOut( '["exit","main"]' )
       ENDIF
 
       RETURN lRes
@@ -207,7 +207,7 @@ STATIC FUNCTION CrDialog( cName, arr, hash )
             ( Len(HDialog():aModalDialogs) + Len(HDialog():aDialogs) == 1 ))
             SET TIMER oMTimer OF oMainWnd VALUE nInterval ACTION {||TimerFunc()}
          ENDIF
-         Send2SocketOut( '+["exit","' + o:objName + '"]' + cn )
+         SendOut( '["exit","' + o:objName + '"]' )
 
       ENDIF
 
@@ -410,7 +410,10 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
                lTransp,, trcolor, bColor )
 
       ELSEIF cWidg == "browse"
-
+         IF !Empty( hash )
+            lNoVScroll := hb_hGetDef( hash, "NoVScroll", Nil )
+            lNoBorder := hb_hGetDef( hash, "NoBorder", Nil )
+         ENDIF
          oCtrl := HBrowse():New( 1, oParent,, nStyle, x1, y1, w, h, oFont, ;
             , bSize,,,,, lNoVScroll, lNoBorder, lAppend, lAutoedit,,,,, )
       ENDIF
@@ -430,6 +433,14 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
          ENDIF
          oCtrl := HCombobox():New( oParent,,,, nStyle, x1, y1, w, h, ;
                aItems, oFont,, bSize,,, cTooltip, lEdit, lText,, tcolor, bcolor,, nDisplay )
+
+      ELSEIF cWidg == "cedit"
+         IF !Empty( hash )
+            lNoVScroll := hb_hGetDef( hash, "NoVScroll", Nil )
+            lNoBorder := hb_hGetDef( hash, "NoBorder", Nil )
+         ENDIF
+         oCtrl := HCEdit():New( oParent,, nStyle, x1, y1, w, h, oFont, ;
+            , bSize,, tcolor, bcolor,,, lNoVScroll, lNoBorder )
       ENDIF
       EXIT
 
@@ -468,7 +479,7 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
                ENDIF
             ENDIF
          ENDIF
-         oCtrl := HOwnButton():New( oParent,, aStyles, x1, y1, w, h,,,,, lFlat, ;
+         oCtrl := HOwnButton():New( oParent,, aStyles, x1, y1, w, h,, bSize,,, lFlat, ;
                cCaption, tcolor, oFont,,,,, cImage, lResou,,,,, lTransp, trColor, ;
                cTooltip,, lCheck, bColor )
       ENDIF
@@ -880,6 +891,8 @@ STATIC FUNCTION GetProperty( cWidgName, cPropName )
          IF __ObjHasMsg( oWnd, "CPICFUNC" ) .AND. ;
                ( !Empty(oWnd:cPicFunc) .OR. !Empty(oWnd:cPicMask) )
             cRes := CnvVal( oWnd:Value() )
+         ELSEIF __ObjHasMsg( oWnd, "MARKLINE" )
+            cRes := oWnd:GetText( ,, .T. )
          ELSEIF __ObjHasMsg( oWnd, "GETTEXT" )
             cRes := oWnd:GetText()
          ELSE
@@ -913,7 +926,7 @@ STATIC FUNCTION f_MsgInfo( cMess, cTitle, cFunc, cName )
 
    hwg_MsgInfo( cMess, cTitle )
    IF !Empty( cFunc )
-      Send2SocketOut( "+" + hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cName} ) } ) + cn )
+      SendOut( hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cName} ) } ) )
    ENDIF
 
    RETURN Nil
@@ -922,7 +935,7 @@ STATIC FUNCTION f_MsgStop( cMess, cTitle, cFunc, cName )
 
    hwg_MsgStop( cMess, cTitle )
    IF !Empty( cFunc )
-      Send2SocketOut( "+" + hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cName} ) } ) + cn )
+      SendOut( hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cName} ) } ) )
    ENDIF
 
    RETURN Nil
@@ -931,7 +944,7 @@ STATIC FUNCTION f_MsgYesNo( cMess, cTitle, cFunc, cName )
 
    LOCAL lYes := hwg_MsgYesNo( cMess, cTitle )
    IF !Empty( cFunc )
-      Send2SocketOut( "+" + hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cName,Iif(lYes,"t","f")} ) } ) + cn )
+      SendOut( hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cName,Iif(lYes,"t","f")} ) } ) )
    ENDIF
 
    RETURN Nil
@@ -940,7 +953,7 @@ STATIC FUNCTION f_MsgGet( cMess, cTitle, nStyle, cFunc, cName )
 
    LOCAL cRes := hwg_MsgGet( cTitle, cMess )
    IF !Empty( cFunc )
-      Send2SocketOut( "+" + hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cName,cRes} ) } ) + cn )
+      SendOut( hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cName,cRes} ) } ) )
    ENDIF
 
    RETURN Nil
@@ -949,7 +962,7 @@ STATIC FUNCTION f_Choice( arr, cTitle, cFunc, cName )
 
    LOCAL nRes := hwg_WChoice( arr, cTitle )
    IF !Empty( cFunc )
-      Send2SocketOut( "+" + hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cName,Ltrim(Str(nRes))} ) } ) + cn )
+      SendOut( hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cName,Ltrim(Str(nRes))} ) } ) )
    ENDIF
 
    RETURN Nil
@@ -967,7 +980,7 @@ STATIC FUNCTION f_SeleFile( cPath, cFunc, cName )
       IF Empty( fname )
          fname := ""
       ENDIF
-      Send2SocketOut( "+" + hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cName,fname} ) } ) + cn )
+      SendOut( hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cName,fname} ) } ) )
    ENDIF
 
    RETURN Nil
@@ -977,13 +990,13 @@ STATIC FUNCTION f_SeleFont( cFunc, cName )
    LOCAL oFont := HFont():Select()
    IF !Empty( cFunc )
       IF Empty( oFont )
-         Send2SocketOut( "+" + hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cName} ) } ) + cn )
+         SendOut( hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cName} ) } ) )
       ELSE
          oFont:objname := cName
-         Send2SocketOut( "+" + hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( ;
+         SendOut( hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( ;
             {cName, oFont:name, Ltrim(Str(oFont:height)), Iif(oFont:weight>400,"t","f"), ;
             Iif(oFont:italic>0,"t","f"), Iif(oFont:underline>0,"t","f"), ;
-            Iif(oFont:strikeout>0,"t","f"),Ltrim(Str(oFont:charset)) } ) } ) + cn )
+            Iif(oFont:strikeout>0,"t","f"),Ltrim(Str(oFont:charset)) } ) } ) )
       ENDIF
    ENDIF
 
@@ -993,7 +1006,7 @@ STATIC FUNCTION f_SeleColor( nColor, cFunc, cName )
 
    nColor := Hwg_ChooseColor( nColor,.F. )
    IF !Empty( cFunc )
-      Send2SocketOut( "+" + hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cName,Iif(nColor==Nil,"",Ltrim(Str(nColor)))} ) } ) + cn )
+      SendOut( hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cName,Iif(nColor==Nil,"",Ltrim(Str(nColor)))} ) } ) )
    ENDIF
 
    RETURN Nil
@@ -1013,7 +1026,7 @@ STATIC FUNCTION PrintInit( cName, aParams, cFunc, cMet )
    Aadd( aPrinters, oPrinter )
 
    IF !Empty( cFunc )
-      Send2SocketOut( "+" + hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cMet} ) } ) + cn )
+      SendOut( hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cMet} ) } ) )
    ENDIF
 
    oPrinter:StartDoc( aParams[2] )
@@ -1191,7 +1204,7 @@ STATIC FUNCTION SetFormTimer( oForm )
       IF lRes
          oMTimer:End()
          oMTimer := Nil
-         Send2SocketOut( '+["exit","main"]' + cn )
+         SendOut( '["exit","main"]' )
       ENDIF
 
       RETURN lRes
@@ -1501,7 +1514,7 @@ FUNCTION MainHandler()
 
    LOCAL arr, cBuffer := GetRecvBuffer()
 
-   gWritelog( "> "+ cBuffer )
+   gWritelog( cBuffer )
 
    hb_jsonDecode( cBuffer, @arr )
    IF Valtype(arr) != "A" .OR. Empty(arr)
@@ -1514,6 +1527,12 @@ FUNCTION MainHandler()
    ENDIF
 
    RETURN Nil
+
+STATIC FUNCTION SendOut( s )
+
+   gWritelog( "   " + s )
+
+   RETURN Send2SocketOut( "+" + s + cn )
 
 STATIC FUNCTION gWritelog( s )
 

@@ -540,6 +540,20 @@ FUNCTION setprops( aProps )
             sProps += ',"AImages": ' + hb_jsonEncode(aProps[i,2])
          ELSEIF cProp == "editlabel"
             sProps += ',"Editlabel": "t"'
+         ELSEIF cProp == "append"
+            sProps += ',"Append": "t"'
+         ELSEIF cProp == "autoedit"
+            sProps += ',"Autoedit": "t"'
+         ELSEIF cProp == "novscroll"
+            sProps += ',"NoVScroll": "t"'
+         ELSEIF cProp == "noborder"
+            sProps += ',"NoBorder": "t"'
+         ELSEIF cProp == "notoday"
+            sProps += ',"NoToday": "t"'
+         ELSEIF cProp == "notodaycirc"
+            sProps += ',"NoTodayCirc": "t"'
+         ELSEIF cProp == "weeknumb"
+            sProps += ',"WeekNumb": "t"'
          ENDIF
       NEXT
       IF !Empty( sProps )
