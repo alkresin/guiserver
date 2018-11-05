@@ -148,7 +148,7 @@ STATIC FUNCTION CrMainWnd( arr, hash )
 
    LOCAL x1 := arr[1], y1 := arr[2], w := arr[3], h := arr[4]
    LOCAL cTitle := arr[5]
-   LOCAL nStyle, bColor, oFont
+   LOCAL nStyle, bColor, oFont, oIcon
    LOCAL bExit := {||
       LOCAL lRes := .T.
       IF lRes
@@ -166,10 +166,13 @@ STATIC FUNCTION CrMainWnd( arr, hash )
       IF hb_hHaskey( hash, "Font" )
          oFont := GetFont( hash["Font"] )
       ENDIF
+      IF hb_hHaskey( hash, "Icon" )
+         oIcon := HIcon():AddFile( hash["Icon"] )
+      ENDIF
    ENDIF
 
    INIT WINDOW oMainWnd MAIN TITLE cTitle AT x1,y1 SIZE w,h STYLE nStyle ;
-         BACKCOLOR bColor FONT oFont ON EXIT bExit
+         BACKCOLOR bColor FONT oFont ICON oIcon ON EXIT bExit
    oCurrWindow := oMainWnd
    cCurrWindow := "MAIN"
 

@@ -518,7 +518,7 @@ FUNCTION setprops( aProps )
             sProps += ',"Transpa": "t"'
          ELSEIF cProp == "vertical"
             sProps += ',"Vertical": "t"'
-         ELSEIF cProp == "cimage"
+         ELSEIF cProp == "image"
             sProps += ',"Image": "' + aProps[i,2] + '"'
          ELSEIF cProp == "aitems"
             sProps += ',"AItems": ' + hb_jsonEncode(aProps[i,2])
@@ -554,6 +554,8 @@ FUNCTION setprops( aProps )
             sProps += ',"NoTodayCirc": "t"'
          ELSEIF cProp == "weeknumb"
             sProps += ',"WeekNumb": "t"'
+         ELSEIF cProp == "icon"
+            sProps += ',"ICon": "' + aProps[i,2] + '"'
          ENDIF
       NEXT
       IF !Empty( sProps )
