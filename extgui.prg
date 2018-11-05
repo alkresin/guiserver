@@ -23,7 +23,7 @@ Memvar oLastWindow, oLastWidget, oLastPrinter
 
 FUNCTION eGUI_Init( cOptions )
 
-   LOCAL cServer := "guiserver.exe", cIp := "localhost", nPort := 3101, cLogFile := "ac1.log", lLog := .F.
+   LOCAL cServer := "guiserver.exe", cIp := "localhost", nPort := 3101, cLogFile := "ac1.log", nLog := 0
    LOCAL cSep := e"\r\n", arr, i, s
 
    PUBLIC oLastWindow, oLastWidget, oLastPrinter
@@ -48,13 +48,14 @@ FUNCTION eGUI_Init( cOptions )
             cIp := AllTrim( Substr( arr[i], 9 ) )
          ELSEIF Left( s,4 ) == "port"
             nPort := Val( AllTrim( Substr( arr[i], 6 ) ) )
-         ELSEIF Left( s,4 ) == "log"
-            lLog := .T.
+         ELSEIF Left( s,3 ) == "log"
+            s := Val( AllTrim( Substr( arr[i], 5 ) ) )
+            nLog := Iif( s == 1, 1, Iif( s == 2, 2, 0 ) )
          ENDIF
       NEXT
    ENDIF
 
-   IF lLog
+   IF nLog > 1
       SetLogFile( cLogFile )
       SetPrefix( "   )" )
    ENDIF
@@ -62,7 +63,7 @@ FUNCTION eGUI_Init( cOptions )
    ipInit()
 
    IF !Empty( cServer )
-      extgui_RunApp( cServer + " -p" + Ltrim(Str(nPort)) + Iif(lLog," -log+",""),1 )
+      extgui_RunApp( cServer + " -p" + Ltrim(Str(nPort)) + Iif(nLog>0," -log"+Str(nLog,1),""),1 )
    ENDIF
    hb_idleSleep( 0.2 )
    //Sleep_ns( 200 )
@@ -245,6 +246,12 @@ FUNCTION eGUI_CreateStyle( cName, aColors, nOrient, aCorners, nBorder, tColor, c
          oStyle:nOrient, oStyle:aCorners, oStyle:nBorder, oStyle:tColor, oStyle:cBitmap } ) )
 
    RETURN oStyle
+
+FUNCTION eGUI_CreateHighliter( cName, cCommands, cFuncs, cSComm, cMComm, lCase )
+
+   SendOut( hb_jsonEncode( { "highl", cName, cCommands, cFuncs, cSComm, cMComm, lCase } ) )
+
+   RETURN Nil
 
 FUNCTION eGUI_InitPrinter( cName, cPrinter, lPreview, nFormType, lLandscape, cFunc, cMet )
 

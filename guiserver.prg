@@ -39,7 +39,7 @@ REQUEST HB_GT_GUI_DEFAULT
 STATIC nPort := 3101
 STATIC lEnd := .F., oMTimer := Nil, nInterval := 20
 STATIC cn := e"\n"
-STATIC lLogOn := .F., cLogFile := "guiserver.log"
+STATIC nLogOn := 0, cLogFile := "guiserver.log"
 
 /*
  * GuiServer
@@ -48,6 +48,7 @@ STATIC lLogOn := .F., cLogFile := "guiserver.log"
 STATIC oMainWnd, oCurrWindow, cCurrwindow := ""
 STATIC cDefPath := ""
 STATIC aPrinters := {}
+STATIC aHighLs := {}
 STATIC aDeferred := {,,,,}, nDeferred := 0
 
 FUNCTION Main( ... )
@@ -60,15 +61,17 @@ FUNCTION Main( ... )
    SET CONFIRM ON
 
    FOR i := 1 TO Len( aParams )
-      IF Left( aParams[i],1 ) $ "-/"       
+      IF Left( aParams[i],1 ) $ "-/"
          sp := Substr( aParams[i],3 )
          IF ( c := Lower( Substr( aParams[i],2,1 ) ) ) == "p"
             IF !Empty(sp) .AND. IsDigit(sp)
                nPort := Val( sp )
             ENDIF
          ELSEIF c == 'l'
-            IF sp == "og+"
-               lLogOn := .T.
+            IF sp == "og+" .OR. sp == "og2"
+               nLogOn := 2
+            ELSEIF sp == "og1"
+               nLogOn := 1
             ENDIF
          ENDIF
       ENDIF
@@ -76,7 +79,7 @@ FUNCTION Main( ... )
 
    ipInit()
 
-   IF lLogOn
+   IF nLogOn > 1
       SetLogFile( "ac.log" )
    ENDIF
    SetVersion( GUIS_VERSION )
@@ -677,7 +680,7 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
          IF !lErr
             IF Len( xProp ) == 3 .AND. Valtype( xProp[3] ) == "L" .AND. xProp[3]
                IF !Empty( o := GetStyle(xProp[2]) ) .OR. !Empty( o := GetFont(xProp[2]) ) ;
-                     .OR. !Empty( o := Widg(xProp[2]) )
+                     .OR. !Empty( o := Widg(xProp[2]) ) .OR. !Empty( o := GetHighl(xProp[2]) )
                   __objSendMsg( oWnd, '_'+xProp[1], o )
                ENDIF
             ELSE
@@ -792,6 +795,21 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
          lErr := !( __ObjHasMsg( oWnd, "STEP" ))
          IF !lErr
             oWnd:Set( ,xProp )
+         ENDIF
+      ENDIF
+      EXIT
+
+   CASE 'h'
+      IF cPropName == "hiliopt"
+         lErr := !( __ObjHasMsg( oWnd, "SETHILI" ))
+         IF !lErr
+            oWnd:SetHili( xProp[1], Iif(Empty(xProp[2]), Nil, GetFont(xProp[2]) ), ;
+               xProp[3], xProp[4] )
+         ENDIF
+      ELSEIF cPropName == "hili"
+         lErr := !( __ObjHasMsg( oWnd, "SETHILI" ))
+         IF !lErr
+            oWnd:HighLighter( GetHighl(xProp) )
          ENDIF
       ENDIF
       EXIT
@@ -1064,7 +1082,7 @@ STATIC FUNCTION PrintFuncs( cFunc, cName, aParams )
    ELSEIF cFunc == "fontadd"
       oFont := oPrinter:AddFont( aParams[2], aParams[3], aParams[4], ;
          aParams[5], aParams[6], aParams[7] )
-      oFont:objname := aParams[1]
+      oFont:objname := Upper(aParams[1])
 
    ELSEIF cFunc == "fontset"
       IF ( oFont := GetPrinterFont( aParams[1] ) ) != Nil
@@ -1111,18 +1129,22 @@ STATIC FUNCTION GetItemByName( arr, cName )
 
 STATIC FUNCTION GetStyle( cName )
 
-   RETURN GetItemByName( HStyle():aStyles, cName )
+   RETURN GetItemByName( HStyle():aStyles, Upper(cName) )
 
 STATIC FUNCTION GetFont( cName )
 
-   RETURN GetItemByName( HFont():aFonts, cName )
+   RETURN GetItemByName( HFont():aFonts, Upper(cName) )
+
+STATIC FUNCTION GetHighl( cName )
+
+   RETURN GetItemByName( aHighls, Upper(cName) )
 
 STATIC FUNCTION GetPrinterFont( cName )
 
 #ifdef __GTK__
-   RETURN GetItemByName( HGP_Font():aFonts, cName )
+   RETURN GetItemByName( HGP_Font():aFonts, Upper(cName) )
 #else
-   RETURN GetItemByName( HFont():aFonts, cName )
+   RETURN GetItemByName( HFont():aFonts, Upper(cName) )
 #endif
 
 FUNCTION Wnd( cName )
@@ -1309,7 +1331,7 @@ STATIC FUNCTION DelDeferred( n )
 STATIC FUNCTION Parse( arr, lPacket )
 
    LOCAL cCommand := Lower( arr[1] ), c := Left( cCommand, 1 )
-   LOCAL oForm, oWnd, lErr := .F., cRes, i
+   LOCAL oForm, oWnd, o, lErr := .F., cRes, i
 
    SWITCH c
    CASE 's'
@@ -1466,14 +1488,14 @@ STATIC FUNCTION Parse( arr, lPacket )
          lErr := ( Len(arr)<9 )
          IF !lErr
             IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
-            CrFont( arr[2], arr[3], arr[4], arr[5], arr[6], arr[7], arr[8], arr[9] )
+            CrFont( Upper(arr[2]), arr[3], arr[4], arr[5], arr[6], arr[7], arr[8], arr[9] )
          ENDIF
 
       ELSEIF cCommand == "crstyle"
          lErr := ( Len(arr)<8 )
          IF !lErr
             IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
-            CrStyle( arr[2], arr[3], arr[4], arr[5], arr[6], arr[7], arr[8] )
+            CrStyle( Upper(arr[2]), arr[3], arr[4], arr[5], arr[6], arr[7], arr[8] )
          ENDIF
       ENDIF
       EXIT
@@ -1499,6 +1521,20 @@ STATIC FUNCTION Parse( arr, lPacket )
             Send2SocketIn( "+Ok" + cn )
             Add2Deferred( arr )
          ENDIF
+      ENDIF
+      EXIT
+
+   CASE 'h'
+      IF cCommand == "highl"
+         lErr := ( Len(arr)<7 .OR. Valtype(arr[2]) != "C" .OR. Valtype(arr[3]) != "C" ;
+            .OR. Valtype(arr[4]) != "C" .OR. Valtype(arr[5]) != "C" .OR. Valtype(arr[6]) != "C" .OR. Valtype(arr[7]) != "L" )
+         IF !lErr
+            IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
+            o := Hilight():New( ,, arr[3], arr[4], arr[5], arr[6], arr[7] )
+            o:objName := Upper(arr[2])
+            Aadd( aHighLs, o )
+         ENDIF
+
       ENDIF
       EXIT
 
@@ -1539,7 +1575,7 @@ STATIC FUNCTION SendOut( s )
 
 STATIC FUNCTION gWritelog( s )
 
-   IF lLogOn
+   IF nLogOn > 0
       hwg_writelog( s, cLogFile )
    ENDIF
    RETURN Nil

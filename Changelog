@@ -1,5 +1,12 @@
 
 
+2018-11-05 18:50 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * extgui.prg
+  * guiserver.prg
+    * Logging now is of level 1 or 2.
+    * Added support of syntax highlighting of a code editor.
+  * tests/test.ini
+
 2018-11-05 09:30 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * extgui.prg
   * guiserver.prg
