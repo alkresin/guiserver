@@ -49,6 +49,7 @@ STATIC oMainWnd, oCurrWindow, cCurrwindow := ""
 STATIC cDefPath := ""
 STATIC aPrinters := {}
 STATIC aHighLs := {}
+STATIC aContextMenus := {}
 STATIC aDeferred := {,,,,}, nDeferred := 0
 
 FUNCTION Main( ... )
@@ -307,6 +308,26 @@ STATIC FUNCTION SetMenu( arr )
    SetMenu2( arr )
    ENDMENU
 
+   RETURN Nil
+
+STATIC FUNCTION MenuContext( cmd, cName, arr )
+
+   LOCAL oMenu, oWnd
+
+   IF cmd == "create"
+      CONTEXT MENU oMenu
+      SetMenu2( arr )
+      ENDMENU
+      oMenu:objname := cName
+      AAdd( aContextMenus, oMenu )
+   ELSEIF cmd == "show"
+      IF !Empty( oMenu := GetContextMenu( cName ) )
+         IF !Empty( arr )
+            oWnd := Wnd( arr )
+         ENDIF
+         oMenu:Show( Iif( Empty(oWnd), hwg_Getwindowobject(hwg_Getactivewindow()), oWnd ) )
+      ENDIF
+   ENDIF
    RETURN Nil
 
 STATIC FUNCTION SetMenu2( arr )
@@ -709,11 +730,15 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
          IF !lErr
             oWnd:oFont := xProp
             IF lWidg
+               IF __ObjHasMsg( oWnd, "SETHILI" )
+                  oWnd:SetFont( xProp )
+               ELSE
 #ifdef __GTK__
-               hwg_SetCtrlFont( oWnd:handle,, xProp:handle )
+                  hwg_SetCtrlFont( oWnd:handle,, xProp:handle )
 #else
-               hwg_Setctrlfont( oWnd:oParent:handle, oWnd:id, xProp:handle )
+                  hwg_Setctrlfont( oWnd:oParent:handle, oWnd:id, xProp:handle )
 #endif
+               ENDIF
             ENDIF
          ENDIF
       ENDIF
@@ -809,7 +834,11 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
       ELSEIF cPropName == "hili"
          lErr := !( __ObjHasMsg( oWnd, "SETHILI" ))
          IF !lErr
-            oWnd:HighLighter( GetHighl(xProp) )
+            IF Empty(xProp)
+               oWnd:HighLighter()
+            ELSE
+               oWnd:HighLighter( GetHighl(xProp) )
+            ENDIF
          ENDIF
       ENDIF
       EXIT
@@ -1139,6 +1168,10 @@ STATIC FUNCTION GetHighl( cName )
 
    RETURN GetItemByName( aHighls, Upper(cName) )
 
+STATIC FUNCTION GetContextMenu( cName )
+
+   RETURN GetItemByName( aContextMenus, Upper(cName) )
+
 STATIC FUNCTION GetPrinterFont( cName )
 
 #ifdef __GTK__
@@ -1364,6 +1397,11 @@ STATIC FUNCTION Parse( arr, lPacket )
             arr := GetValues( arr[2], arr[3] )
             Send2SocketIn( "+" + hb_jsonEncode(arr) + cn )
          ENDIF
+      ELSEIF cCommand == "getver"
+         lErr := ( Len(arr)<2 )
+         IF !lErr
+            Send2SocketIn( "+" + hb_jsonEncode(gVersion(arr[2])) + cn )
+         ENDIF
       ENDIF
       EXIT
 
@@ -1453,6 +1491,12 @@ STATIC FUNCTION Parse( arr, lPacket )
             IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
             SetMenu( arr[2] )
          ENDIF
+      ELSEIF cCommand == "menucontext"
+         lErr := ( Len(arr)<4 )
+         IF !lErr
+            IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
+            MenuContext( Lower(arr[2]), Upper(arr[3]), arr[4] )
+         ENDIF
       ENDIF
       EXIT
 
@@ -1538,6 +1582,11 @@ STATIC FUNCTION Parse( arr, lPacket )
       ENDIF
       EXIT
 
+   CASE 't'
+      IF cCommand == "tray"
+      ENDIF
+      EXIT
+
    OTHERWISE
       lErr := .T.
 
@@ -1580,5 +1629,6 @@ STATIC FUNCTION gWritelog( s )
    ENDIF
    RETURN Nil
 
-FUNCTION gVersion()
-   RETURN "GuiServer " + GUIS_VERSION
+FUNCTION gVersion( n )
+   RETURN Iif( n==0, GUIS_VERSION, Iif( n==1, "GuiServer " + GUIS_VERSION, ;
+      "GuiServer " + GUIS_VERSION + Chr(13)+Chr(10) + hb_Version() + Chr(13)+Chr(10) + hwg_Version() ) )

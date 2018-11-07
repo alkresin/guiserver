@@ -1,5 +1,10 @@
 
 
+2018-11-07 14:00 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * guiserver.prg
+    * Support of context menus added
+    * gVersion() extended
+
 2018-11-05 18:50 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * extgui.prg
   * guiserver.prg
