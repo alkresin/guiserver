@@ -905,6 +905,25 @@ STATIC FUNCTION SetCallback( oWidg, cbName, cCode )
 
    RETURN .T.
 
+#ifndef __GTK__
+STATIC FUNCTION SetTray( cmd, cIconName, cMenuName, cTooltip )
+
+   LOCAL oMenu, oIcon
+
+   IF cmd == "init"
+      IF !Empty( oMenu := GetContextMenu( Upper(cMenuName) ) )
+         oIcon := Iif( Empty(cIconName), oMainWnd:oIcon, HIcon():AddFile( cIconName ) )
+         oMainWnd:InitTray( oIcon, oMenu:aMenu[1,1,1], oMenu, cTooltip )
+      ENDIF
+
+   ELSEIF cmd == "icon"
+      IF ( oIcon := HIcon():AddFile( cIconName ) ) != Nil
+         hwg_ShellModifyicon( oMainWnd:handle, oIcon:handle )
+      ENDIF
+   ENDIF
+   RETURN Nil
+#endif
+
 STATIC FUNCTION SetParam( cName, xValue )
 
    IF cName == "bmppath"
@@ -1584,6 +1603,15 @@ STATIC FUNCTION Parse( arr, lPacket )
 
    CASE 't'
       IF cCommand == "tray"
+#ifdef __GTK__
+         Send2SocketIn( "+Ok" + cn )
+#else
+         lErr := ( Len(arr)<3 .OR. Valtype(arr[2]) != "C" .OR. Valtype(arr[3]) != "C" )
+         IF !lErr
+            IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
+            SetTray( Lower(arr[2]), arr[3], Iif(Len(arr)>3,arr[4],Nil), Iif(Len(arr)>4,arr[5],Nil) )
+         ENDIF
+#endif
       ENDIF
       EXIT
 
