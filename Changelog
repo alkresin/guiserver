@@ -1,7 +1,12 @@
 
-2018-11-08 13:00 UTC+0300 Alexander Kresin <alex@kresin.ru>
+2018-11-08 14:30 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * extgui.prg
   * guiserver.prg
+    * Menu id now is passed to the server,
+      it is added as second parameter to eGUI_AddMenuItem()
     * Version number has been changed to 1.2.
+  * tests/test1.prg
+    * Changed calls of eGUI_AddMenuItem()
 
 2018-11-08 11:52 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * guiserver.prg

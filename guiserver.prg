@@ -332,7 +332,7 @@ STATIC FUNCTION MenuContext( cmd, cName, arr )
 
 STATIC FUNCTION SetMenu2( arr )
 
-   LOCAL i, arr1
+   LOCAL i, arr1, id
 
    FOR i := 1 TO Len( arr )
       arr1 := arr[i]
@@ -343,7 +343,8 @@ STATIC FUNCTION SetMenu2( arr )
       ELSEIF arr1[1] == "-"
          SEPARATOR
       ELSE
-         Hwg_DefineMenuItem( arr1[1],, SetCB( , arr1[2] ), .F.,,,,, .f. )
+         id := Iif( Len(arr1)>2 .AND. !Empty(arr1[3]), arr1[3], Nil )
+         Hwg_DefineMenuItem( arr1[1], id, SetCB( , arr1[2] ), .F.,,,,, .f. )
       ENDIF
    NEXT
 

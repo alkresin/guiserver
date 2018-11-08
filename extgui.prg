@@ -187,7 +187,7 @@ FUNCTION eGUI_EndMenu()
 
    RETURN Nil
 
-FUNCTION eGUI_AddMenuItem( cName, cFunc, ... )
+FUNCTION eGUI_AddMenuItem( cName, id, cFunc, ... )
 
    LOCAL aSubMenu, cCode, arr := hb_aParams(), i
 
@@ -198,14 +198,14 @@ FUNCTION eGUI_AddMenuItem( cName, cFunc, ... )
    aSubMenu := Iif( Empty(aMenuStack), aMenu, ATail(aMenuStack) )
    IF !Empty( cFunc )
       cCode := 'pgo("' + cFunc + '"'
-      FOR i := 3 TO Len( arr )
-         cCode += Iif( i==3, ',{"', ',"' ) + arr[i] + IIf( i==Len(arr), '"}', '"' )
+      FOR i := 4 TO Len( arr )
+         cCode += Iif( i==4, ',{"', ',"' ) + arr[i] + IIf( i==Len(arr), '"}', '"' )
       NEXT
       cCode += ')'
    ELSE
-      cCode := arr[3]
+      cCode := arr[4]
    ENDIF
-   Aadd( aSubMenu, { cName, cCode } )
+   Aadd( aSubMenu, { cName, cCode, id } )
 
    RETURN Nil
 
