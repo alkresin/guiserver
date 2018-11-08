@@ -34,7 +34,7 @@ ANNOUNCE HB_GTSYS
 REQUEST HB_GT_GUI_DEFAULT
 #endif
 
-#define GUIS_VERSION   "1.1"
+#define GUIS_VERSION   "1.2"
 
 STATIC nPort := 3101
 STATIC lEnd := .F., oMTimer := Nil, nInterval := 20
