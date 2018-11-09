@@ -332,7 +332,7 @@ STATIC FUNCTION MenuContext( cmd, cName, arr )
 
 STATIC FUNCTION SetMenu2( arr )
 
-   LOCAL i, arr1, id
+   LOCAL i, arr1, id, lCheck
 
    FOR i := 1 TO Len( arr )
       arr1 := arr[i]
@@ -344,12 +344,34 @@ STATIC FUNCTION SetMenu2( arr )
          SEPARATOR
       ELSE
          id := Iif( Len(arr1)>2 .AND. !Empty(arr1[3]), arr1[3], Nil )
-         Hwg_DefineMenuItem( arr1[1], id, SetCB( , arr1[2] ), .F.,,,,, .f. )
+         lCheck := Iif( Len(arr1)>3 .AND. !Empty(arr1[4]), .T., .F. )
+         Hwg_DefineMenuItem( arr1[1], id, SetCB( , arr1[2] ), .F.,,,,, lCheck )
       ENDIF
    NEXT
 
    RETURN Nil
 
+STATIC FUNCTION SetMenuItem( cmd, cWnd, cMenu, nItem, lValue )
+
+   LOCAL oMenu, oWnd
+
+   IF Empty( cMenu )
+      IF !Empty( oWnd :=  Iif( Empty( cWnd ), oMainWnd, Wnd( cWnd ) ) )
+         IF cmd == "enable"
+            hwg_Enablemenuitem( oWnd:handle, nItem, lValue, .T. )
+         ELSEIF cmd == "check"
+            hwg_Checkmenuitem( oWnd:handle, nItem, lValue )
+         ENDIF
+      ENDIF
+   ELSEIF !Empty( oMenu := GetContextMenu( cMenu ) )
+      IF cmd == "enable"
+         hwg_Enablemenuitem( oMenu, nItem, lValue, .T. )
+      ELSEIF cmd == "check"
+         hwg_Checkmenuitem( oMenu, nItem, lValue )
+      ENDIF
+   ENDIF
+
+   RETURN Nil
 
 STATIC FUNCTION Get_setget()
 
@@ -469,6 +491,9 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
          ENDIF
          oCtrl := HCEdit():New( oParent,, nStyle, x1, y1, w, h, oFont, ;
             , bSize,, tcolor, bcolor,,, lNoVScroll, lNoBorder )
+         IF hwg__isUnicode()
+            oCtrl:lUtf8 := .T.
+         ENDIF
       ENDIF
       EXIT
 
@@ -1506,10 +1531,14 @@ STATIC FUNCTION Parse( arr, lPacket )
 
    CASE 'm'
       IF cCommand == "menu"
-         lErr := ( Len(arr)<2 )
+         lErr := ( Len(arr)<2 .OR. (Valtype(arr[2]) == "C" .AND. Len(arr)<6) )
          IF !lErr
             IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
-            SetMenu( arr[2] )
+            IF Valtype(arr[2]) == "C"
+               SetMenuItem( Lower(arr[2]), Upper(arr[3]), Upper(arr[4]), arr[5], arr[6] )
+            ELSE
+               SetMenu( arr[2] )
+            ENDIF
          ENDIF
       ELSEIF cCommand == "menucontext"
          lErr := ( Len(arr)<4 )

@@ -1,4 +1,8 @@
 
+2018-11-09 13:18 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * guiserver.prg
+    * Added support for checking/enabling/disabling menu items
+
 2018-11-08 14:30 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * extgui.prg
   * guiserver.prg
