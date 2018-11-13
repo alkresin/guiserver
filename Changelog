@@ -3,6 +3,10 @@
   * guiserver.prg
     * Added support for checking/enabling/disabling menu items
 
+2018-11-13 14:38 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * guiserver.prg
+    * Few functions added to the EXTERNAL list
+
 2018-11-08 14:30 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * extgui.prg
   * guiserver.prg
