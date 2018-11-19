@@ -1426,6 +1426,15 @@ STATIC FUNCTION Parse( arr, lPacket )
             IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
             SetParam( Lower(arr[2]), arr[3] )
          ENDIF
+      ELSEIF cCommand == "setvar"
+         lErr := ( Len(arr)<3 )
+         IF !lErr
+            IF !lPacket; Send2SocketIn( "+Ok" + cn ); ENDIF
+            IF !__mvExist( cRes := Upper(arr[2]) )
+               __mvPublic( cRes )
+            ENDIF
+            __mvPut( cRes, arr[3] )
+         ENDIF
       ENDIF
       EXIT
 
@@ -1447,6 +1456,16 @@ STATIC FUNCTION Parse( arr, lPacket )
          lErr := ( Len(arr)<2 )
          IF !lErr
             Send2SocketIn( "+" + hb_jsonEncode(gVersion(arr[2])) + cn )
+         ENDIF
+      ELSEIF cCommand == "getvar"
+         lErr := ( Len(arr)<2 )
+         IF !lErr
+            IF __mvExist( cRes := Upper(arr[2]) )
+               cRes := __mvGet( cRes )
+            ELSE
+               cRes := Nil
+            ENDIF
+            Send2SocketIn( "+" + hb_jsonEncode(cRes) + cn )
          ENDIF
       ENDIF
       EXIT
