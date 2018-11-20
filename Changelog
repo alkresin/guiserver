@@ -1,4 +1,14 @@
 
+2018-11-20 20:00 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * extgui.prg
+    * eGUI_SetVar(), eGUI_GetVar() added
+  * guiserver.prg
+    * Sixth parameter, column length, added to SetColumn()
+
+2018-11-19 20:00 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * guiserver.prg
+    * Added support for SetVar(), GetVar()
+
 2018-11-09 13:18 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * guiserver.prg
     * Added support for checking/enabling/disabling menu items

@@ -704,6 +704,9 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
             IF Valtype(xProp[5]) == "L"
                oWnd:aColumns[i]:lEditable := xProp[5]
             ENDIF
+            IF Len(xProp)>5 .AND. Valtype(xProp[6]) == "N" .AND. xProp[6] > 0
+               oWnd:aColumns[i]:length := xProp[6]
+            ENDIF
          ENDIF
 
       ELSEIF cPropName == "brwarr"

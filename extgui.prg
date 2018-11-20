@@ -407,14 +407,26 @@ FUNCTION eGUI_BrwGetArray( oBrw )
 
    RETURN Nil
 
-FUNCTION eGUI_BrwSetColumn( oBrw, nColumn, cHeadName, nAlignHead, nAlignData, lEditable )
+FUNCTION eGUI_BrwSetColumn( oBrw, nColumn, cHeadName, nAlignHead, nAlignData, lEditable, nLength )
 
    LOCAL cName := FullWidgName( oBrw )
 
-   SendOut( hb_jsonEncode( { "set", cName, "brwcol", {nColumn, cHeadName, nAlignHead, nAlignData, lEditable} } ) )
+   SendOut( hb_jsonEncode( { "set", cName, "brwcol", {nColumn, cHeadName, nAlignHead, nAlignData, lEditable, nLength} } ) )
 
    RETURN Nil
 
+
+FUNCTION eGUI_SetVar( cVarName, cValue )
+
+   SendOut( hb_jsonEncode( { "setvar", cVarName, cValue } ) )
+
+   RETURN Nil
+
+FUNCTION eGUI_GetVar( cVarName )
+
+   cRes := SendOut( hb_jsonEncode( { "getvar", cVarName } ) )
+
+   RETURN Substr( cRes,2,Len(cRes)-2 )
 
 FUNCTION eGUI_SetImagePath( cPath )
 
