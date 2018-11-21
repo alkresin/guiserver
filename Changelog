@@ -2,6 +2,8 @@
 2018-11-21 20:00 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * tests/forms/example.xml
     * xml form updated
+  * guiserver.prg
+    * Version number has been changed to 1.3.
 
 2018-11-20 20:00 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * extgui.prg
