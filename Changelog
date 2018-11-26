@@ -1,4 +1,9 @@
 
+2018-11-26 12:30 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * extgui.prg
+    * eGUI_GetVersion(), eGUI_InitTray(), eGUI_ModifyTrayIcon(),
+      eGUI_MenuItemEnable(), eGUI_MenuItemCheck() has been added.
+
 2018-11-21 20:00 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * tests/forms/example.xml
     * xml form updated

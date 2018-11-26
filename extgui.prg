@@ -209,6 +209,28 @@ FUNCTION eGUI_AddMenuItem( cName, id, cFunc, ... )
 
    RETURN Nil
 
+FUNCTION eGUI_AddCheckMenuItem( cName, id, cFunc, ... )
+
+   LOCAL aSubMenu, cCode, arr := hb_aParams(), i
+
+   IF Empty( aMenu )
+      RETURN Nil
+   ENDIF
+
+   aSubMenu := Iif( Empty(aMenuStack), aMenu, ATail(aMenuStack) )
+   IF !Empty( cFunc )
+      cCode := 'pgo("' + cFunc + '"'
+      FOR i := 4 TO Len( arr )
+         cCode += Iif( i==4, ',{"', ',"' ) + arr[i] + IIf( i==Len(arr), '"}', '"' )
+      NEXT
+      cCode += ')'
+   ELSE
+      cCode := arr[4]
+   ENDIF
+   Aadd( aSubMenu, { cName, cCode, id, .T. } )
+
+   RETURN Nil
+
 FUNCTION eGUI_AddMenuSeparator()
 
    LOCAL aSubMenu
@@ -222,6 +244,17 @@ FUNCTION eGUI_AddMenuSeparator()
 
    RETURN Nil
 
+FUNCTION eGUI_MenuItemEnable( cWndName, cMenuName, nItem, lValue )
+
+   SendOut( hb_jsonEncode( { "menu", "enable", cWndName, cMenuName, nItem, lValue } ) )
+
+   RETURN Nil
+
+FUNCTION eGUI_MenuItemCheck( cWndName, cMenuName, nItem, lValue )
+
+   SendOut( hb_jsonEncode( { "menu", "check", cWndName, cMenuName, nItem, lValue } ) )
+
+   RETURN Nil
 
 FUNCTION eGUI_EvalProc( cCode )
 
@@ -285,6 +318,16 @@ FUNCTION eGUI_GetValues( oWnd, aNames )
    ENDIF
 
    RETURN Nil
+
+FUNCTION eGUI_GetVersion( n )
+
+   LOCAL cRes
+   cRes := SendOut( hb_jsonEncode( { "getver", n } ) )
+   IF !Empty(cRes) .AND. Left( cRes, 1 ) == '"' .AND. Right( cRes,1 ) == '"'
+      cRes := Substr( cRes,2,Len(cRes)-2 )
+   ENDIF
+
+   RETURN Iif( Empty(cRes), "", cRes )
 
 FUNCTION eGUI_MsgInfo( cMessage, cTitle, cFunc, cName )
 
@@ -364,6 +407,18 @@ FUNCTION eGUI_PBarSet( oBar, nPos )
 
    RETURN Nil
 
+FUNCTION eGUI_InitTray( cIcon, cMenuName, cTooltip )
+
+   SendOut( hb_jsonEncode( { "tray", "init", cIcon, cMenuName, cTooltip } ) )
+
+   RETURN Nil
+
+FUNCTION eGUI_ModifyTrayIcon( cIcon )
+
+   SendOut( hb_jsonEncode( { "tray", "icon", cIcon } ) )
+
+   RETURN Nil
+
 FUNCTION eGUI_RadioEnd( oRg, nSelected )
 
    LOCAL cName := FullWidgName( oRg )
@@ -424,7 +479,7 @@ FUNCTION eGUI_SetVar( cVarName, cValue )
 
 FUNCTION eGUI_GetVar( cVarName )
 
-   cRes := SendOut( hb_jsonEncode( { "getvar", cVarName } ) )
+   LOCAL cRes := SendOut( hb_jsonEncode( { "getvar", cVarName } ) )
 
    RETURN Substr( cRes,2,Len(cRes)-2 )
 
