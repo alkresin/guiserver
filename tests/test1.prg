@@ -178,6 +178,7 @@ FUNCTION fbrowse()
    LOCAL aSample := { {"Alex",23,1500}, {"Victor",42,2400}, {"John",31,2800} }
 
    oDlg3 := eGUI_InitDialog( "dlgb", 100, 100, 300, 280, "Browse" )
+   oDlg3:SetCallbackProc( "ondestroy",,"hwg_MsgYesNo('Really close?','Close a dialog')" )
 
    oBrw := oDlg3:AddWidget( "browse",, 10,10, 280, 210,, {{"Anchor",ANCHOR_TOPABS+ANCHOR_BOTTOMABS+ANCHOR_LEFTABS+ANCHOR_RIGHTABS}} )
    oBrw:SetParam( "oStyleHead", oStyle1 )

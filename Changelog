@@ -1,4 +1,10 @@
 
+2018-11-30 12:30 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * extgui.prg
+  * guiserver.prg
+    * Added support for oninit, ondestroy events.
+    * Added support of HStyle for the splitter.
+
 2018-11-26 12:30 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * extgui.prg
     * eGUI_GetVersion(), eGUI_InitTray(), eGUI_ModifyTrayIcon(),

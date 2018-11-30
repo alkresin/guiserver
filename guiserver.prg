@@ -154,8 +154,18 @@ STATIC FUNCTION CrMainWnd( arr, hash )
    LOCAL x1 := arr[1], y1 := arr[2], w := arr[3], h := arr[4]
    LOCAL cTitle := arr[5]
    LOCAL nStyle, bColor, oFont, oIcon
-   LOCAL bExit := {||
+   LOCAL bInit := {|o|
+      IF Valtype(o:cargo) == "A" .AND. Valtype(o:cargo[1]) == "B"
+         Eval( o:cargo[1], o )
+      ENDIF
+      RETURN .T.
+   }
+   LOCAL bExit := {|o|
       LOCAL lRes := .T.
+      IF Valtype(o:cargo) == "A" .AND. Valtype(o:cargo[2]) == "B"
+         lRes := Eval( o:cargo[2], o )
+         lRes := Iif( Valtype(lRes)=="L", lRes, .T. )
+      ENDIF
       IF lRes
          oMTimer:End()
          oMTimer := Nil
@@ -177,7 +187,7 @@ STATIC FUNCTION CrMainWnd( arr, hash )
    ENDIF
 
    INIT WINDOW oMainWnd MAIN TITLE cTitle AT x1,y1 SIZE w,h STYLE nStyle ;
-         BACKCOLOR bColor FONT oFont ICON oIcon ON EXIT bExit
+         BACKCOLOR bColor FONT oFont ICON oIcon ON INIT bInit ON EXIT bExit
    oCurrWindow := oMainWnd
    cCurrWindow := "MAIN"
 
@@ -198,6 +208,9 @@ STATIC FUNCTION CrDialog( cName, arr, hash )
    LOCAL cTitle := arr[5]
    LOCAL nStyle, bColor, oFont
    LOCAL bInit := {|o|
+      IF Valtype(o:cargo) == "A" .AND. Valtype(o:cargo[1]) == "B"
+         Eval( o:cargo[1], o )
+      ENDIF
       IF oMTimer == Nil
          SET TIMER oMTimer OF oDlg VALUE nInterval ACTION {||TimerFunc()}
       ENDIF
@@ -205,6 +218,10 @@ STATIC FUNCTION CrDialog( cName, arr, hash )
    }
    LOCAL bExit := {|o|
       LOCAL lRes := .T.
+      IF Valtype(o:cargo) == "A" .AND. Valtype(o:cargo[2]) == "B"
+         lRes := Eval( o:cargo[2], o )
+         lRes := Iif( Valtype(lRes)=="L", lRes, .T. )
+      ENDIF
       IF lRes
          o:bDestroy := Nil
          IF oMTimer != Nil
@@ -584,7 +601,7 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
             nTo := hb_hGetDef( hash, "To", Nil )
          ENDIF
          oCtrl := HSplitter():New( oParent,, x1, y1, w, h, ;
-               bSize,, tcolor, bcolor, aLeft, aRight, nFrom, nTo )
+               bSize,, tcolor, bcolor, aLeft, aRight, nFrom, nTo, oStyle )
       ENDIF
       EXIT
 
@@ -914,7 +931,23 @@ STATIC FUNCTION SetCallback( oWidg, cbName, cCode )
    block := SetCB( oWidg, cCode )
 
    IF cbName == "oninit"
-      oWidg:bInit := block
+      IF __ObjHasMsg( oWidg, "MENU" )
+         IF Empty(oWidg:cargo)
+            oWidg:cargo := Array(2)
+         ENDIF
+         oWidg:cargo[1] := block
+      ELSE
+         oWidg:bInit := block
+      ENDIF
+   ELSEIF cbName == "ondestroy"
+      IF __ObjHasMsg( oWidg, "MENU" )
+         IF Empty(oWidg:cargo)
+            oWidg:cargo := Array(2)
+         ENDIF
+         oWidg:cargo[2] := block
+      ELSE
+         oWidg:bDestroy := block
+      ENDIF
    ELSEIF cbName == "onclick"
       oWidg:bClick := block
    ELSEIF cbName == "onsize"
