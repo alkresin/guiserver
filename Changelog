@@ -1,4 +1,10 @@
 
+2018-12-04 13:05 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * guiserver.prg
+  * listen.c
+    * The GuiServer is closed now in case of connection error -
+      if the main application crashes, for example.
+
 2018-11-30 12:30 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * extgui.prg
   * guiserver.prg

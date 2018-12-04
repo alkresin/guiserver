@@ -102,6 +102,24 @@ FUNCTION Main( ... )
 
    RETURN Nil
 
+STATIC FUNCTION Panic()
+
+   LOCAL oWnd := HWindow():GetMain()
+
+   IF oWnd != Nil
+      oWnd:bDestroy := Nil
+      oMTimer:End()
+      oMTimer := Nil
+      oWnd:Close()
+   ENDIF
+
+   gWritelog( "GuiServer closed due to socket error" )
+   lEnd := .T.
+   ipExit()
+   Quit
+
+   RETURN Nil
+
 
 STATIC FUNCTION CnvVal( xRes )
 
@@ -1381,6 +1399,9 @@ STATIC FUNCTION TimerFunc()
    LOCAL arr, cCommand, i
 
    CheckSocket()
+   IF CheckSockError()
+      Panic()
+   ENDIF
 
    DO WHILE nDeferred > 0
       arr := aDeferred[1]
@@ -1732,9 +1753,15 @@ FUNCTION MainHandler()
 
 STATIC FUNCTION SendOut( s )
 
+   LOCAL cRes
    gWritelog( "   " + s )
 
-   RETURN Send2SocketOut( "+" + s + cn )
+   cRes := Send2SocketOut( "+" + s + cn )
+   IF CheckSockError()
+      Panic()
+   ENDIF
+
+   RETURN cRes
 
 STATIC FUNCTION gWritelog( s )
 

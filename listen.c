@@ -49,6 +49,7 @@ int hb_ipRecv( HB_SOCKET_T hSocket, char * szBuffer, int iBufferLen );
 
 static int iIpActive = 0;
 static int iServerPort;
+static int bSocketError = 0;
 static HB_SOCKET_T hSocketMain1 = (HB_SOCKET_T)-1, hSocketMain2 = (HB_SOCKET_T)-1, hSocketIn = (HB_SOCKET_T)-1, hSocketOut = (HB_SOCKET_T)-1;
 static char * pBufferIn = NULL, * pBufferOut = NULL;
 static long int lBufferInLen = 0, lBufferOutLen = 0, lLastRcvIn = 0, lLastRcvOut = 0;
@@ -331,6 +332,8 @@ static int sockIn_Check( void )
          hb_ip_rfd_clr( hSocketIn );
          hb_ipclose( hSocketIn );
          hSocketIn = (HB_SOCKET_T)-1;
+         bSocketError = 1;
+         _writelog( pLogFile, 0, "socket error!\r\n" );
       }
    }
    iSockIn_Check --;
@@ -389,6 +392,11 @@ HB_FUNC( SETHANDLER )
       hb_retl(0);
 }
 
+HB_FUNC( CHECKSOCKERROR )
+{
+   hb_retl( bSocketError );
+}
+
 HB_FUNC( SEND2SOCKETIN )
 {
    const char *szBuf = hb_parc(1);
@@ -413,6 +421,8 @@ HB_FUNC( SEND2SOCKETOUT )
       while( iIpActive )
       {
          sockIn_Check();
+         if( bSocketError )
+            return;
          if( hb_ipDataReady( hSocketOut,2 ) != 0 )
          {
             if( sockOut_Recv( TIMEOUT ) > 0 )
