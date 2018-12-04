@@ -1,4 +1,8 @@
 
+2018-12-04 21:44 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * guiserver.prg
+    ! Fix in PrintInit()
+
 2018-12-04 13:05 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * guiserver.prg
   * listen.c

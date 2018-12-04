@@ -1171,7 +1171,9 @@ STATIC FUNCTION PrintInit( cName, aParams, cFunc, cMet )
       cFunc := cMet := Nil
    ENDIF
 
-   oPrinter := HPrinter():New( aParams[1], .T., nFormType,, !Empty(aParams[4]) )
+   IF Empty( oPrinter := HPrinter():New( aParams[1], .T., nFormType,, !Empty(aParams[4]) ) )
+      RETURN Nil
+   ENDIF
    oPrinter:objname := cName
    Aadd( aPrinters, oPrinter )
 
