@@ -471,6 +471,19 @@ FUNCTION eGUI_BrwSetColumn( oBrw, nColumn, cHeadName, nAlignHead, nAlignData, lE
    RETURN Nil
 
 
+FUNCTION eGUI_BrwSetColumnEx( oBrw, nColumn, cParam, xParam )
+
+   LOCAL cName := FullWidgName( oBrw )
+
+   IF Valtype( xParam ) == "O" .AND. __ObjHasMsg( xParam, "CNAME" )
+      SendOut( hb_jsonEncode( { "set", cName, "brwcolx", {nColumn,cParam,xParam:cName,.T.} } ) )
+   ELSE
+      SendOut( hb_jsonEncode( { "set", cName, "brwcolx", {nColumn,cParam,xParam} } ) )
+   ENDIF
+
+   RETURN Nil
+
+
 FUNCTION eGUI_SetVar( cVarName, cValue )
 
    SendOut( hb_jsonEncode( { "setvar", cVarName, cValue } ) )

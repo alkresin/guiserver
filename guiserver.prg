@@ -744,17 +744,31 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
             ENDIF
          ENDIF
 
+      ELSEIF cPropName == "brwcolx"
+         lErr := !(Valtype(xProp) == "A") .OR. !(Valtype(xProp[1]) == "N") .OR. ;
+               Valtype(i := xProp[1]) != "N" .OR. i <= 0 .OR. i > Len( oWnd:aColumns ) ;
+               .OR. !(Valtype(xProp[2]) == "C")
+         IF !lErr
+            IF Len( xProp ) == 4 .AND. Valtype( xProp[4] ) == "L" .AND. xProp[4]
+               IF !Empty( o := GetStyle(xProp[3]) ) .OR. !Empty( o := GetFont(xProp[3]) )
+                  __objSendMsg( oWnd:aColumns[i], '_'+xProp[2], o )
+               ENDIF
+            ELSE
+               __objSendMsg( oWnd:aColumns[i], '_'+xProp[2], xProp[3] )
+            ENDIF
+         ENDIF
+
       ELSEIF cPropName == "brwarr"
          lErr := !( __ObjHasMsg( oWnd, "INITBRW" )) .OR. Valtype(xProp) != "A" ;
                .OR. Valtype(xProp[1]) != "A"
          IF !lErr
             IF !Empty( oWnd:aColumns ) .AND. Len( oWnd:aColumns ) == Len( xProp[1] )
                oWnd:aArray := xProp
-               oWnd:Refresh()
             ELSE
                oWnd:aColumns := {}
                hwg_CREATEARLIST( oWnd, xProp )
             ENDIF
+            oWnd:Refresh()
          ENDIF
       ENDIF
       EXIT
@@ -771,6 +785,9 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
                ENDIF
             ELSE
                __objSendMsg( oWnd, '_'+xProp[1], xProp[2] )
+               IF __ObjHasMsg( oWnd, "ACOLUMNS") .AND. Lower(xProp[1]) == "lchanged"
+                  oWnd:Refresh()
+               ENDIF
             ENDIF
          ENDIF
       ENDIF

@@ -1,4 +1,9 @@
 
+2018-12-05 15:08 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * extgui.prg
+  * guiserver.prg
+    * Added support for BrwColumnEx() ("brwcolx" )
+
 2018-12-04 21:44 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * guiserver.prg
     ! Fix in PrintInit()
