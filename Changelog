@@ -1,4 +1,8 @@
 
+2018-12-05 20:52 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * guiserver.prg
+    * pgo() converts all non character params to a string
+
 2018-12-05 15:08 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * extgui.prg
   * guiserver.prg

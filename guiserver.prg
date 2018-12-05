@@ -154,6 +154,13 @@ STATIC FUNCTION CnvVal( xRes )
 
 FUNCTION pGO( cFunc, aParams )
 
+   LOCAL i
+
+   FOR i := 1 TO Len(aParams)
+      IF Valtype( aParams[i] ) != "C"
+         aParams[i] := CnvVal( aParams[i] )
+      ENDIF
+   NEXT
    SendOut( hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( aParams ) } ) )
 
    RETURN Nil
