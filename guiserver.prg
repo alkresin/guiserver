@@ -35,7 +35,7 @@ ANNOUNCE HB_GTSYS
 REQUEST HB_GT_GUI_DEFAULT
 #endif
 
-#define GUIS_VERSION   "1.3"
+#define GUIS_VERSION   "1.4"
 
 STATIC nPort := 3101
 STATIC lEnd := .F., oMTimer := Nil, nInterval := 20
@@ -430,6 +430,7 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
    LOCAL lFlat, lCheck, aStyles, aParts
    LOCAL aLeft, aRight, nInit, nFrom, nTo, nMaxPos, nRange
    LOCAL lNoVScroll, lNoBorder, lAppend, lAutoedit
+   LOCAL cLink, vColor, lColor, hColor
 
    oParent := Widg( Left( cName, nPos-1 ) )
    cName := Substr( cName, nPos+1 )
@@ -467,6 +468,22 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
       ELSEIF cWidg == "line"
 
          oCtrl := HLine():New( oParent,, lVert, x1, y1, w, bSize )
+
+      ELSEIF cWidg == "link"
+
+         IF !Empty( hash )
+            cLink  := hb_hGetDef( hash, "Link", Nil )
+            vColor := hb_hGetDef( hash, "ClrVisited", Nil )
+            lColor := hb_hGetDef( hash, "ClrLink", Nil )
+            hColor := hb_hGetDef( hash, "ClrOver", Nil )
+         ENDIF
+         IF Empty( cLink ) .AND. !Empty( cCaption )
+            cLink := cCaption
+         ELSEIF !Empty( cLink ) .AND. Empty( cCaption )
+            cCaption := cLink
+         ENDIF
+         oCtrl := HStaticLink():New( oParent,, nStyle, x1, y1, w, h, cCaption, oFont,, bSize,, ;
+               ctooltip, tcolor, bcolor, lTransp, cLink, vColor, lColor, hColor )
       ENDIF
       EXIT
 

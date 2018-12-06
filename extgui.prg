@@ -643,6 +643,14 @@ FUNCTION setprops( aProps )
             sProps += ',"WeekNumb": "t"'
          ELSEIF cProp == "icon"
             sProps += ',"ICon": "' + aProps[i,2] + '"'
+         ELSEIF cProp == "link"
+            sProps += ',"Link": "' + aProps[i,2] + '"'
+         ELSEIF cProp == "clrvisited"
+            sProps += ',"ClrVisited": ' + Ltrim(Str(aProps[i,2]))
+         ELSEIF cProp == "clrlink"
+            sProps += ',"ClrLink": ' + Ltrim(Str(aProps[i,2]))
+         ELSEIF cProp == "clrover"
+            sProps += ',"ClrOver": ' + Ltrim(Str(aProps[i,2]))
          ENDIF
       NEXT
       IF !Empty( sProps )
