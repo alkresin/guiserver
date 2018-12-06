@@ -1,4 +1,8 @@
 
+2018-12-06 21:05 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * guiserver.prg
+    * Added support for setting codeblocks in BrwSetColumnEx() and SetParam()
+
 2018-12-06 12:25 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * extgui.prg
   * guiserver.prg
@@ -12,7 +16,7 @@
 2018-12-05 15:08 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * extgui.prg
   * guiserver.prg
-    * Added support for BrwColumnEx() ("brwcolx" )
+    * Added support for BrwSetColumnEx() ("brwcolx" )
 
 2018-12-04 21:44 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * guiserver.prg

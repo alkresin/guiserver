@@ -697,7 +697,7 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
 
 STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
 
-   LOCAL oWnd, lWidg := .T., o, lErr := .F., i
+   LOCAL oWnd, lWidg := .T., o, lErr := .F., i, l
 
    //A window or a dialog ?
    lWidg := ("." $ cWidgName)
@@ -773,13 +773,31 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
                Valtype(i := xProp[1]) != "N" .OR. i <= 0 .OR. i > Len( oWnd:aColumns ) ;
                .OR. !(Valtype(xProp[2]) == "C")
          IF !lErr
-            IF Len( xProp ) == 4 .AND. Valtype( xProp[4] ) == "L" .AND. xProp[4]
-               IF !Empty( o := GetStyle(xProp[3]) ) .OR. !Empty( o := GetFont(xProp[3]) )
+            l := .T.
+            IF Len( xProp ) == 4
+               IF (Valtype( xProp[4] ) == "L" .AND. xProp[4]) .OR. ;
+                  (Valtype( xProp[4] ) == "C" .AND. xProp[4] == "o")
+                  IF !Empty( o := GetStyle(xProp[3]) ) .OR. !Empty( o := GetFont(xProp[3]) )
+                     __objSendMsg( oWnd:aColumns[i], '_'+xProp[2], o )
+                  ENDIF
+                  l := .F.
+               ELSEIF Valtype( xProp[4] ) == "C" .AND. xProp[4] == "b"
+                  o := SetCB( oWnd, xProp[3] )
                   __objSendMsg( oWnd:aColumns[i], '_'+xProp[2], o )
+                  l := .F.
                ENDIF
-            ELSE
+            ENDIF
+            IF l
                __objSendMsg( oWnd:aColumns[i], '_'+xProp[2], xProp[3] )
             ENDIF
+         ENDIF
+
+      ELSEIF cPropName == "brwcoldel"
+         lErr := !( __ObjHasMsg( oWnd, "INITBRW" )) .OR. Valtype(xProp) != "N" ;
+            .OR. xProp <= 0 .OR. xProp > Len( oWnd:aColumns )
+         IF !lErr
+            oWnd:DelColumn( xProp )
+            oWnd:Refresh()
          ENDIF
 
       ELSEIF cPropName == "brwarr"
@@ -802,14 +820,24 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
          lErr := !(Valtype(xProp) == "A") .OR. !(Valtype(xProp[1]) == "C") .OR. ;
                !( __ObjHasMsg( oWnd, Upper(xProp[1]) ))
          IF !lErr
-            IF Len( xProp ) == 3 .AND. Valtype( xProp[3] ) == "L" .AND. xProp[3]
-               IF !Empty( o := GetStyle(xProp[2]) ) .OR. !Empty( o := GetFont(xProp[2]) ) ;
-                     .OR. !Empty( o := Widg(xProp[2]) ) .OR. !Empty( o := GetHighl(xProp[2]) )
+            l := .T.
+            IF Len( xProp ) == 3
+               IF (Valtype( xProp[3] ) == "L" .AND. xProp[3]) .OR. ;
+                  (Valtype( xProp[3] ) == "C" .AND. xProp[3] == "o")
+                  IF !Empty( o := GetStyle(xProp[2]) ) .OR. !Empty( o := GetFont(xProp[2]) ) ;
+                        .OR. !Empty( o := Widg(xProp[2]) ) .OR. !Empty( o := GetHighl(xProp[2]) )
+                     __objSendMsg( oWnd, '_'+xProp[1], o )
+                  ENDIF
+                  l := .F.
+               ELSEIF Valtype( xProp[3] ) == "C" .AND. xProp[3] == "b"
+                  o := SetCB( oWnd, xProp[2] )
                   __objSendMsg( oWnd, '_'+xProp[1], o )
+                  l := .F.
                ENDIF
-            ELSE
+            ENDIF
+            IF l
                __objSendMsg( oWnd, '_'+xProp[1], xProp[2] )
-               IF __ObjHasMsg( oWnd, "ACOLUMNS") .AND. Lower(xProp[1]) == "lchanged"
+               IF __ObjHasMsg( oWnd, "INITBRW") .AND. Lower(xProp[1]) == "lchanged"
                   oWnd:Refresh()
                ENDIF
             ENDIF
