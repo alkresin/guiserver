@@ -447,9 +447,9 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
       cTooltip := hb_hGetDef( hash, "Tooltip", Nil )
       bSize := hb_hGetDef( hash, "Anchor", Nil )
       cPicture := hb_hGetDef( hash, "Picture", Nil )
-      lTransp := Iif( hb_hHaskey( hash, "Transpa" ), .T., Nil )
+      lTransp := Iif( Left(hb_hGetDef( hash, "Transpa","l"),1)=="t", .T., Nil )
       cImage := hb_hGetDef( hash, "Image", Nil )
-      lVert := Iif( hb_hHaskey( hash, "Vertical" ), .T., Nil )
+      lVert := Iif( Left(hb_hGetDef( hash, "Vertical","l"),1)=="t", .T., Nil )
       IF hb_hHaskey( hash, "Font" )
          oFont := GetFont( hash["Font"] )
       ENDIF
@@ -521,8 +521,8 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
 
       ELSEIF cWidg == "browse"
          IF !Empty( hash )
-            lNoVScroll := hb_hGetDef( hash, "NoVScroll", Nil )
-            lNoBorder := hb_hGetDef( hash, "NoBorder", Nil )
+            lNoVScroll := Iif( Left(hb_hGetDef( hash, "NoVScroll","l"),1)=="t", .T., .F. )
+            lNoBorder  := Iif( Left(hb_hGetDef( hash, "NoBorder","l"),1)=="t", .T., .F. )
          ENDIF
          oCtrl := HBrowse():New( 1, oParent,, nStyle, x1, y1, w, h, oFont, ;
             , bSize,,,,, lNoVScroll, lNoBorder, lAppend, lAutoedit,,,,, )
@@ -546,8 +546,8 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
 
       ELSEIF cWidg == "cedit"
          IF !Empty( hash )
-            lNoVScroll := hb_hGetDef( hash, "NoVScroll", Nil )
-            lNoBorder := hb_hGetDef( hash, "NoBorder", Nil )
+            lNoVScroll := Iif( Left(hb_hGetDef( hash, "NoVScroll","l"),1)=="t", .T., .F. )
+            lNoBorder  := Iif( Left(hb_hGetDef( hash, "NoBorder","l"),1)=="t", .T., .F. )
          ENDIF
          oCtrl := HCEdit():New( oParent,, nStyle, x1, y1, w, h, oFont, ;
             , bSize,, tcolor, bcolor,,, lNoVScroll, lNoBorder )
@@ -650,7 +650,7 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
    CASE 't'
       IF cWidg == "tree"
          IF !Empty( hash )
-            lEdit := hb_hGetDef( hash, "Editlabel", Nil )
+            lEdit  := Iif( Left(hb_hGetDef( hash, "Editlabel","l"),1)=="t", .T., Nil )
             IF hb_hHaskey( hash, "AImages" )
                aItems := hash["AImages"]
             ENDIF
@@ -678,9 +678,9 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
    CASE 'm'
       IF cWidg == "monthcal"
          IF !Empty( hash )
-            lNoToday := hb_hGetDef( hash, "NoToday", Nil )
-            lNoTodayCircle := hb_hGetDef( hash, "NoTodayCirc", Nil )
-            lWeekNumbers := hb_hGetDef( hash, "WeekNumb", Nil )
+            lNoToday  := Iif( Left(hb_hGetDef( hash, "NoToday","l"),1)=="t", .T., Nil )
+            lNoTodayCircle  := Iif( Left(hb_hGetDef( hash, "NoTodayCirc","l"),1)=="t", .T., Nil )
+            lWeekNumbers  := Iif( Left(hb_hGetDef( hash, "WeekNumb","l"),1)=="t", .T., Nil )
          ENDIF
          oCtrl := HMonthCalendar():New( oParent,,, nStyle, x1, y1, w, h, ;
             oFont,,, cTooltip, lNoToday, lNoTodayCircle, lWeekNumbers )
