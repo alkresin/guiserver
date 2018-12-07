@@ -697,7 +697,7 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
 
 STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
 
-   LOCAL oWnd, lWidg := .T., o, lErr := .F., i, l
+   LOCAL oWnd, lWidg := .T., o, lErr := .F., i, j, l
 
    //A window or a dialog ?
    lWidg := ("." $ cWidgName)
@@ -804,11 +804,32 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
          lErr := !( __ObjHasMsg( oWnd, "INITBRW" )) .OR. Valtype(xProp) != "A" ;
                .OR. Valtype(xProp[1]) != "A"
          IF !lErr
-            IF !Empty( oWnd:aColumns ) .AND. Len( oWnd:aColumns ) == Len( xProp[1] )
+            IF !Empty( oWnd:aColumns )
                oWnd:aArray := xProp
             ELSE
                oWnd:aColumns := {}
                hwg_CREATEARLIST( oWnd, xProp )
+               l := 0
+               FOR j := 1 TO Len(xProp[1])
+                  IF Valtype(xProp[1,j]) == "C" .AND. (xProp[1,j] == "t" .OR. xProp[1,j] == "f")
+                     l := j
+                     FOR i := 1 TO Len(xProp)
+                        IF !(xProp[i,j] == "t") .AND. !(xProp[i,j] == "f")
+                           l := 0
+                           EXIT
+                        ENDIF
+                     NEXT
+                  ENDIF
+               NEXT
+               IF l > 0
+#ifdef __GTK__
+                  o := HBitmap():AddStandard( "gtk-apply" )
+#else
+                  o := HBitmap():AddStandard( OBM_CHECK )
+#endif
+                  oWnd:aColumns[l]:aBitmaps := { { {|c|c=='t'}, o } }
+                  oWnd:bKeyDown := SetCB1( l )
+               ENDIF
             ENDIF
             oWnd:Refresh()
          ENDIF
@@ -986,6 +1007,16 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
    ENDIF
 
    RETURN .T.
+
+STATIC FUNCTION SetCB1( nCol )
+   LOCAL block := {|o,key|
+   IF key == 32
+      o:aArray[o:nCurrent,nCol] := Iif(o:aArray[o:nCurrent,nCol]=='t','f','t')
+      o:RefreshLine()
+   ENDIF
+   RETURN .T.
+   }
+   RETURN block
 
 STATIC FUNCTION SetCB( oWidg, cCode )
    LOCAL aScript
