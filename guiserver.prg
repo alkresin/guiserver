@@ -305,7 +305,8 @@ STATIC FUNCTION CrFont( cName, cFamily, nHeight, lBold, lIta, lUnder, lStrike, n
 
 STATIC FUNCTION CrStyle( cName, aColors, nOrient, aCorners, nBorder, tColor, cBitmap )
 
-   LOCAL oStyle := HStyle():New( aColors, nOrient, aCorners, nBorder, tColor )
+   LOCAL oStyle := HStyle():New( aColors, nOrient, aCorners, nBorder, tColor, ;
+      Iif( !Empty(cBitmap), HBitmap():AddFile(cBitmap), Nil ) )
 
    oStyle:objname := cName
 
@@ -431,6 +432,7 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
    LOCAL aLeft, aRight, nInit, nFrom, nTo, nMaxPos, nRange
    LOCAL lNoVScroll, lNoBorder, lAppend, lAutoedit
    LOCAL cLink, vColor, lColor, hColor
+   LOCAL xt, yt, lBtnClose, lBtnMax, lBtnMin
 
    oParent := Widg( Left( cName, nPos-1 ) )
    cName := Substr( cName, nPos+1 )
@@ -591,9 +593,11 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
                   NEXT
                ENDIF
             ENDIF
+            xt := hb_hGetDef( hash, "Xt", Nil )
+            yt := hb_hGetDef( hash, "yt", Nil )
          ENDIF
          oCtrl := HOwnButton():New( oParent,, aStyles, x1, y1, w, h,, bSize,,, lFlat, ;
-               cCaption, tcolor, oFont,,,,, cImage, lResou,,,,, lTransp, trColor, ;
+               cCaption, tcolor, oFont, xt, yt,,, cImage, lResou,,,,, lTransp, trColor, ;
                cTooltip,, lCheck, bColor )
       ENDIF
       EXIT
@@ -614,6 +618,18 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
             ENDIF
          ENDIF
          oCtrl := HPanelSts():New( oParent,, h, oFont,,, bcolor, oStyle, aParts )
+
+      ELSEIF cWidg == "panelhead"
+
+         IF !Empty( hash )
+            xt := hb_hGetDef( hash, "Xt", Nil )
+            yt := hb_hGetDef( hash, "yt", Nil )
+            lBtnClose := Iif( Left(hb_hGetDef( hash, "BtnClose","l"),1)=="t", .T., .F. )
+            lBtnMax := Iif( Left(hb_hGetDef( hash, "BtnMax","l"),1)=="t", .T., .F. )
+            lBtnMin := Iif( Left(hb_hGetDef( hash, "BtnMin","l"),1)=="t", .T., .F. )
+         ENDIF
+         oCtrl := HPanelHea():New( oParent,, h, oFont,,, tcolor, bcolor, oStyle, ;
+            cCaption, xt, yt, lBtnClose, lBtnMax, lBtnMin )
 
       ELSEIF cWidg == "progress"
          IF !Empty( hash )
