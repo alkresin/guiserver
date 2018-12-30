@@ -1490,17 +1490,19 @@ STATIC FUNCTION SetFormTimer( oForm )
       IF oForm:aMethods[ i,1 ] == "ondlginit"
          IF ( cType := ValType( oForm:aMethods[ i,2 ] ) ) == "B"
             blockI := oForm:aMethods[ i,2 ]
+            oForm:aMethods[ i,2 ] := bInit
          ELSEIF cType == "A"
             blockI := oForm:aMethods[ i,2,1 ]
+            oForm:aMethods[ i,2,1 ] := bInit
          ENDIF
-         oForm:aMethods[ i,2 ] := bInit
       ELSEIF oForm:aMethods[ i,1 ] == "ondlgexit"
          IF ( cType := ValType( oForm:aMethods[ i,2 ] ) ) == "B"
             blockE := oForm:aMethods[ i,2 ]
+            oForm:aMethods[ i,2 ] := bExit
          ELSEIF cType == "A"
             blockE := oForm:aMethods[ i,2,1 ]
+            oForm:aMethods[ i,2,1 ] := bExit
          ENDIF
-         oForm:aMethods[ i,2 ] := bExit
       ENDIF
    NEXT
    IF Empty( blockI )
