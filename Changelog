@@ -1,4 +1,8 @@
 
+2019-02-09 18:30 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * guiserver.prg
+    * Few Harbour functions added to EXTERNAL.
+
 2018-12-30 21:20 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * guiserver.prg
     ! Small fix
