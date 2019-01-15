@@ -152,7 +152,7 @@
 #ifdef HB_OS_LINUX
 #include <signal.h>
 #define HB_IP_LINUX_INTERRUPT     SIGUSR1+90
-static void hb_ipLinuxSigusrHandle( int sig )
+static void gs_ipLinuxSigusrHandle( int sig )
 {
    /* nothing to do */
    HB_SYMBOL_UNUSED( sig );
@@ -171,12 +171,12 @@ static int errorCode;
 static fd_set rd_fds, active_fds;
 static HB_SOCKET_T rd_maxfd;
 
-int hb_iperrorcode( void )
+int gs_iperrorcode( void )
 {
    return errorCode;
 }
 
-void hb_ipInit( void )
+void gs_ipInit( void )
 {
    if( s_iSessions )
    {
@@ -188,13 +188,13 @@ void hb_ipInit( void )
          WSADATA wsadata;
          WSAStartup( MAKEWORD(1,1), &wsadata );
       #elif defined( HB_OS_LINUX )
-         signal( HB_IP_LINUX_INTERRUPT, hb_ipLinuxSigusrHandle );
+         signal( HB_IP_LINUX_INTERRUPT, gs_ipLinuxSigusrHandle );
       #endif
       s_iSessions = 1;
    }
 }
 
-void hb_ipCleanup( void )
+void gs_ipCleanup( void )
 {
    if( --s_iSessions == 0 )
    {
@@ -204,7 +204,7 @@ void hb_ipCleanup( void )
    }
 }
 
-void hb_ipSetBufSize( HB_SOCKET_T hSocket, long iBufSend, long iBufRecv )
+void gs_ipSetBufSize( HB_SOCKET_T hSocket, long iBufSend, long iBufRecv )
 {
    long value;
    int len = 4;//sizeof(value);
@@ -228,7 +228,7 @@ void hb_ipSetBufSize( HB_SOCKET_T hSocket, long iBufSend, long iBufRecv )
    }
 }
 
-int hb_ipDataReady( HB_SOCKET_T hSocket, int timeout )
+int gs_ipDataReady( HB_SOCKET_T hSocket, int timeout )
 {
    fd_set set;
    struct timeval tv;
@@ -453,7 +453,7 @@ static int hb_socketConnect( HB_SOCKET_T hSocket, struct sockaddr_in *remote, in
    return ( errorCode == 0 );
 }
 
-int hb_ipRecv( HB_SOCKET_T hSocket, char * szBuffer, int iBufferLen )
+int gs_ipRecv( HB_SOCKET_T hSocket, char * szBuffer, int iBufferLen )
 {
    int iLen;
    
@@ -473,7 +473,7 @@ int hb_ipRecv( HB_SOCKET_T hSocket, char * szBuffer, int iBufferLen )
    return iLen ;
 }
 
-int hb_ipSend( HB_SOCKET_T hSocket, const char *szBuffer, int iSend, int timeout )
+int gs_ipSend( HB_SOCKET_T hSocket, const char *szBuffer, int iSend, int timeout )
 {
    int iSent, iBufferLen;
    int iBufferMax;
@@ -519,7 +519,7 @@ int hb_ipSend( HB_SOCKET_T hSocket, const char *szBuffer, int iSend, int timeout
    }
 }
 
-HB_SOCKET_T hb_ipConnect( const char * szHost, int iPort, int timeout )
+HB_SOCKET_T gs_ipConnect( const char * szHost, int iPort, int timeout )
 {
    HB_SOCKET_T hSocket = -1;
    ULONG ulAddr;
@@ -553,7 +553,7 @@ HB_SOCKET_T hb_ipConnect( const char * szHost, int iPort, int timeout )
          /* Set internal socket send buffer to 64k,
          * this should fix the speed problems some users have reported
          */
-         hb_ipSetBufSize( hSocket, 0xFFFFFF, 0xFFFFFF );
+         gs_ipSetBufSize( hSocket, 0xFFFFFF, 0xFFFFFF );
 
          hb_socketConnect( hSocket, &remote, timeout );       
       }
@@ -561,7 +561,7 @@ HB_SOCKET_T hb_ipConnect( const char * szHost, int iPort, int timeout )
    return hSocket;
 }
 
-HB_SOCKET_T hb_ipServer( int iPort, const char * szAddress, int iListen )
+HB_SOCKET_T gs_ipServer( int iPort, const char * szAddress, int iListen )
 {
    HB_SOCKET_T hSocket;
    int iOpt;
@@ -606,7 +606,7 @@ HB_SOCKET_T hb_ipServer( int iPort, const char * szAddress, int iListen )
       return hSocket;
 }
 
-HB_SOCKET_T hb_ipAccept( HB_SOCKET_T hSocket, int timeout, char * szAddr, long int * lPort )
+HB_SOCKET_T gs_ipAccept( HB_SOCKET_T hSocket, int timeout, char * szAddr, long int * lPort )
 {
 #if !defined(EAGAIN)
 #define EAGAIN -1
@@ -636,7 +636,7 @@ HB_SOCKET_T hb_ipAccept( HB_SOCKET_T hSocket, int timeout, char * szAddr, long i
    /* Connection incoming */
    while( iError == EAGAIN )
    {
-      if( hb_ipDataReady( hSocket,timeout ) )
+      if( gs_ipDataReady( hSocket,timeout ) )
       {
          /* On error (e.g. async connection closed) , com will be -1 and
             errno == 22 (invalid argument ) */
@@ -688,12 +688,12 @@ HB_SOCKET_T hb_ipAccept( HB_SOCKET_T hSocket, int timeout, char * szAddr, long i
       /* Set internal socket send buffer to 64k,
       * this should fix the speed problems some users have reported
       */
-      hb_ipSetBufSize( incoming, 0xFFFFFF, 0xFFFFFF );
+      gs_ipSetBufSize( incoming, 0xFFFFFF, 0xFFFFFF );
       return incoming;
    }
 }
 
-int hb_ipclose( HB_SOCKET_T hSocket )
+int gs_ipclose( HB_SOCKET_T hSocket )
 {
    int iRet;
 
@@ -728,12 +728,12 @@ void hb_getLocalIP( HB_SOCKET_T hSocket, char * szIP )
 }
 
 
-int hb_ip_rfd_isset( HB_SOCKET_T hSocket )
+int gs_ip_rfd_isset( HB_SOCKET_T hSocket )
 {
    return FD_ISSET( hSocket,&active_fds );
 }
 
-void hb_ip_rfd_set( HB_SOCKET_T hSocket )
+void gs_ip_rfd_set( HB_SOCKET_T hSocket )
 {
    HB_SOCKET_ZERO_ERROR();
 
@@ -741,20 +741,20 @@ void hb_ip_rfd_set( HB_SOCKET_T hSocket )
    rd_maxfd = ( rd_maxfd > hSocket )? rd_maxfd : hSocket;
 }
 
-void hb_ip_rfd_clr( HB_SOCKET_T hSocket )
+void gs_ip_rfd_clr( HB_SOCKET_T hSocket )
 {
    if( !hSocket )
       return;
    FD_CLR( hSocket, &rd_fds );
 }
 
-void hb_ip_rfd_zero( void )
+void gs_ip_rfd_zero( void )
 {
    FD_ZERO( &rd_fds );
    rd_maxfd = 0;
 }
 
-int hb_ip_rfd_select( int iTimeOut )
+int gs_ip_rfd_select( int iTimeOut )
 {
    struct timeval tv = {0,0};
 

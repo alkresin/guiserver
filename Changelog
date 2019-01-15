@@ -1,5 +1,14 @@
 
-2019-02-09 18:30 UTC+0300 Alexander Kresin <alex@kresin.ru>
+2019-01-15 13:15 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * guiserver.prg
+    * gs_Run() added.
+    * It is possibly now to build guiserver as a harbour library, using the -DGUIS_LIB.
+  * extgui.prg
+  * hbip.c
+  * listen.c
+    * hb_ prefixes has been changed to gs_
+
+2019-01-09 18:30 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * guiserver.prg
     * Few Harbour functions added to EXTERNAL.
 

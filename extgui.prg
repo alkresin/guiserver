@@ -56,34 +56,34 @@ FUNCTION eGUI_Init( cOptions )
    ENDIF
 
    IF nLog > 1
-      SetLogFile( cLogFile )
-      SetPrefix( "   )" )
+      gs_SetLogFile( cLogFile )
+      gs_SetPrefix( "   )" )
    ENDIF
-   SetVersion( "1.0" )
-   ipInit()
+   gs_SetVersion( "1.0" )
+   gs_ipInit()
 
    IF !Empty( cServer )
       extgui_RunApp( cServer + " -p" + Ltrim(Str(nPort)) + Iif(nLog>0," -log"+Str(nLog,1),""),1 )
    ENDIF
    hb_idleSleep( 0.2 )
-   //Sleep_ns( 200 )
+   //gs_Sleep_ns( 200 )
 
-   IF ( s := ConnectSocket( cIp, nPort ) ) == Nil
+   IF ( s := gs_ConnectSocket( cIp, nPort ) ) == Nil
       hb_idleSleep( 2 )
-      IF ( s := ConnectSocket( cIp, nPort ) ) == Nil
-         ipExit()
+      IF ( s := gs_ConnectSocket( cIp, nPort ) ) == Nil
+         gs_ipExit()
          eGUI_Writelog( "No connection" )
          RETURN 1
       ENDIF
    ENDIF
    i := At( '/', s )
    s := Substr( s, i+1 )
-   IF s != proto_Version()
-      eGUI_Writelog( "Wrong protocol version. Need " + proto_Version() + ", received: " + s )
+   IF s != gs_proto_Version()
+      eGUI_Writelog( "Wrong protocol version. Need " + gs_proto_Version() + ", received: " + s )
       RETURN 2
    ENDIF
 
-   SetHandler( "GUIHANDLER" )
+   gs_SetHandler( "GUIHANDLER" )
    hb_IdleAdd( {|| FIdle() } )
 
    RETURN 0
@@ -520,7 +520,7 @@ FUNCTION SendOut( s )
    IF lPacket
       cPacketBuff += ',' + s
    ELSE
-      RETURN Send2SocketOut( '+' + s + cn )
+      RETURN gs_Send2SocketOut( '+' + s + cn )
    ENDIF
 
    RETURN Nil
@@ -560,7 +560,7 @@ FUNCTION FIdle()
       hb_jsonDecode( arr[2], @arrp )
       Eval( xRes, arrp )
    ENDDO
-   CheckSocket()
+   gs_CheckSocket()
 
    RETURN Nil
 
@@ -741,19 +741,19 @@ FUNCTION eGUI_Writelog( cText, fname )
 
 FUNCTION GUIHandler()
 
-   LOCAL cBuffer := GetRecvBuffer(), arr, arrp, cCommand, cFunc, lSend := .F., xRes, o
+   LOCAL cBuffer := gs_GetRecvBuffer(), arr, arrp, cCommand, cFunc, lSend := .F., xRes, o
    //? "Handler"
 
    hb_jsonDecode( cBuffer, @arr )
    IF Valtype(arr) != "A" .OR. Empty(arr)
-      Send2SocketIn( "+Err"+cn )
+      gs_Send2SocketIn( "+Err"+cn )
       RETURN Nil
    ENDIF
 
    cCommand := Lower( arr[1] )
    IF cCommand == "runproc"
 
-      Send2SocketIn( "+Ok"+cn )
+      gs_Send2SocketIn( "+Ok"+cn )
       lSend := .T.
       Add2Rproc( { arr[2], Iif( Len(arr)>2,arr[3],{} ) } )
 
@@ -765,7 +765,7 @@ FUNCTION GUIHandler()
          hb_jsonDecode( arr[3], @arrp )
       ENDIF
       xRes := Eval( xRes, arrp )
-      Send2SocketIn( "+" + hb_jsonEncode(xRes) + cn )
+      gs_Send2SocketIn( "+" + hb_jsonEncode(xRes) + cn )
       lSend := .T.
 
    ELSEIF cCommand == "exit"
@@ -774,24 +774,24 @@ FUNCTION GUIHandler()
          o:Delete()
       ENDIF
       lSend := .T.
-      Send2SocketIn( "+Ok"+cn )
+      gs_Send2SocketIn( "+Ok"+cn )
 
    ELSEIF cCommand == "endapp"
       lSend := .T.
-      Send2SocketIn( "+Ok"+cn )
-      ipExit()
+      gs_Send2SocketIn( "+Ok"+cn )
+      gs_ipExit()
       Quit
 
    ENDIF
 
    IF !lSend
-      Send2SocketIn( "+Ok"+cn )
+      gs_Send2SocketIn( "+Ok"+cn )
    ENDIF
 
    RETURN Nil
 
 FUNCTION eGUI_Exit
 
-   ipExit()
+   gs_ipExit()
 
    RETURN Nil
