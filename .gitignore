@@ -1,4 +1,6 @@
 
 *.exe
+*.lib
+*.a
 *.log
 *.out

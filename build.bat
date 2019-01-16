@@ -2,10 +2,11 @@
 
 set HB_INSTALL=\harbour
 set HWGUI_INSTALL=\papps\hwgui_uni
+set SRC_DIR=source
 
-%HB_INSTALL%\bin\harbour guiserver.prg -n -i%HB_INSTALL%\include;%HWGUI_INSTALL%\include
+%HB_INSTALL%\bin\harbour %SRC_DIR%\guiserver.prg -n -i%HB_INSTALL%\include;%HWGUI_INSTALL%\include
 
-bcc32  -c -O2 -tW -M -I%HB_INSTALL%\include;%HWGUI_INSTALL%\include guiserver.c hbip.c listen.c >a1.out
+bcc32  -c -O2 -tW -M -I%HB_INSTALL%\include;%HWGUI_INSTALL%\include guiserver.c %SRC_DIR%\hbip.c %SRC_DIR%\listen.c >a1.out
 
 echo 1 24 "\papps\hwgui_218\image\WindowsXP.Manifest" > hwgui_xp.rc
 rem echo 1 24 "Windows7.Manifest" > hwgui_xp.rc
