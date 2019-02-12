@@ -141,7 +141,9 @@ STATIC FUNCTION Panic()
    lPanic := .T.
    IF oWnd != Nil
       oWnd:bDestroy := Nil
-      oMTimer:End()
+      IF !Empty( oMTimer )
+         oMTimer:End()
+      ENDIF
       oMTimer := Nil
       oWnd:Close()
    ENDIF
