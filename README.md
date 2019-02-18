@@ -6,10 +6,10 @@ Join the multilanguage group https://groups.google.com/d/forum/guiserver to disc
 
 ### How to build
    Project source files:
-      guiserver.prg    - main file, written on Harbour.
-      hbip.c
-      listen.c
-      misc.c
+      source/guiserver.prg    - main file, written on Harbour.
+      source/hbip.c
+      source/listen.c
+      source/misc.c
 
    To compile a GuiServer from sources you will need Harbour, HwGUI and a C compiler.
 

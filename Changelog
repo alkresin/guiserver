@@ -1,4 +1,8 @@
 
+2019-02-18 12:42 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * guiserver.prg
+    * Icon support for dialogs added.
+
 2019-02-12 21:14 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * guiserver.prg
     ! Small fix in Panic()

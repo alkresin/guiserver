@@ -23,10 +23,10 @@
 
 ### Сборка
    Исходные файлы проекта:
-      guiserver.prg
-      hbip.c
-      listen.c
-      misc.c
+      source/guiserver.prg
+      source/hbip.c
+      source/listen.c
+      source/misc.c
 
    Для сборки приложения из исходников вам понадобятся Harbour, HwGUI (Unicode версия) и какой-нибудь C компилятор.
 
