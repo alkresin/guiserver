@@ -1,4 +1,8 @@
 
+2019-04-18 17:02 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  ! guiserver.prg
+    ! Small fix
+
 2019-04-18 16:44 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * guiserver.prg
     * Added support for Hide() method and SelectNode() function.

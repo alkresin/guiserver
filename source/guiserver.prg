@@ -996,7 +996,7 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
          IF !lErr
             o := Iif( Empty(xProp), oWnd, GetNode( oWnd,xProp ) )
             IF !Empty( o )
-               o:Select()
+               oWnd:Select( o )
             ENDIF
          ENDIF
       ENDIF
