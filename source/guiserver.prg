@@ -267,6 +267,7 @@ STATIC FUNCTION CrDialog( cName, arr, hash )
    LOCAL x1 := arr[1], y1 := arr[2], w := arr[3], h := arr[4]
    LOCAL cTitle := arr[5]
    LOCAL nStyle, bColor, oFont, oIcon
+   LOCAL lExitOnEsc, lNoClosable
    LOCAL bInit := {|o|
       IF Valtype(o:cargo) == "A" .AND. Valtype(o:cargo[1]) == "B"
          Eval( o:cargo[1], o )
@@ -308,10 +309,15 @@ STATIC FUNCTION CrDialog( cName, arr, hash )
       IF hb_hHaskey( hash, "Icon" )
          oIcon := HIcon():AddFile( hash["Icon"] )
       ENDIF
+      lExitOnEsc := hb_hGetDef( hash, "NoExitOnEsc", .F. )
+      lNoClosable := hb_hGetDef( hash, "NoCloseAble", .F. )
    ENDIF
 
-   INIT DIALOG oDlg TITLE cTitle AT x1,y1 SIZE w,h STYLE nStyle ;
-         BACKCOLOR bColor FONT oFont ICON oIcon ON INIT bInit ON EXIT bExit
+   //INIT DIALOG oDlg TITLE cTitle AT x1,y1 SIZE w,h STYLE nStyle ;
+   //      BACKCOLOR bColor FONT oFont ICON oIcon ON INIT bInit ON EXIT bExit
+
+   oDlg := HDialog():New( WND_DLG_NORESOURCE, nStyle, x1, y2, w, h, cTitle, oFont, bInit, bExit,, ;
+      ,,,,,, oIcon,,,, lExitOnEsc, bColor, lNoClosable )
    cCurrWindow := oDlg:objname := Upper( cName )
    oCurrWindow := oDlg
 
