@@ -858,7 +858,7 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
          lErr := !( __ObjHasMsg( oWnd, "INITBRW" )) .OR. Valtype(xProp) != "A" ;
                .OR. Valtype(xProp[1]) != "A"
          IF !lErr
-            IF !Empty( oWnd:aColumns )
+            IF !Empty( oWnd:aColumns ) .AND. Len(oWnd:aColumns) == Len(xProp[1])
                oWnd:aArray := xProp
             ELSE
                oWnd:aColumns := {}
