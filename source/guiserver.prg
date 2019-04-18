@@ -991,6 +991,14 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
                ENDIF
             ENDIF
          ENDIF
+      ELSEIF cPropName == "nodesele"
+         lErr := !(__ObjHasMsg( oWnd, "ADDNODE" ) .AND. Valtype(xProp) == "C")
+         IF !lErr
+            o := Iif( Empty(xProp), oWnd, GetNode( oWnd,xProp ) )
+            IF !Empty( o )
+               o:Select()
+            ENDIF
+         ENDIF
       ENDIF
       EXIT
 
@@ -1047,6 +1055,15 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
                oWnd:HighLighter()
             ELSE
                oWnd:HighLighter( GetHighl(xProp) )
+            ENDIF
+         ENDIF
+      ELSEIF cPropName == "hide"
+         lErr := !(Valtype(xProp) == "L") .OR. !__ObjHasMsg( oWnd, "HIDE" )
+         IF !lErr
+            IF xProp
+               oWnd:Hide()
+            ELSE
+               oWnd:Show()
             ENDIF
          ENDIF
       ENDIF
@@ -1214,7 +1231,7 @@ STATIC FUNCTION GetProperty( cWidgName, cPropName )
       ELSE
          cRes := oWnd:GetText()
       ENDIF
-      
+
    ELSEIF cPropName == "color"
 
    ELSEIF cPropName == "brwarr"
@@ -1452,7 +1469,7 @@ FUNCTION Wnd( cName )
       ENDIF
    ENDIF
    RETURN oWnd
-   
+
 FUNCTION Widg( cWidgName, oWnd )
 
    LOCAL nPos
@@ -1482,7 +1499,7 @@ FUNCTION Widg( cWidgName, oWnd )
 
    RETURN Nil
 
-STATIC FUNCTION GetNode( o, cNodeName )
+FUNCTION GetNode( o, cNodeName )
 
    LOCAL aItems := o:aItems, i, nlen := Len( aItems ), oNode
 
@@ -1903,7 +1920,7 @@ FUNCTION MainHandler()
       gs_Send2SocketIn( "+Wrong" + cn )
       RETURN Nil
    ENDIF
- 
+
    IF !Parse( arr, .F. )
       gWritelog( "Parsing error" )
    ENDIF
