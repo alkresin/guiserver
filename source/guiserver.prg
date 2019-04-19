@@ -309,14 +309,14 @@ STATIC FUNCTION CrDialog( cName, arr, hash )
       IF hb_hHaskey( hash, "Icon" )
          oIcon := HIcon():AddFile( hash["Icon"] )
       ENDIF
-      lExitOnEsc := hb_hGetDef( hash, "NoExitOnEsc", .F. )
-      lNoClosable := hb_hGetDef( hash, "NoCloseAble", .F. )
+      lExitOnEsc := Iif( Left(hb_hGetDef( hash, "NoExitOnEsc","l"),1)=="t", .T., Nil )
+      lNoClosable := Iif( Left(hb_hGetDef( hash, "NoCloseAble","l"),1)=="t", .T., Nil )
    ENDIF
 
    //INIT DIALOG oDlg TITLE cTitle AT x1,y1 SIZE w,h STYLE nStyle ;
    //      BACKCOLOR bColor FONT oFont ICON oIcon ON INIT bInit ON EXIT bExit
 
-   oDlg := HDialog():New( WND_DLG_NORESOURCE, nStyle, x1, y2, w, h, cTitle, oFont, bInit, bExit,, ;
+   oDlg := HDialog():New( WND_DLG_NORESOURCE, nStyle, x1, y1, w, h, cTitle, oFont, bInit, bExit,, ;
       ,,,,,, oIcon,,,, lExitOnEsc, bColor, lNoClosable )
    cCurrWindow := oDlg:objname := Upper( cName )
    oCurrWindow := oDlg

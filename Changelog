@@ -1,4 +1,8 @@
 
+2019-04-19 11:10 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * guiserver.prg
+    ! Few fixes.
+
 2019-04-18 20:52 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * guiserver.prg
     * Support for NoExitOnEsc and NoCloseAble dialog properties added.
@@ -8,7 +12,7 @@
     * Setting browse array changed.
 
 2019-04-18 17:02 UTC+0300 Alexander Kresin <alex@kresin.ru>
-  ! guiserver.prg
+  * guiserver.prg
     ! Small fix
 
 2019-04-18 16:44 UTC+0300 Alexander Kresin <alex@kresin.ru>
