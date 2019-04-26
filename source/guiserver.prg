@@ -1312,6 +1312,20 @@ STATIC FUNCTION f_SeleFile( cPath, cFunc, cName )
 
    RETURN Nil
 
+STATIC FUNCTION f_SeleFolder( cFunc, cName )
+
+   LOCAL fname
+   fname := hwg_SelectFolder()
+
+   IF !Empty( cFunc )
+      IF Empty( fname )
+         fname := ""
+      ENDIF
+      SendOut( hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cName,fname} ) } ) )
+   ENDIF
+
+   RETURN Nil
+
 STATIC FUNCTION f_SeleFont( cFunc, cName )
 
    LOCAL oFont := HFont():Select()
@@ -1606,6 +1620,8 @@ STATIC FUNCTION TimerFunc()
             f_selefont( arr[3], arr[4] )
          ELSEIF arr[2] == "cfile"
             f_selefile( Iif(Len(arr)>4,arr[5],""), arr[3], arr[4] )
+         ELSEIF arr[2] == "cfold"
+            f_selefolder( arr[3], arr[4] )
          ELSEIF arr[2] == "ccolor"
             f_selecolor( Iif(Len(arr)>4,arr[5],""), arr[3], arr[4] )
          ENDIF

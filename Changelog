@@ -1,4 +1,8 @@
 
+2019-04-26 14:55 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * guiserver.prg
+    * Support for SelectFolder added.
+
 2019-04-19 11:10 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * guiserver.prg
     ! Few fixes.
