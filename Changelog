@@ -1,4 +1,8 @@
 
+2019-05-16 11:35 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * guiserver.prg
+    * Support for mutiply logical columns in a browse added.
+
 2019-04-26 14:55 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * guiserver.prg
     * Support for SelectFolder added.

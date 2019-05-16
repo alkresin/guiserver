@@ -869,7 +869,6 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
             ELSE
                oWnd:aColumns := {}
                hwg_CREATEARLIST( oWnd, xProp )
-               l := 0
                FOR j := 1 TO Len(xProp[1])
                   IF Valtype(xProp[1,j]) == "C" .AND. (xProp[1,j] == "t" .OR. xProp[1,j] == "f")
                      l := j
@@ -879,17 +878,17 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
                            EXIT
                         ENDIF
                      NEXT
+                     IF l > 0
+#ifdef __GTK__
+                        o := HBitmap():AddStandard( "gtk-apply" )
+#else
+                        o := HBitmap():AddStandard( OBM_CHECK )
+#endif
+                        oWnd:aColumns[l]:aBitmaps := { { {|c|c=='t'}, o } }
+                        oWnd:bKeyDown := SetCB1( l )
+                     ENDIF
                   ENDIF
                NEXT
-               IF l > 0
-#ifdef __GTK__
-                  o := HBitmap():AddStandard( "gtk-apply" )
-#else
-                  o := HBitmap():AddStandard( OBM_CHECK )
-#endif
-                  oWnd:aColumns[l]:aBitmaps := { { {|c|c=='t'}, o } }
-                  oWnd:bKeyDown := SetCB1( l )
-               ENDIF
             ENDIF
             oWnd:Refresh()
          ENDIF
@@ -1087,8 +1086,8 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
 
 STATIC FUNCTION SetCB1( nCol )
    LOCAL block := {|o,key|
-   IF key == 32
-      o:aArray[o:nCurrent,nCol] := Iif(o:aArray[o:nCurrent,nCol]=='t','f','t')
+   IF key == 32 .AND. !Empty( o:aColumns[o:ColPos]:aBitmaps )
+      o:aArray[o:nCurrent,o:ColPos] := Iif(o:aArray[o:nCurrent,o:ColPos]=='t','f','t')
       o:RefreshLine()
    ENDIF
    RETURN .T.
