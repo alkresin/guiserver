@@ -189,45 +189,27 @@ FUNCTION eGUI_EndMenu()
 
 FUNCTION eGUI_AddMenuItem( cName, id, cFunc, ... )
 
-   LOCAL aSubMenu, cCode, arr := hb_aParams(), i
+   LOCAL aSubMenu, arr
 
    IF Empty( aMenu )
       RETURN Nil
    ENDIF
 
    aSubMenu := Iif( Empty(aMenuStack), aMenu, ATail(aMenuStack) )
-   IF !Empty( cFunc )
-      cCode := 'pgo("' + cFunc + '"'
-      FOR i := 4 TO Len( arr )
-         cCode += Iif( i==4, ',{"', ',"' ) + arr[i] + IIf( i==Len(arr), '"}', '"' )
-      NEXT
-      cCode += ')'
-   ELSE
-      cCode := arr[4]
-   ENDIF
-   Aadd( aSubMenu, { cName, cCode, id } )
+   Aadd( aSubMenu, { cName, CreateCodeString( cName, cFunc, "menu", "pgo", hb_aParams(), 4 ), id } )
 
    RETURN Nil
 
 FUNCTION eGUI_AddCheckMenuItem( cName, id, cFunc, ... )
 
-   LOCAL aSubMenu, cCode, arr := hb_aParams(), i
+   LOCAL aSubMenu, arr
 
    IF Empty( aMenu )
       RETURN Nil
    ENDIF
 
    aSubMenu := Iif( Empty(aMenuStack), aMenu, ATail(aMenuStack) )
-   IF !Empty( cFunc )
-      cCode := 'pgo("' + cFunc + '"'
-      FOR i := 4 TO Len( arr )
-         cCode += Iif( i==4, ',{"', ',"' ) + arr[i] + IIf( i==Len(arr), '"}', '"' )
-      NEXT
-      cCode += ')'
-   ELSE
-      cCode := arr[4]
-   ENDIF
-   Aadd( aSubMenu, { cName, cCode, id, .T. } )
+   Aadd( aSubMenu, { cName, CreateCodeString( cName, cFunc, "menu", "pgo", hb_aParams(), 4 ), id, .T. } )
 
    RETURN Nil
 
@@ -738,6 +720,21 @@ FUNCTION eGUI_Writelog( cText, fname )
    FClose( nHand )
 
    RETURN Nil
+
+FUNCTION CreateCodeString( cName, cFunc, cWidgName, cPgo, arr, n )
+
+   LOCAL cCode, i
+
+   IF !Empty( cFunc )
+      cCode := cPgo + '("' + cFunc + '",{"' + cWidgName + '"'
+      FOR i := n TO Len( arr )
+         cCode += ',"' + arr[i] + '"'
+      NEXT
+      cCode += '})'
+   ELSE
+      cCode := arr[n]
+   ENDIF
+   RETURN cCode
 
 FUNCTION GUIHandler()
 

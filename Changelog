@@ -1,4 +1,9 @@
 
+2021-12-11 21:25 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * extgui.prg
+  * extgui_classes.prg
+    ! Adding menu items fixed.
+
 2019-05-16 11:35 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * guiserver.prg
     * Support for mutiply logical columns in a browse added.

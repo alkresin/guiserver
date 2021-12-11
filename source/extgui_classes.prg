@@ -224,38 +224,20 @@ METHOD SetParam( cParam, xParam ) CLASS EWidget
 
 METHOD SetCallbackProc( cbName, cProc, ... ) CLASS EWidget
 
-   LOCAL cName := FullWidgName( Self ), cCode, arr := hb_aParams(), i
+   LOCAL cName := FullWidgName( Self ), arr
 
-   IF !Empty( cProc )
-      cCode := 'pgo("' + cProc + '",{"' + cName + '"'
-      FOR i := 3 TO Len( arr )
-         cCode += ',"' + arr[i] + '"'
-      NEXT
-      cCode += '})'
-   ELSE
-      cCode := arr[3]
-   ENDIF
-
-   SendOut( hb_jsonEncode( { "set", cName, "cb." + Lower(cbName), cCode } ) )
+   SendOut( hb_jsonEncode( { "set", cName, "cb." + Lower(cbName), ;
+      CreateCodeString( cName, cProc, cName, "pgo", hb_aParams(), 3 ) } ) )
 
    RETURN Nil
 
 
 METHOD SetCallbackFunc( cbName, cFunc, ... ) CLASS EWidget
 
-   LOCAL cName := FullWidgName( Self ), cCode, arr := hb_aParams(), i
+   LOCAL cName := FullWidgName( Self ), arr
 
-   IF !Empty( cFunc )
-      cCode := 'fgo("' + cFunc + '",{"' + cName + '"'
-      FOR i := 3 TO Len( arr )
-         cCode += ',"' + arr[i] + '"'
-      NEXT
-      cCode += '})'
-   ELSE
-      cCode := arr[3]
-   ENDIF
-
-   SendOut( hb_jsonEncode( { "set", cName, "cb." + Lower(cbName), cCode } ) )
+   SendOut( hb_jsonEncode( { "set", cName, "cb." + Lower(cbName), ;
+      CreateCodeString( cName, cProc, cName, "fgo", hb_aParams(), 3 ) } ) )
 
    RETURN Nil
 
