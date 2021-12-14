@@ -43,7 +43,7 @@ FUNCTION Main
 
    egui_Menu()
       egui_Menu( "File" )
-         eGUI_AddMenuItem( "New",, "newfile", "New file item" )
+         eGUI_AddMenuItem( "New",, "newfile", "New file item", "10" )
          eGUI_AddMenuItem( "Open",, "openfile" )
          eGUI_AddMenuItem( "Browse",, "fbrowse" )
          eGUI_AddMenuSeparator()
@@ -211,7 +211,7 @@ FUNCTION MBox( aParams )
 
 FUNCTION SetLblColor( aParams )
 
-   IF aParams == Nil
+   IF Len( aParams ) == 1
       eGUI_SelectColor( , "SetLblColor", "mm1" )
    ELSEIF aParams[1] == "mm1"
       IF !Empty( aParams[2] )
@@ -225,7 +225,7 @@ FUNCTION SetLblFont( aParams )
 
    LOCAL oFont
 
-   IF aParams == Nil
+   IF Len( aParams ) == 1
       eGUI_SelectFont( "SetLblFont" )
    ELSE
       IF ( oFont := eGUI_GetFont( aParams[1] ) ) != Nil
@@ -242,7 +242,7 @@ FUNCTION SetLblFont( aParams )
 
 FUNCTION SeleFile( aParams )
 
-   IF aParams == Nil
+   IF Len( aParams ) == 1
       eGUI_SelectFile( , "SeleFile", "mm1" )
    ELSE
       IF Empty( aParams[2] )
@@ -258,7 +258,7 @@ FUNCTION PrnTest( aParams )
 
    LOCAL oFont, oPrinter
 
-   IF aParams == Nil
+   IF Len( aParams ) == 1
       oPrinter := eGUI_InitPrinter( ,, .T.,,, "prntest", "mm1" )
    ELSE
       oPrinter := m->oLastPrinter

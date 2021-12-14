@@ -952,6 +952,7 @@ STATIC FUNCTION SetProperty( cWidgName, cPropName,  xProp )
 #else
                   hwg_Setctrlfont( oWnd:oParent:handle, oWnd:id, xProp:handle )
 #endif
+                  oWnd:Refresh()
                ENDIF
             ENDIF
          ENDIF
@@ -1332,7 +1333,7 @@ STATIC FUNCTION f_SeleFont( cFunc, cName )
       IF Empty( oFont )
          SendOut( hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( {cName} ) } ) )
       ELSE
-         oFont:objname := cName
+         oFont:objname := Upper( cName )
          SendOut( hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( ;
             {cName, oFont:name, Ltrim(Str(oFont:height)), Iif(oFont:weight>400,"t","f"), ;
             Iif(oFont:italic>0,"t","f"), Iif(oFont:underline>0,"t","f"), ;
