@@ -8,6 +8,7 @@
  * www - http://www.kresin.ru
  */
 
+STATIC nConnType := 1
 STATIC cn := e"\n"
 STATIC aMenu := Nil, aMenuStack
 STATIC lPacket := .F., cPacketBuff
@@ -51,39 +52,47 @@ FUNCTION eGUI_Init( cOptions )
          ELSEIF Left( s,3 ) == "log"
             s := Val( AllTrim( Substr( arr[i], 5 ) ) )
             nLog := Iif( s == 1, 1, Iif( s == 2, 2, 0 ) )
+         ELSEIF Left( s,4 ) == "type"
+            nConnType := Val( AllTrim( Substr( arr[i], 6 ) ) )
          ENDIF
       NEXT
    ENDIF
 
-   IF nLog > 1
-      gs_SetLogFile( cLogFile )
-      gs_SetPrefix( "   )" )
+   IF nConnType == 1
+      IF nLog > 1
+         gs_SetLogFile( cLogFile )
+         gs_SetPrefix( "   )" )
+      ENDIF
+      gs_SetVersion( "1.0" )
+      gs_ipInit()
    ENDIF
-   gs_SetVersion( "1.0" )
-   gs_ipInit()
 
    IF !Empty( cServer )
-      extgui_RunApp( cServer + " -p" + Ltrim(Str(nPort)) + Iif(nLog>0," -log"+Str(nLog,1),""),1 )
+      extgui_RunApp( cServer + " -p" + Ltrim(Str(nPort)) + ;
+         Iif(nLog>0," -log"+Str(nLog,1),"") + Iif(nConnType>1," -t"+Ltrim(Str(nConnType)),""), 1 )
    ENDIF
    hb_idleSleep( 0.2 )
    //gs_Sleep_ns( 200 )
 
-   IF ( s := gs_ConnectSocket( cIp, nPort ) ) == Nil
-      hb_idleSleep( 2 )
+   IF nConnType == 1
       IF ( s := gs_ConnectSocket( cIp, nPort ) ) == Nil
-         gs_ipExit()
-         eGUI_Writelog( "No connection" )
-         RETURN 1
+         hb_idleSleep( 2 )
+         IF ( s := gs_ConnectSocket( cIp, nPort ) ) == Nil
+            gs_ipExit()
+            eGUI_Writelog( "No connection" )
+            RETURN 1
+         ENDIF
       ENDIF
-   ENDIF
-   i := At( '/', s )
-   s := Substr( s, i+1 )
-   IF s != gs_proto_Version()
-      eGUI_Writelog( "Wrong protocol version. Need " + gs_proto_Version() + ", received: " + s )
-      RETURN 2
+      i := At( '/', s )
+      s := Substr( s, i+1 )
+      IF s != gs_proto_Version()
+         eGUI_Writelog( "Wrong protocol version. Need " + gs_proto_Version() + ", received: " + s )
+         RETURN 2
+      ENDIF
+
+      gs_SetHandler( "GUIHANDLER" )
    ENDIF
 
-   gs_SetHandler( "GUIHANDLER" )
    hb_IdleAdd( {|| FIdle() } )
 
    RETURN 0
@@ -502,7 +511,17 @@ FUNCTION SendOut( s )
    IF lPacket
       cPacketBuff += ',' + s
    ELSE
-      RETURN gs_Send2SocketOut( '+' + s + cn )
+      IF nConnType == 1
+         RETURN gs_Send2SocketOut( '+' + s + cn )
+      ENDIF
+   ENDIF
+
+   RETURN Nil
+
+STATIC FUNCTION SendIn( s )
+
+   IF nConnType == 1
+      gs_Send2SocketIn( s )
    ENDIF
 
    RETURN Nil
@@ -542,7 +561,9 @@ FUNCTION FIdle()
       hb_jsonDecode( arr[2], @arrp )
       Eval( xRes, arrp )
    ENDDO
-   gs_CheckSocket()
+   IF nConnType == 1
+      gs_CheckSocket()
+   ENDIF
 
    RETURN Nil
 
@@ -738,19 +759,21 @@ FUNCTION CreateCodeString( cName, cFunc, cWidgName, cPgo, arr, n )
 
 FUNCTION GUIHandler()
 
-   LOCAL cBuffer := gs_GetRecvBuffer(), arr, arrp, cCommand, cFunc, lSend := .F., xRes, o
-   //? "Handler"
+   LOCAL cBuffer, arr, arrp, cCommand, cFunc, lSend := .F., xRes, o
 
+   IF nConnType == 1
+      cBuffer := gs_GetRecvBuffer()
+   ENDIF
    hb_jsonDecode( cBuffer, @arr )
    IF Valtype(arr) != "A" .OR. Empty(arr)
-      gs_Send2SocketIn( "+Err"+cn )
+      SendIn( "+Err"+cn )
       RETURN Nil
    ENDIF
 
    cCommand := Lower( arr[1] )
    IF cCommand == "runproc"
 
-      gs_Send2SocketIn( "+Ok"+cn )
+      SendIn( "+Ok"+cn )
       lSend := .T.
       Add2Rproc( { arr[2], Iif( Len(arr)>2,arr[3],{} ) } )
 
@@ -762,7 +785,7 @@ FUNCTION GUIHandler()
          hb_jsonDecode( arr[3], @arrp )
       ENDIF
       xRes := Eval( xRes, arrp )
-      gs_Send2SocketIn( "+" + hb_jsonEncode(xRes) + cn )
+      SendIn( "+" + hb_jsonEncode(xRes) + cn )
       lSend := .T.
 
    ELSEIF cCommand == "exit"
@@ -771,24 +794,28 @@ FUNCTION GUIHandler()
          o:Delete()
       ENDIF
       lSend := .T.
-      gs_Send2SocketIn( "+Ok"+cn )
+      SendIn( "+Ok"+cn )
 
    ELSEIF cCommand == "endapp"
       lSend := .T.
-      gs_Send2SocketIn( "+Ok"+cn )
-      gs_ipExit()
+      SendIn( "+Ok"+cn )
+      IF nConnType == 1
+         gs_ipExit()
+      ENDIF
       Quit
 
    ENDIF
 
    IF !lSend
-      gs_Send2SocketIn( "+Ok"+cn )
+      SendIn( "+Ok"+cn )
    ENDIF
 
    RETURN Nil
 
 FUNCTION eGUI_Exit
 
-   gs_ipExit()
+   IF nConnType == 1
+      gs_ipExit()
+   ENDIF
 
    RETURN Nil

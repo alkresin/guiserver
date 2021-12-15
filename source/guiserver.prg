@@ -39,6 +39,7 @@ REQUEST HB_GT_GUI_DEFAULT
 
 #define GUIS_VERSION   "1.4"
 
+STATIC nConnType := 1
 STATIC nPort := 3101
 STATIC lEnd := .F., oMTimer := Nil, nInterval := 20
 STATIC cn := e"\n"
@@ -100,19 +101,26 @@ FUNCTION Main( ... )
             ELSEIF sp == "og1"
                nLogOn := 1
             ENDIF
+         ELSEIF c == 't'
+            IF !Empty(sp) .AND. IsDigit(sp)
+               nConnType := Val( sp )
+            ENDIF
          ENDIF
       ENDIF
    NEXT
 
-   gs_ipInit()
+   IF nConnType == 1
+      gs_ipInit()
+      IF nLogOn > 1
+         gs_SetLogFile( "ac.log" )
+      ENDIF
+      gs_SetVersion( GUIS_VERSION )
+      gs_SetHandler( "MAINHANDLER" )
+      gWritelog( "Start at port "+ Ltrim(Str(nPort)) )
+      gs_CreateSocket( nPort )
 
-   IF nLogOn > 1
-      gs_SetLogFile( "ac.log" )
+   ELSEIF nConnType == 2
    ENDIF
-   gs_SetVersion( GUIS_VERSION )
-   gs_SetHandler( "MAINHANDLER" )
-   gWritelog( "Start at port "+ Ltrim(Str(nPort)) )
-   gs_CreateSocket( nPort )
 
    DO WHILE !lEnd
       gs_Sleep_ns( nInterval )
@@ -128,7 +136,9 @@ EXIT PROCEDURE GS_EXIT
    IF !lPanic
       SendOut( '["endapp"]' )
       gs_Sleep_ns( nInterval*2 )
-      gs_ipExit()
+      IF nConnType == 1
+         gs_ipExit()
+      ENDIF
       gs_Sleep_ns( nInterval*2 )
    ENDIF
 
@@ -150,7 +160,9 @@ STATIC FUNCTION Panic()
 
    gWritelog( "GuiServer closed due to socket error" )
    lEnd := .T.
-   gs_ipExit()
+   IF nConnType == 1
+      gs_ipExit()
+   ENDIF
    Quit
 
    RETURN Nil
@@ -1593,10 +1605,12 @@ STATIC FUNCTION TimerFunc()
 
    LOCAL arr, cCommand, i
 
-   gs_ListenSocket()
-   gs_CheckSocket()
-   IF gs_CheckSockError()
-      Panic()
+   IF nConnType == 1
+      gs_ListenSocket()
+      gs_CheckSocket()
+      IF gs_CheckSockError()
+         Panic()
+      ENDIF
    ENDIF
 
    DO WHILE nDeferred > 0
@@ -1672,19 +1686,19 @@ STATIC FUNCTION Parse( arr, lPacket )
       IF cCommand == "set"
          lErr := ( Len(arr)<4 )
          IF !lErr
-            IF !lPacket; gs_Send2SocketIn( "+Ok" + cn ); ENDIF
+            IF !lPacket; SendIn( "+Ok" + cn ); ENDIF
             SetProperty( Lower(arr[2]), Lower(arr[3]),  arr[4] )
          ENDIF
       ELSEIF cCommand == "setparam"
          lErr := ( Len(arr)<3 )
          IF !lErr
-            IF !lPacket; gs_Send2SocketIn( "+Ok" + cn ); ENDIF
+            IF !lPacket; SendIn( "+Ok" + cn ); ENDIF
             SetParam( Lower(arr[2]), arr[3] )
          ENDIF
       ELSEIF cCommand == "setvar"
          lErr := ( Len(arr)<3 )
          IF !lErr
-            IF !lPacket; gs_Send2SocketIn( "+Ok" + cn ); ENDIF
+            IF !lPacket; SendIn( "+Ok" + cn ); ENDIF
             IF !__mvExist( cRes := Upper(arr[2]) )
                __mvPublic( cRes )
             ENDIF
@@ -1698,19 +1712,19 @@ STATIC FUNCTION Parse( arr, lPacket )
          lErr := ( Len(arr)<3 )
          IF !lErr
             cRes := GetProperty( arr[2], Lower(arr[3]) )
-            gs_Send2SocketIn( "+" + hb_jsonEncode(cRes) + cn )
+            SendIn( "+" + hb_jsonEncode(cRes) + cn )
          ENDIF
 
       ELSEIF cCommand == "getvalues"
          lErr := ( Len(arr)<3 )
          IF !lErr
             arr := GetValues( arr[2], arr[3] )
-            gs_Send2SocketIn( "+" + hb_jsonEncode(arr) + cn )
+            SendIn( "+" + hb_jsonEncode(arr) + cn )
          ENDIF
       ELSEIF cCommand == "getver"
          lErr := ( Len(arr)<2 )
          IF !lErr
-            gs_Send2SocketIn( "+" + hb_jsonEncode(gVersion(arr[2])) + cn )
+            SendIn( "+" + hb_jsonEncode(gVersion(arr[2])) + cn )
          ENDIF
       ELSEIF cCommand == "getvar"
          lErr := ( Len(arr)<2 )
@@ -1720,7 +1734,7 @@ STATIC FUNCTION Parse( arr, lPacket )
             ELSE
                cRes := Nil
             ENDIF
-            gs_Send2SocketIn( "+" + hb_jsonEncode(cRes) + cn )
+            SendIn( "+" + hb_jsonEncode(cRes) + cn )
          ENDIF
       ENDIF
       EXIT
@@ -1730,13 +1744,13 @@ STATIC FUNCTION Parse( arr, lPacket )
 
          lErr := ( Len(arr)<4 )
          IF !lErr
-            IF !lPacket; gs_Send2SocketIn( "+Ok" + cn ); ENDIF
+            IF !lPacket; SendIn( "+Ok" + cn ); ENDIF
             AddWidget( Lower(arr[2]), Lower(arr[3]),  arr[4], Iif( Len(arr)>4,arr[5],Nil ) )
          ENDIF
       ELSEIF cCommand == "actmainwnd"
          lErr := ( Len(arr)<2 )
          IF !lErr
-            IF !lPacket; gs_Send2SocketIn( "+Ok" + cn ); ENDIF
+            IF !lPacket; SendIn( "+Ok" + cn ); ENDIF
             Add2Deferred( arr )
          ENDIF
          lEnd := .T.
@@ -1745,7 +1759,7 @@ STATIC FUNCTION Parse( arr, lPacket )
 
          lErr := ( Len(arr)<3 .OR. Valtype(arr[2]) != "C" .OR. Valtype(arr[3]) != "C" )
          IF !lErr
-            IF !lPacket; gs_Send2SocketIn( "+Ok" + cn ); ENDIF
+            IF !lPacket; SendIn( "+Ok" + cn ); ENDIF
             Add2Deferred( arr )
             //ActDialog( arr[2], arr[3] )
          ENDIF
@@ -1759,9 +1773,9 @@ STATIC FUNCTION Parse( arr, lPacket )
          IF !lErr
             IF Len( arr ) > 2 .AND. Lower( arr[3] ) == "t"
                cRes := DoScript( RdScript( ,arr[2] ) )
-               gs_Send2SocketIn( "+" + hb_jsonEncode(cRes) + cn )
+               SendIn( "+" + hb_jsonEncode(cRes) + cn )
             ELSE
-               IF !lPacket; gs_Send2SocketIn( "+Ok" + cn ); ENDIF
+               IF !lPacket; SendIn( "+Ok" + cn ); ENDIF
                DoScript( RdScript( ,arr[2] ) )
             ENDIF
          ENDIF
@@ -1770,7 +1784,7 @@ STATIC FUNCTION Parse( arr, lPacket )
          IF ( oWnd := HWindow():GetMain() ) != Nil
             oWnd:Close()
          ENDIF
-         IF !lPacket; gs_Send2SocketIn( "+Ok" + cn ); ENDIF
+         IF !lPacket; SendIn( "+Ok" + cn ); ENDIF
       ENDIF
       EXIT
 
@@ -1778,7 +1792,7 @@ STATIC FUNCTION Parse( arr, lPacket )
       IF cCommand == "openform"
          lErr := ( Len(arr)<2 )
          IF !lErr
-            IF !lPacket; gs_Send2SocketIn( "+Ok" + cn ); ENDIF
+            IF !lPacket; SendIn( "+Ok" + cn ); ENDIF
             oForm := HFormTmpl():Read( arr[2] )
             oForm:Show()
          ENDIF
@@ -1787,7 +1801,7 @@ STATIC FUNCTION Parse( arr, lPacket )
       ELSEIF cCommand == "openformmain"
          lErr := ( Len(arr)<2 )
          IF !lErr
-            IF !lPacket; gs_Send2SocketIn( "+Ok" + cn ); ENDIF
+            IF !lPacket; SendIn( "+Ok" + cn ); ENDIF
             oForm := HFormTmpl():Read( arr[2] )
             SetFormTimer( oForm )
             oForm:ShowMain()
@@ -1797,7 +1811,7 @@ STATIC FUNCTION Parse( arr, lPacket )
       ELSEIF cCommand == "openreport"
          lErr := ( Len(arr)<2 )
          IF !lErr
-            IF !lPacket; gs_Send2SocketIn( "+Ok" + cn ); ENDIF
+            IF !lPacket; SendIn( "+Ok" + cn ); ENDIF
             oForm := HRepTmpl():Read( arr[2] )
             oForm:Print()
          ENDIF
@@ -1808,7 +1822,7 @@ STATIC FUNCTION Parse( arr, lPacket )
       IF cCommand == "menu"
          lErr := ( Len(arr)<2 .OR. (Valtype(arr[2]) == "C" .AND. Len(arr)<6) )
          IF !lErr
-            IF !lPacket; gs_Send2SocketIn( "+Ok" + cn ); ENDIF
+            IF !lPacket; SendIn( "+Ok" + cn ); ENDIF
             IF Valtype(arr[2]) == "C"
                SetMenuItem( Lower(arr[2]), Upper(arr[3]), Upper(arr[4]), arr[5], arr[6] )
             ELSE
@@ -1818,7 +1832,7 @@ STATIC FUNCTION Parse( arr, lPacket )
       ELSEIF cCommand == "menucontext"
          lErr := ( Len(arr)<4 )
          IF !lErr
-            IF !lPacket; gs_Send2SocketIn( "+Ok" + cn ); ENDIF
+            IF !lPacket; SendIn( "+Ok" + cn ); ENDIF
             MenuContext( Lower(arr[2]), Upper(arr[3]), arr[4] )
          ENDIF
       ENDIF
@@ -1828,26 +1842,26 @@ STATIC FUNCTION Parse( arr, lPacket )
       IF cCommand == "common"
          lErr := ( Len(arr)<4 )
          IF !lErr
-            IF !lPacket; gs_Send2SocketIn( "+Ok" + cn ); ENDIF
+            IF !lPacket; SendIn( "+Ok" + cn ); ENDIF
             Add2Deferred( arr )
          ENDIF
 
       ELSEIF cCommand == "crmainwnd"
          lErr := ( Len(arr)<2 )
          IF !lErr
-            IF !lPacket; gs_Send2SocketIn( "+Ok" + cn ); ENDIF
+            IF !lPacket; SendIn( "+Ok" + cn ); ENDIF
             CrMainWnd( arr[2], Iif( Len(arr)>2,arr[3],Nil ) )
          ENDIF
       ELSEIF cCommand == "crdialog"
          lErr := ( Len(arr)<3 .OR. Valtype(arr[2]) != "C" .OR. Valtype(arr[3]) != "A" )
          IF !lErr
-            IF !lPacket; gs_Send2SocketIn( "+Ok" + cn ); ENDIF
+            IF !lPacket; SendIn( "+Ok" + cn ); ENDIF
             CrDialog( arr[2], arr[3], Iif( Len(arr)>3,arr[4],Nil ) )
          ENDIF
       ELSEIF cCommand == "close"
          lErr := ( Len(arr)<2 )
          IF !lErr
-            IF !lPacket; gs_Send2SocketIn( "+Ok" + cn ); ENDIF
+            IF !lPacket; SendIn( "+Ok" + cn ); ENDIF
             //WinClose( arr[2] )
             Add2Deferred( arr )
          ENDIF
@@ -1855,14 +1869,14 @@ STATIC FUNCTION Parse( arr, lPacket )
       ELSEIF cCommand == "crfont"
          lErr := ( Len(arr)<9 )
          IF !lErr
-            IF !lPacket; gs_Send2SocketIn( "+Ok" + cn ); ENDIF
+            IF !lPacket; SendIn( "+Ok" + cn ); ENDIF
             CrFont( Upper(arr[2]), arr[3], arr[4], arr[5], arr[6], arr[7], arr[8], arr[9] )
          ENDIF
 
       ELSEIF cCommand == "crstyle"
          lErr := ( Len(arr)<8 )
          IF !lErr
-            IF !lPacket; gs_Send2SocketIn( "+Ok" + cn ); ENDIF
+            IF !lPacket; SendIn( "+Ok" + cn ); ENDIF
             CrStyle( Upper(arr[2]), arr[3], arr[4], arr[5], arr[6], arr[7], arr[8] )
          ENDIF
       ENDIF
@@ -1872,21 +1886,21 @@ STATIC FUNCTION Parse( arr, lPacket )
       IF cCommand == "print"
          lErr := ( Len(arr)<4 .OR. Valtype(arr[2]) != "C" .OR. Valtype(arr[3]) != "C" )
          IF !lErr
-            IF !lPacket; gs_Send2SocketIn( "+Ok" + cn ); ENDIF
+            IF !lPacket; SendIn( "+Ok" + cn ); ENDIF
             PrintFuncs( Lower(arr[2]), Upper(arr[3]), arr[4] )
          ENDIF
 
       ELSEIF cCommand == "prninit"
          lErr := ( Len(arr)<3 .OR. Valtype(arr[2]) != "C" )
          IF !lErr
-            IF !lPacket; gs_Send2SocketIn( "+Ok" + cn ); ENDIF
+            IF !lPacket; SendIn( "+Ok" + cn ); ENDIF
             Add2Deferred( arr )
          ENDIF
 
       ELSEIF cCommand == "packet"
          lErr := lPacket
          IF !lErr
-            gs_Send2SocketIn( "+Ok" + cn )
+            SendIn( "+Ok" + cn )
             Add2Deferred( arr )
          ENDIF
       ENDIF
@@ -1897,7 +1911,7 @@ STATIC FUNCTION Parse( arr, lPacket )
          lErr := ( Len(arr)<7 .OR. Valtype(arr[2]) != "C" .OR. Valtype(arr[3]) != "C" ;
             .OR. Valtype(arr[4]) != "C" .OR. Valtype(arr[5]) != "C" .OR. Valtype(arr[6]) != "C" .OR. Valtype(arr[7]) != "L" )
          IF !lErr
-            IF !lPacket; gs_Send2SocketIn( "+Ok" + cn ); ENDIF
+            IF !lPacket; SendIn( "+Ok" + cn ); ENDIF
             o := Hilight():New( ,, arr[3], arr[4], arr[5], arr[6], arr[7] )
             o:objName := Upper(arr[2])
             Aadd( aHighLs, o )
@@ -1909,11 +1923,11 @@ STATIC FUNCTION Parse( arr, lPacket )
    CASE 't'
       IF cCommand == "tray"
 #ifdef __GTK__
-         gs_Send2SocketIn( "+Ok" + cn )
+         SendIn( "+Ok" + cn )
 #else
          lErr := ( Len(arr)<3 .OR. Valtype(arr[2]) != "C" .OR. Valtype(arr[3]) != "C" )
          IF !lErr
-            IF !lPacket; gs_Send2SocketIn( "+Ok" + cn ); ENDIF
+            IF !lPacket; SendIn( "+Ok" + cn ); ENDIF
             SetTray( Lower(arr[2]), arr[3], Iif(Len(arr)>3,arr[4],Nil), Iif(Len(arr)>4,arr[5],Nil) )
          ENDIF
 #endif
@@ -1926,20 +1940,24 @@ STATIC FUNCTION Parse( arr, lPacket )
    END
 
    IF lErr .AND. !lPacket
-      gs_Send2SocketIn( "+Err" + cn )
+      SendIn( "+Err" + cn )
    ENDIF
 
    RETURN !lErr
 
 FUNCTION MainHandler()
 
-   LOCAL arr, cBuffer := gs_GetRecvBuffer()
+   LOCAL arr, cBuffer
+
+   IF nConnType == 1
+      cBuffer := gs_GetRecvBuffer()
+   ENDIF
 
    gWritelog( cBuffer )
 
    hb_jsonDecode( cBuffer, @arr )
    IF Valtype(arr) != "A" .OR. Empty(arr)
-      gs_Send2SocketIn( "+Wrong" + cn )
+      SendIn( "+Wrong" + cn )
       RETURN Nil
    ENDIF
 
@@ -1954,12 +1972,22 @@ STATIC FUNCTION SendOut( s )
    LOCAL cRes
    gWritelog( "   " + s )
 
-   cRes := gs_Send2SocketOut( "+" + s + cn )
-   IF gs_CheckSockError()
-      Panic()
+   IF nConnType == 1
+      cRes := gs_Send2SocketOut( "+" + s + cn )
+      IF gs_CheckSockError()
+         Panic()
+      ENDIF
    ENDIF
 
    RETURN cRes
+
+STATIC FUNCTION SendIn( s )
+
+   IF nConnType == 1
+      gs_Send2SocketIn( s )
+   ENDIF
+
+   RETURN Nil
 
 STATIC FUNCTION gWritelog( s )
 

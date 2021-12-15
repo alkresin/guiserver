@@ -197,7 +197,7 @@ FUNCTION fbrowse()
 
 FUNCTION MBox( aParams )
 
-   IF aParams == Nil
+   IF Len( aParams ) == 1
       egui_MsgYesNo( "Yes or No?", "Msgbox", "mbox", "mm1" )
    ELSEIF aParams[1] == "mm1"
       IF aParams[2] == "t"
