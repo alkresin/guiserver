@@ -438,7 +438,7 @@ HB_FUNC( GS_SEND2SOCKETOUT )
          }
       }
       _writelog( pLogFile, 0, "sendOut3 %d started: %lu\r\n", lLastRcvOut, ulms );
-   }        
+   }
 }
 
 HB_FUNC( GS_CONNECTSOCKET )
@@ -451,7 +451,7 @@ HB_FUNC( GS_CONNECTSOCKET )
    //_writelog( pLogFile, 0, "conn: %d %d\r\n", iPort, htons( iPort ) );
    //hSocket = gs_ipConnect( szAddr, htons( iPort ), TIMEOUT );
    hSocket = gs_ipConnect( szAddr, iPort, TIMEOUT*2 );
-   if( !gs_iperrorcode() )    
+   if( !gs_iperrorcode() )
    {
       hSocketOut = hSocket;
       _writelog( pLogFile, 0, "conn1 Ok %d %lu\r\n", hSocket, ulms );
@@ -462,7 +462,7 @@ HB_FUNC( GS_CONNECTSOCKET )
             if( sockOut_Recv( TIMEOUT ) > 0 )
             {
                hSocket = gs_ipConnect( szAddr, iPort+1, TIMEOUT*2 );
-               if( !gs_iperrorcode() )    
+               if( !gs_iperrorcode() )
                {
                   hSocketIn = hSocket;
                   gs_ip_rfd_set( hSocketIn );
@@ -577,7 +577,7 @@ HB_FUNC( GS_IPEXIT )
          free( pBufferOut );
          pBufferOut = NULL;
       }
- 
+
       iIpActive = 0;
    }
 }

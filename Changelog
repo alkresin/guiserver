@@ -1,9 +1,14 @@
 
+2021-12-22 19:55 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * guiserver.prg
+  * extgui.prg
+  * fconnect.prg
+
 2021-12-22 17:08 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * guiserver.prg
   * extgui.prg
   + fconnect.prg
-    * 
+    * Alternative connection method implementation has been started.
 
 2021-12-14 11:05 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * guiserver.prg

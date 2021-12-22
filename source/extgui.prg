@@ -100,7 +100,7 @@ FUNCTION eGUI_Init( cOptions )
          RETURN 2
       ENDIF
 
-      gs_SetHandler( "GUIHANDLER" )
+      gs_SetHandler( "MAINHANDLER" )
    ELSEIF nConnType == 2
       client_conn_Connect( cDir + cFileRoot )
    ENDIF
@@ -769,7 +769,7 @@ FUNCTION CreateCodeString( cName, cFunc, cWidgName, cPgo, arr, n )
    ENDIF
    RETURN cCode
 
-FUNCTION GUIHandler()
+FUNCTION MainHandler()
 
    LOCAL cBuffer, arr, arrp, cCommand, cFunc, lSend := .F., xRes, o
 

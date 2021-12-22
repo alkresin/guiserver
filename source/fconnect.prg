@@ -4,7 +4,7 @@
 /*
  client:
    s := gs_ConnectSocket()             ->  client_conn_Create( cFile )
-   gs_Send2SocketOut( '+' + s + cn )
+   gs_Send2SocketOut( '+' + s + cn )   ->  client_conn_Send2SocketOut( s )
    gs_Send2SocketIn( s )               ->  client_conn_Send2SocketIn( s )
    gs_CheckSocket()                    ->  client_conn_CheckIn()
    cBuffer := gs_GetRecvBuffer()       ->  conn_GetRecvBuffer()
@@ -15,7 +15,7 @@
    gs_CheckSocket()                    ->  srv_conn_CheckIn()
    gs_CheckSockError()
    cBuffer := gs_GetRecvBuffer()       ->  conn_GetRecvBuffer()
-   gs_Send2SocketOut( "+" + s + cn )
+   gs_Send2SocketOut( "+" + s + cn )   ->  srv_conn_Send2SocketOut( s )
    gs_Send2SocketIn( s )               ->  srv_conn_Send2SocketIn( s )
  */
 
@@ -23,6 +23,7 @@
 #define  BUFFLEN   512
 
 STATIC handlIn, handlOut, cBufferIn, cBufferOut, cBuffRes
+STATIC lActive := .F.
 
 FUNCTION conn_Read( lOut )
 
@@ -45,7 +46,7 @@ FUNCTION conn_Read( lOut )
 
    cBuffRes := s
 
-   RETURN Nil
+   RETURN Len( s )
 
 FUNCTION conn_GetRecvBuffer()
 
@@ -66,14 +67,21 @@ FUNCTION srv_conn_Create( cFile )
 
    cBufferIn := Space( BUFFLEN )
    cBufferOut := Space( BUFFLEN )
+   lActive := .T.
+
+   RETURN .T.
+
+FUNCTION srv_conn_Listen()
 
    RETURN .T.
 
 FUNCTION srv_conn_CheckIn()
 
    FSeek( handlIn, 0, 0 )
-   IF FRead( handlIn, @cBuffer, 1 ) > 0 .AND. Asc( cBuffer ) == 1
-      conn_Read( .F. )
+   IF FRead( handlIn, @cBufferIn, 1 ) > 0 .AND. Asc( cBufferIn ) == 1
+      IF conn_Read( .F. ) > 0
+         MainHandler()
+      ENDIF
       RETURN .T.
    ENDIF
 
@@ -82,6 +90,20 @@ FUNCTION srv_conn_CheckIn()
 FUNCTION  srv_conn_Send2SocketIn( s )
 
    srv_conn_Send( .F., s )
+
+   RETURN Nil
+
+FUNCTION  srv_conn_Send2SocketOut( s )
+
+   srv_conn_Send( .T., s )
+   DO WHILE lActive
+      srv_conn_CheckIn()
+      FSeek( handlOut, 0, 0 )
+      IF FRead( handlOut, @cBufferOut, 1 ) > 0 .AND. Asc( cBufferOut ) == 1
+         conn_Read( .T. )
+         RETURN conn_GetRecvBuffer()
+      ENDIF
+   ENDDO
 
    RETURN Nil
 
@@ -106,13 +128,17 @@ FUNCTION client_conn_Connect( cFile )
    cBufferIn := Space( BUFFLEN )
    cBufferOut := Space( BUFFLEN )
 
+   lActive := .T.
+
    RETURN .T.
 
 FUNCTION client_conn_CheckIn()
 
    FSeek( handlIn, 0, 0 )
-   IF FRead( handlIn, @cBuffer, 1 ) > 0 .AND. Asc( cBuffer ) == 2
-      srv_conn_Read( .F. )
+   IF FRead( handlIn, @cBufferIn, 1 ) > 0 .AND. Asc( cBufferIn ) == 2
+      IF conn_Read( .F. ) > 0
+         MainHandler()
+      ENDIF
       RETURN .T.
    ENDIF
 
@@ -121,6 +147,20 @@ FUNCTION client_conn_CheckIn()
 FUNCTION  client_conn_Send2SocketIn( s )
 
    client_conn_Send( .F., s )
+
+   RETURN Nil
+
+FUNCTION  client_conn_Send2SocketOut( s )
+
+   client_conn_Send( .T., s )
+   DO WHILE lActive
+      srv_conn_CheckIn()
+      FSeek( handlOut, 0, 0 )
+      IF FRead( handlOut, @cBufferOut, 1 ) > 0 .AND. Asc( cBufferOut ) == 2
+         conn_Read( .T. )
+         RETURN conn_GetRecvBuffer()
+      ENDIF
+   ENDDO
 
    RETURN Nil
 
@@ -137,7 +177,7 @@ FUNCTION client_conn_Send( lOut, cLine )
 
 PROCEDURE conn_Exit
 
-   //conn_Send( "quit" )
+   lActive := .F.
    FClose( handlIn )
    FClose( handlOut )
 
