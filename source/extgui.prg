@@ -9,6 +9,7 @@
  */
 
 STATIC nConnType := 1
+STATIC cFileRoot := "gs", cDir
 STATIC cn := e"\n"
 STATIC aMenu := Nil, aMenuStack
 STATIC lPacket := .F., cPacketBuff
@@ -54,6 +55,10 @@ FUNCTION eGUI_Init( cOptions )
             nLog := Iif( s == 1, 1, Iif( s == 2, 2, 0 ) )
          ELSEIF Left( s,4 ) == "type"
             nConnType := Val( AllTrim( Substr( arr[i], 6 ) ) )
+         ELSEIF Left( s,3 ) == "dir"
+            cDir := AllTrim( Substr( arr[i], 5 ) )
+         ELSEIF Left( s,4 ) == "file"
+            cFileRoot := AllTrim( Substr( arr[i], 6 ) )
          ENDIF
       NEXT
    ENDIF
@@ -65,6 +70,11 @@ FUNCTION eGUI_Init( cOptions )
       ENDIF
       gs_SetVersion( "1.0" )
       gs_ipInit()
+   ELSEIF nConnType == 2
+      IF Empty( cDir )
+         cDir := hb_DirTemp()
+      ENDIF
+
    ENDIF
 
    IF !Empty( cServer )
@@ -91,6 +101,8 @@ FUNCTION eGUI_Init( cOptions )
       ENDIF
 
       gs_SetHandler( "GUIHANDLER" )
+   ELSEIF nConnType == 2
+      client_conn_Connect( cDir + cFileRoot )
    ENDIF
 
    hb_IdleAdd( {|| FIdle() } )

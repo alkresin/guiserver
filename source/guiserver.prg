@@ -4,6 +4,7 @@
  * Copyright 2018 Alexander S.Kresin <alex@kresin.ru>
  * www - http://www.kresin.ru
  */
+
 #include "hwgui.ch"
 #include "hwgextern.ch"
 
@@ -41,6 +42,7 @@ REQUEST HB_GT_GUI_DEFAULT
 
 STATIC nConnType := 1
 STATIC nPort := 3101
+STATIC cFileRoot := "gs", cDir
 STATIC lEnd := .F., oMTimer := Nil, nInterval := 20
 STATIC cn := e"\n"
 STATIC nLogOn := 0, cLogFile := "guiserver.log"
@@ -105,6 +107,15 @@ FUNCTION Main( ... )
             IF !Empty(sp) .AND. IsDigit(sp)
                nConnType := Val( sp )
             ENDIF
+
+         ELSEIF c == 'f'
+            cFileRoot := sp
+
+         ELSEIF c == 'd'
+            cDir := sp
+            IF !( Right( cDir,1 ) $ "\/"
+               cDir += hb_ps()
+            ENDIF
          ENDIF
       ENDIF
    NEXT
@@ -120,6 +131,10 @@ FUNCTION Main( ... )
       gs_CreateSocket( nPort )
 
    ELSEIF nConnType == 2
+      IF Empty( cDir )
+         cDir := hb_DirTemp()
+      ENDIF
+      srv_conn_Create( cDir + cFileRoot )
    ENDIF
 
    DO WHILE !lEnd
@@ -138,6 +153,8 @@ EXIT PROCEDURE GS_EXIT
       gs_Sleep_ns( nInterval*2 )
       IF nConnType == 1
          gs_ipExit()
+      ELSEIF nConnType == 2
+         conn_Exit()
       ENDIF
       gs_Sleep_ns( nInterval*2 )
    ENDIF
@@ -162,6 +179,8 @@ STATIC FUNCTION Panic()
    lEnd := .T.
    IF nConnType == 1
       gs_ipExit()
+   ELSEIF nConnType == 2
+      conn_Exit()
    ENDIF
    Quit
 
