@@ -1,4 +1,10 @@
 
+2021-12-23 13:42 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * guiserver.prg
+  * extgui.prg
+  * fconnect.prg
+    * Alternative connection method (via files) works now.
+
 2021-12-22 19:55 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * guiserver.prg
   * extgui.prg

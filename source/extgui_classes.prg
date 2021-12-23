@@ -237,7 +237,7 @@ METHOD SetCallbackFunc( cbName, cFunc, ... ) CLASS EWidget
    LOCAL cName := FullWidgName( Self ), arr
 
    SendOut( hb_jsonEncode( { "set", cName, "cb." + Lower(cbName), ;
-      CreateCodeString( cName, cProc, cName, "fgo", hb_aParams(), 3 ) } ) )
+      CreateCodeString( cName, cFunc, cName, "fgo", hb_aParams(), 3 ) } ) )
 
    RETURN Nil
 

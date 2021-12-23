@@ -57,6 +57,9 @@ FUNCTION eGUI_Init( cOptions )
             nConnType := Val( AllTrim( Substr( arr[i], 6 ) ) )
          ELSEIF Left( s,3 ) == "dir"
             cDir := AllTrim( Substr( arr[i], 5 ) )
+            IF !( Right( cDir,1 ) ) $ "\/"
+               cDir += hb_ps()
+            ENDIF
          ELSEIF Left( s,4 ) == "file"
             cFileRoot := AllTrim( Substr( arr[i], 6 ) )
          ENDIF
@@ -74,12 +77,16 @@ FUNCTION eGUI_Init( cOptions )
       IF Empty( cDir )
          cDir := hb_DirTemp()
       ENDIF
+      FErase( cDir + cFileRoot + ".gs1" )
+      FErase( cDir + cFileRoot + ".gs2" )
+      conn_SetVersion( "1.0" )
 
    ENDIF
 
    IF !Empty( cServer )
       extgui_RunApp( cServer + " -p" + Ltrim(Str(nPort)) + ;
-         Iif(nLog>0," -log"+Str(nLog,1),"") + Iif(nConnType>1," -t"+Ltrim(Str(nConnType)),""), 1 )
+         Iif(nLog>0," -log"+Str(nLog,1),"") + Iif(nConnType>1, ;
+         " -t"+Ltrim(Str(nConnType))+" f"+cFileRoot,""), 1 )
    ENDIF
    hb_idleSleep( 0.2 )
    //gs_Sleep_ns( 200 )
@@ -102,7 +109,13 @@ FUNCTION eGUI_Init( cOptions )
 
       gs_SetHandler( "MAINHANDLER" )
    ELSEIF nConnType == 2
-      client_conn_Connect( cDir + cFileRoot )
+      IF !client_conn_Connect( cDir + cFileRoot )
+         hb_idleSleep( 2 )
+         IF !client_conn_Connect( cDir + cFileRoot )
+            eGUI_Writelog( "No connection" )
+            RETURN 1
+         ENDIF
+      ENDIF
    ENDIF
 
    hb_IdleAdd( {|| FIdle() } )
@@ -525,6 +538,8 @@ FUNCTION SendOut( s )
    ELSE
       IF nConnType == 1
          RETURN gs_Send2SocketOut( '+' + s + cn )
+      ELSEIF nConnType == 2
+         RETURN conn_Send2SocketOut( '+' + s + cn )
       ENDIF
    ENDIF
 
@@ -534,6 +549,8 @@ STATIC FUNCTION SendIn( s )
 
    IF nConnType == 1
       gs_Send2SocketIn( s )
+   ELSEIF nConnType == 2
+      conn_Send2SocketIn( s )
    ENDIF
 
    RETURN Nil
@@ -575,6 +592,8 @@ FUNCTION FIdle()
    ENDDO
    IF nConnType == 1
       gs_CheckSocket()
+   ELSEIF nConnType == 2
+      conn_CheckIn()
    ENDIF
 
    RETURN Nil
@@ -775,6 +794,8 @@ FUNCTION MainHandler()
 
    IF nConnType == 1
       cBuffer := gs_GetRecvBuffer()
+   ELSEIF nConnType == 2
+      cBuffer := conn_GetRecvBuffer()
    ENDIF
    hb_jsonDecode( cBuffer, @arr )
    IF Valtype(arr) != "A" .OR. Empty(arr)
@@ -813,6 +834,8 @@ FUNCTION MainHandler()
       SendIn( "+Ok"+cn )
       IF nConnType == 1
          gs_ipExit()
+      ELSEIF nConnType == 2
+         conn_Exit()
       ENDIF
       Quit
 
@@ -828,6 +851,8 @@ FUNCTION eGUI_Exit
 
    IF nConnType == 1
       gs_ipExit()
+   ELSEIF nConnType == 2
+      conn_Exit()
    ENDIF
 
    RETURN Nil

@@ -4,26 +4,33 @@
 /*
  client:
    s := gs_ConnectSocket()             ->  client_conn_Create( cFile )
-   gs_Send2SocketOut( '+' + s + cn )   ->  client_conn_Send2SocketOut( s )
-   gs_Send2SocketIn( s )               ->  client_conn_Send2SocketIn( s )
-   gs_CheckSocket()                    ->  client_conn_CheckIn()
+   gs_Send2SocketOut( '+' + s + cn )   ->  conn_Send2SocketOut( s )
+   gs_Send2SocketIn( s )               ->  conn_Send2SocketIn( s )
+   gs_CheckSocket()                    ->  conn_CheckIn()
    cBuffer := gs_GetRecvBuffer()       ->  conn_GetRecvBuffer()
 
  server:
    gs_CreateSocket( nPort )            ->  srv_conn_Create( cFile )
-   gs_ListenSocket()
-   gs_CheckSocket()                    ->  srv_conn_CheckIn()
-   gs_CheckSockError()
+   gs_ListenSocket()                       xxx
+   gs_CheckSocket()                    ->  conn_CheckIn()
+   gs_CheckSockError()                     xxx
    cBuffer := gs_GetRecvBuffer()       ->  conn_GetRecvBuffer()
-   gs_Send2SocketOut( "+" + s + cn )   ->  srv_conn_Send2SocketOut( s )
-   gs_Send2SocketIn( s )               ->  srv_conn_Send2SocketIn( s )
+   gs_Send2SocketOut( "+" + s + cn )   ->  conn_Send2SocketOut( s )
+   gs_Send2SocketIn( s )               ->  conn_Send2SocketIn( s )
  */
 
 #include "fileio.ch"
+#define PROTOCOL_VER "1.1"
 #define  BUFFLEN   512
 
-STATIC handlIn, handlOut, cBufferIn, cBufferOut, cBuffRes
-STATIC lActive := .F.
+STATIC handlIn := -1, handlOut := -1, cBufferIn, cBufferOut, cBuffRes
+STATIC lActive := .F., cVersion := "1.0"
+STATIC nMyId, nHisId
+
+FUNCTION conn_SetVersion( s )
+
+   cVersion := s
+   RETURN Nil
 
 FUNCTION conn_Read( lOut )
 
@@ -33,8 +40,8 @@ FUNCTION conn_Read( lOut )
 
    FSeek( han, 1, 0 )
    DO WHILE ( n := FRead( han, @cBuffer, Len(cBuffer ) ) ) > 0
-      IF ( nPos := At( cBuffer, Chr(10) ) ) > 0
-         s += Left( cBuffer, nPos )
+      IF ( nPos := At( Chr(10), cBuffer ) ) > 0
+         s += Left( cBuffer, nPos-1 )
          EXIT
       ELSEIF n < Len(cBuffer )
          s += Left( cBuffer, n )
@@ -52,75 +59,85 @@ FUNCTION conn_GetRecvBuffer()
 
    RETURN Substr( cBuffRes, 2 )
 
-/*  ----  Server functions ---- */
+FUNCTION conn_Send( lOut, cLine )
+
+   LOCAL han := Iif( lOut, handlOut, handlIn )
+
+   IF lActive
+      FSeek( han, 1, 0 )
+      FWrite( han, cLine )
+      FSeek( han, 0, 0 )
+      FWrite( han, Chr(nMyId) )
+   ENDIF
+
+   RETURN Nil
+
+FUNCTION conn_Send2SocketIn( s )
+
+   IF lActive
+      conn_Send( .F., s )
+   ENDIF
+
+   RETURN Nil
+
+FUNCTION conn_Send2SocketOut( s )
+
+   IF lActive
+      conn_Send( .T., s )
+      DO WHILE lActive
+         conn_CheckIn()
+         FSeek( handlOut, 0, 0 )
+         IF FRead( handlOut, @cBufferOut, 1 ) > 0 .AND. Asc( cBufferOut ) == nHisId
+            conn_Read( .T. )
+            RETURN conn_GetRecvBuffer()
+         ENDIF
+      ENDDO
+   ENDIF
+
+   RETURN Nil
+
+FUNCTION conn_CheckIn()
+
+   IF lActive
+      FSeek( handlIn, 0, 0 )
+      IF FRead( handlIn, @cBufferIn, 1 ) > 0 .AND. Asc( cBufferIn ) == nHisId
+         IF conn_Read( .F. ) > 0
+            MainHandler()
+         ENDIF
+         RETURN .T.
+      ENDIF
+   ENDIF
+
+   RETURN .F.
 
 FUNCTION srv_conn_Create( cFile )
 
+   nMyId := 2
+   nHisId := 1
+
    handlIn := FCreate( cFile + ".gs1" )
-   FClose( handl1 )
+   FClose( handlIn )
 
    handlOut := FCreate( cFile + ".gs2" )
-   FClose( handl2 )
+   FClose( handlOut )
 
    handlIn := FOpen( cFile + ".gs1", FO_READWRITE + FO_SHARED )
    handlOut := FOpen( cFile + ".gs2", FO_READWRITE + FO_SHARED )
 
    cBufferIn := Space( BUFFLEN )
    cBufferOut := Space( BUFFLEN )
-   lActive := .T.
 
-   RETURN .T.
+   lActive := ( handlIn >= 0 .AND. handlOut >= 0 )
 
-FUNCTION srv_conn_Listen()
+   conn_Send( .F., "+v" + cVersion + "/" + PROTOCOL_VER + Chr(10) )
+   conn_Send( .T., "+Ok" + Chr(10) )
 
-   RETURN .T.
-
-FUNCTION srv_conn_CheckIn()
-
-   FSeek( handlIn, 0, 0 )
-   IF FRead( handlIn, @cBufferIn, 1 ) > 0 .AND. Asc( cBufferIn ) == 1
-      IF conn_Read( .F. ) > 0
-         MainHandler()
-      ENDIF
-      RETURN .T.
-   ENDIF
-
-   RETURN .F.
-
-FUNCTION  srv_conn_Send2SocketIn( s )
-
-   srv_conn_Send( .F., s )
-
-   RETURN Nil
-
-FUNCTION  srv_conn_Send2SocketOut( s )
-
-   srv_conn_Send( .T., s )
-   DO WHILE lActive
-      srv_conn_CheckIn()
-      FSeek( handlOut, 0, 0 )
-      IF FRead( handlOut, @cBufferOut, 1 ) > 0 .AND. Asc( cBufferOut ) == 1
-         conn_Read( .T. )
-         RETURN conn_GetRecvBuffer()
-      ENDIF
-   ENDDO
-
-   RETURN Nil
-
-FUNCTION srv_conn_Send( lOut, cLine )
-
-   LOCAL han := Iif( lOut, handlOut, handlIn )
-
-   FSeek( han, 1, 0 )
-   FWrite( han, cLine )
-   FSeek( han, 0, 0 )
-   FWrite( han, Chr(2) )
-
-   RETURN Nil
-
-/*  ----  Client functions ---- */
+   RETURN lActive
 
 FUNCTION client_conn_Connect( cFile )
+
+   nMyId := 1
+   nHisId := 2
 
    handlOut := FOpen( cFile + ".gs1", FO_READWRITE + FO_SHARED )
    handlIn := FOpen( cFile + ".gs2", FO_READWRITE + FO_SHARED )
@@ -128,52 +145,9 @@ FUNCTION client_conn_Connect( cFile )
    cBufferIn := Space( BUFFLEN )
    cBufferOut := Space( BUFFLEN )
 
-   lActive := .T.
+   lActive := ( handlIn >= 0 .AND. handlOut >= 0 )
 
-   RETURN .T.
-
-FUNCTION client_conn_CheckIn()
-
-   FSeek( handlIn, 0, 0 )
-   IF FRead( handlIn, @cBufferIn, 1 ) > 0 .AND. Asc( cBufferIn ) == 2
-      IF conn_Read( .F. ) > 0
-         MainHandler()
-      ENDIF
-      RETURN .T.
-   ENDIF
-
-   RETURN .F.
-
-FUNCTION  client_conn_Send2SocketIn( s )
-
-   client_conn_Send( .F., s )
-
-   RETURN Nil
-
-FUNCTION  client_conn_Send2SocketOut( s )
-
-   client_conn_Send( .T., s )
-   DO WHILE lActive
-      srv_conn_CheckIn()
-      FSeek( handlOut, 0, 0 )
-      IF FRead( handlOut, @cBufferOut, 1 ) > 0 .AND. Asc( cBufferOut ) == 2
-         conn_Read( .T. )
-         RETURN conn_GetRecvBuffer()
-      ENDIF
-   ENDDO
-
-   RETURN Nil
-
-FUNCTION client_conn_Send( lOut, cLine )
-
-   LOCAL han := Iif( lOut, handlOut, handlIn )
-
-   FSeek( han, 1, 0 )
-   FWrite( han, cLine )
-   FSeek( han, 0, 0 )
-   FWrite( han, Chr(1) )
-
-   RETURN Nil
+   RETURN lActive
 
 PROCEDURE conn_Exit
 

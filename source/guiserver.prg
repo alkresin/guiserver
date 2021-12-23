@@ -113,7 +113,7 @@ FUNCTION Main( ... )
 
          ELSEIF c == 'd'
             cDir := sp
-            IF !( Right( cDir,1 ) $ "\/"
+            IF !( Right( cDir,1 ) ) $ "\/"
                cDir += hb_ps()
             ENDIF
          ENDIF
@@ -134,6 +134,7 @@ FUNCTION Main( ... )
       IF Empty( cDir )
          cDir := hb_DirTemp()
       ENDIF
+      conn_SetVersion( GUIS_VERSION )
       srv_conn_Create( cDir + cFileRoot )
    ENDIF
 
@@ -504,10 +505,11 @@ STATIC FUNCTION AddWidget( cWidg, cName, arr, hash )
    LOCAL nStyle, tColor, bColor, cTooltip, bSetGet, cPicture, lTransp, bSize, oFont, oStyle
    LOCAL cImage, lResou, trColor, aItems, lEdit, lText, nDisplay, lVert
    LOCAL lFlat, lCheck, aStyles, aParts
-   LOCAL aLeft, aRight, nInit, nFrom, nTo, nMaxPos, nRange
+   LOCAL aLeft, aRight, nInit, nFrom, nTo, nMaxPos
    LOCAL lNoVScroll, lNoBorder, lAppend, lAutoedit
    LOCAL cLink, vColor, lColor, hColor
    LOCAL xt, yt, lBtnClose, lBtnMax, lBtnMin
+   LOCAL lNoToday, lNoTodayCircle, lWeekNumbers
 
    oParent := Widg( Left( cName, nPos-1 ) )
    cName := Substr( cName, nPos+1 )
@@ -1385,7 +1387,8 @@ STATIC FUNCTION f_SeleColor( nColor, cFunc, cName )
 
 STATIC FUNCTION PrintInit( cName, aParams, cFunc, cMet )
 
-   LOCAL nFormType := Iif( Empty(aParams[3]), Nil, aParams[3] ), n
+   LOCAL nFormType := Iif( Empty(aParams[3]), Nil, aParams[3] )
+   LOCAL oPrinter
 
    IF aParams[1] == "..."
       aParams[1] := Nil
@@ -1563,7 +1566,6 @@ FUNCTION GetNode( o, cNodeName )
          ENDIF
       ENDIF
    NEXT
-   RETURN Nil
 
    RETURN Nil
 
@@ -1630,6 +1632,8 @@ STATIC FUNCTION TimerFunc()
       IF gs_CheckSockError()
          Panic()
       ENDIF
+   ELSEIF nConnType == 2
+      conn_CheckIn()
    ENDIF
 
    DO WHILE nDeferred > 0
@@ -1698,7 +1702,7 @@ STATIC FUNCTION DelDeferred( n )
 STATIC FUNCTION Parse( arr, lPacket )
 
    LOCAL cCommand := Lower( arr[1] ), c := Left( cCommand, 1 )
-   LOCAL oForm, oWnd, o, lErr := .F., cRes, i
+   LOCAL oForm, oWnd, o, lErr := .F., cRes
 
    SWITCH c
    CASE 's'
@@ -1970,6 +1974,8 @@ FUNCTION MainHandler()
 
    IF nConnType == 1
       cBuffer := gs_GetRecvBuffer()
+   ELSEIF nConnType == 2
+      cBuffer := conn_GetRecvBuffer()
    ENDIF
 
    gWritelog( cBuffer )
@@ -1996,6 +2002,8 @@ STATIC FUNCTION SendOut( s )
       IF gs_CheckSockError()
          Panic()
       ENDIF
+   ELSEIF nConnType == 2
+      cRes := conn_Send2SocketOut( "+" + s + cn )
    ENDIF
 
    RETURN cRes
@@ -2004,6 +2012,8 @@ STATIC FUNCTION SendIn( s )
 
    IF nConnType == 1
       gs_Send2SocketIn( s )
+   ELSEIF nConnType == 2
+      conn_Send2SocketIn( s )
    ENDIF
 
    RETURN Nil
