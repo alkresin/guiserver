@@ -136,18 +136,28 @@ FUNCTION srv_conn_Create( cFile )
 
 FUNCTION client_conn_Connect( cFile )
 
+   LOCAL sRes
+
    nMyId := 1
    nHisId := 2
 
-   handlOut := FOpen( cFile + ".gs1", FO_READWRITE + FO_SHARED )
-   handlIn := FOpen( cFile + ".gs2", FO_READWRITE + FO_SHARED )
+   IF handlOut < 0
+      handlOut := FOpen( cFile + ".gs1", FO_READWRITE + FO_SHARED )
+   ENDIF
+   IF handlIn < 0
+      handlIn := FOpen( cFile + ".gs2", FO_READWRITE + FO_SHARED )
+   ENDIF
 
    cBufferIn := Space( BUFFLEN )
    cBufferOut := Space( BUFFLEN )
 
    lActive := ( handlIn >= 0 .AND. handlOut >= 0 )
 
-   RETURN lActive
+   IF lActive .AND. conn_Read( .T. ) > 0
+      sRes := conn_GetRecvBuffer()
+   ENDIF
+
+   RETURN sRes
 
 PROCEDURE conn_Exit
 

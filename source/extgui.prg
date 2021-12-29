@@ -100,23 +100,25 @@ FUNCTION eGUI_Init( cOptions )
             RETURN 1
          ENDIF
       ENDIF
-      i := At( '/', s )
-      s := Substr( s, i+1 )
-      IF s != gs_proto_Version()
-         eGUI_Writelog( "Wrong protocol version. Need " + gs_proto_Version() + ", received: " + s )
-         RETURN 2
-      ENDIF
-
-      gs_SetHandler( "MAINHANDLER" )
    ELSEIF nConnType == 2
-      IF !client_conn_Connect( cDir + cFileRoot )
-         hb_idleSleep( 2 )
-         IF !client_conn_Connect( cDir + cFileRoot )
-            eGUI_Writelog( "No connection" )
-            RETURN 1
+      IF Empty( s := client_conn_Connect( cDir + cFileRoot ) )
+         hb_idleSleep( 0.5 )
+         IF Empty( s := client_conn_Connect( cDir + cFileRoot ) )
+            hb_idleSleep( 1 )
+            IF Empty( s := client_conn_Connect( cDir + cFileRoot ) )
+               eGUI_Writelog( "No connection" )
+               RETURN 1
+            ENDIF
          ENDIF
       ENDIF
    ENDIF
+
+   s := Substr( s, At( '/', s )+1 )
+   IF s != gs_proto_Version()
+      eGUI_Writelog( "Wrong protocol version. Need " + gs_proto_Version() + ", received: " + s )
+      RETURN 2
+   ENDIF
+   gs_SetHandler( "MAINHANDLER" )
 
    hb_IdleAdd( {|| FIdle() } )
 

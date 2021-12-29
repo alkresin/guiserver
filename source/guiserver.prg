@@ -92,29 +92,30 @@ FUNCTION Main( ... )
 
    FOR i := 1 TO Len( aParams )
       IF Left( aParams[i],1 ) $ "-/"
-         sp := Substr( aParams[i],3 )
-         IF ( c := Lower( Substr( aParams[i],2,1 ) ) ) == "p"
-            IF !Empty(sp) .AND. IsDigit(sp)
-               nPort := Val( sp )
-            ENDIF
-         ELSEIF c == 'l'
-            IF sp == "og+" .OR. sp == "og2"
-               nLogOn := 2
-            ELSEIF sp == "og1"
-               nLogOn := 1
-            ENDIF
-         ELSEIF c == 't'
-            IF !Empty(sp) .AND. IsDigit(sp)
-               nConnType := Val( sp )
-            ENDIF
+         IF !Empty( sp := Substr( aParams[i],3 ) )
+            IF ( c := Lower( Substr( aParams[i],2,1 ) ) ) == "p"
+               IF !Empty(sp) .AND. IsDigit(sp)
+                  nPort := Val( sp )
+               ENDIF
+            ELSEIF c == 'l'
+               IF sp == "og+" .OR. sp == "og2"
+                  nLogOn := 2
+               ELSEIF sp == "og1"
+                  nLogOn := 1
+               ENDIF
+            ELSEIF c == 't'
+               IF !Empty(sp) .AND. IsDigit(sp)
+                  nConnType := Val( sp )
+               ENDIF
 
-         ELSEIF c == 'f'
-            cFileRoot := sp
+            ELSEIF c == 'f'
+               cFileRoot := sp
 
-         ELSEIF c == 'd'
-            cDir := sp
-            IF !( Right( cDir,1 ) ) $ "\/"
-               cDir += hb_ps()
+            ELSEIF c == 'd'
+               cDir := sp
+               IF !( Right( cDir,1 ) ) $ "\/"
+                  cDir += hb_ps()
+               ENDIF
             ENDIF
          ENDIF
       ENDIF
@@ -127,7 +128,7 @@ FUNCTION Main( ... )
       ENDIF
       gs_SetVersion( GUIS_VERSION )
       gs_SetHandler( "MAINHANDLER" )
-      gWritelog( "Start at port "+ Ltrim(Str(nPort)) )
+      gWritelog( "Connect via ports " + Ltrim(Str(nPort)) + ", " + Ltrim(Str(nPort+1)) )
       gs_CreateSocket( nPort )
 
    ELSEIF nConnType == 2
@@ -135,6 +136,7 @@ FUNCTION Main( ... )
          cDir := hb_DirTemp()
       ENDIF
       conn_SetVersion( GUIS_VERSION )
+      gWritelog( "Connect via files "+ cDir + cFileRoot + ".*" )
       srv_conn_Create( cDir + cFileRoot )
    ENDIF
 
