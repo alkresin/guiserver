@@ -1,5 +1,6 @@
 ﻿# GuiServer
-   Это приложение, предоставляющее через tcp/ip соединение GUI сервис - возможность относительно легко создавать GUI фреймворки для разных языков программирования.
+   Это приложение, предоставляющее GUI сервис - возможность относительно легко создавать GUI фреймворки для разных языков программирования.
+   Соединение с вашей программой осуществляется через tcp/ip сокеты и через обычные файлы.
    Само приложение написано на Harbour (см. http://www.kresin.ru/harbour.html) и C, GUI обеспечивается библиотекой HwGUI (http://www.kresin.ru/hwgui.html).
    Официальная web-страница проекта - http://www.kresin.ru/guisrv.html
    Присоединяйтесь к https://groups.google.com/d/forum/guiserver для обсуждения GuiServer, External и связанных с ними тем.
@@ -24,6 +25,7 @@
 ### Сборка
    Исходные файлы проекта:
       source/guiserver.prg
+      source/fconnect.prg
       source/hbip.c
       source/listen.c
       source/misc.c

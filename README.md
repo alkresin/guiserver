@@ -1,5 +1,6 @@
 # GuiServer
-A server application, providing GUI service via tcp/ip connection, providing an opportunity to create GUI frameworks for different programming languages.
+A server application, providing GUI service, providing an opportunity to create GUI frameworks for different programming languages.
+A connection with your program is established via tcp/ip connection or via regular files.
 It is written on Harbour (look at http://www.kresin.ru/en/harbour.html) and C, GUI layer is provided by HwGUI library (http://www.kresin.ru/en/hwgui.html).
 The official web page is http://www.kresin.ru/en/guisrv.html
 Join the multilanguage group https://groups.google.com/d/forum/guiserver to discuss the GuiServer, External and related issues.
@@ -7,6 +8,7 @@ Join the multilanguage group https://groups.google.com/d/forum/guiserver to disc
 ### How to build
    Project source files:
       source/guiserver.prg    - main file, written on Harbour.
+      source/fconnect.prg
       source/hbip.c
       source/listen.c
       source/misc.c

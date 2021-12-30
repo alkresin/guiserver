@@ -1,4 +1,9 @@
 
+2021-12-30 11:40 UTC+0300 Alexander Kresin <alex@kresin.ru>
+  * README.md
+  * readme_ru.md
+    * Readme updated: invo about alternative connection method added.
+
 2021-12-29 15:08 UTC+0300 Alexander Kresin <alex@kresin.ru>
   * guiserver.prg
     * command line parameters shorter than 3 characters are ignored now
