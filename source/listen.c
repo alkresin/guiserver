@@ -422,7 +422,10 @@ HB_FUNC( GS_SEND2SOCKETOUT )
       {
          sockIn_Check();
          if( bSocketError )
+         {
+         	_writelog( pLogFile, 0, "Socket error\r\n" );
             return;
+         }
          if( gs_ipDataReady( hSocketOut,2 ) != 0 )
          {
             if( sockOut_Recv( TIMEOUT ) > 0 )

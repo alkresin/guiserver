@@ -1,0 +1,21 @@
+#
+
+:project guiserver
+
+srcpath=source
+
+guiserver.prg
+fconnect.prg
+hbip.c
+listen.c
+
+:project guisrv
+target=lib
+
+outname=guisrv
+srcpath=source
+
+guiserver.prg
+hbip.c
+listen.c
+misc.c

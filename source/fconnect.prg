@@ -116,12 +116,14 @@ FUNCTION srv_conn_Create( cFile )
    nHisId := 1
 
    handlIn := FCreate( cFile + ".gs1" )
+   //hwg_writelog( cFile + ".gs1" + " " + str(handlIn) )
    FClose( handlIn )
 
    handlOut := FCreate( cFile + ".gs2" )
    FClose( handlOut )
 
    handlIn := FOpen( cFile + ".gs1", FO_READWRITE + FO_SHARED )
+   //hwg_writelog( "Open " + str(handlIn) )
    handlOut := FOpen( cFile + ".gs2", FO_READWRITE + FO_SHARED )
 
    cBufferIn := Space( BUFFLEN )
