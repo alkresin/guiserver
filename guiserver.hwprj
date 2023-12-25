@@ -1,5 +1,7 @@
 #
 
+{win}guilib=uni
+
 :project guiserver
 
 srcpath=source
@@ -15,7 +17,8 @@ target=lib
 outname=guisrv
 srcpath=source
 
-guiserver.prg
+guiserver.prg -DGUIS_LIB
+fconnect.prg
 hbip.c
 listen.c
 misc.c

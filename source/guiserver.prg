@@ -61,7 +61,7 @@ STATIC lPanic := .F.
 
 #ifdef GUIS_LIB
 
-FUNCTION gs_Run( cExe, nLog )
+FUNCTION gs_Run( cExe, nLog, nType, cDir )
 
    gs_ipInit()
 
@@ -72,11 +72,18 @@ FUNCTION gs_Run( cExe, nLog )
       ENDIF
    ENDIF
    gs_SetVersion( GUIS_VERSION )
-   gs_SetHandler( "MAINHANDLER" )
-   gs_CreateSocket( nPort )
+
+   IF nType == Nil .OR. nType == 1
+      gs_SetHandler( "MAINHANDLER" )
+      gs_CreateSocket( nPort )
+   ELSEIF nType == 2
+      IF Empty( cDir )
+         cDir := hb_DirTemp()
+      ENDIF
+   ENDIF
 
    SET TIMER oMTimer OF HWindow():GetMain() VALUE nInterval ACTION {||TimerFunc()}
-   extgui_RunApp( cExe, 1 )
+   extgui_RunApp( cExe + Iif( !Empty(nType).AND.nType==2, " type=2", "" ) , 1 )
 
    RETURN Nil
 #else
@@ -2008,7 +2015,7 @@ STATIC FUNCTION SendOut( s )
       cRes := conn_Send2SocketOut( "+" + s + cn )
    ENDIF
 
-   RETURN cRes
+   RETURN Iif( Empty(cRes), "", cRes )
 
 STATIC FUNCTION SendIn( s )
 
