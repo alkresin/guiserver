@@ -74,12 +74,15 @@ FUNCTION gs_Run( cExe, nLog, nType, cDir )
    gs_SetVersion( GUIS_VERSION )
 
    IF nType == Nil .OR. nType == 1
+      nConnType := 1
       gs_SetHandler( "MAINHANDLER" )
       gs_CreateSocket( nPort )
    ELSEIF nType == 2
+      nConnType := 2
       IF Empty( cDir )
          cDir := hb_DirTemp()
       ENDIF
+      srv_conn_Create( cDir + cFileRoot, .F. )
    ENDIF
 
    SET TIMER oMTimer OF HWindow():GetMain() VALUE nInterval ACTION {||TimerFunc()}
@@ -144,7 +147,7 @@ FUNCTION Main( ... )
       ENDIF
       conn_SetVersion( GUIS_VERSION )
       gWritelog( "Connect via files "+ cDir + cFileRoot + ".*" )
-      srv_conn_Create( cDir + cFileRoot )
+      srv_conn_Create( cDir + cFileRoot, .T. )
    ENDIF
 
    DO WHILE !lEnd
@@ -2004,7 +2007,7 @@ FUNCTION MainHandler()
 STATIC FUNCTION SendOut( s )
 
    LOCAL cRes
-   gWritelog( "   " + s )
+   gWritelog( "   " + Ltrim(Str(nConnType)) + " " + s )
 
    IF nConnType == 1
       cRes := gs_Send2SocketOut( "+" + s + cn )

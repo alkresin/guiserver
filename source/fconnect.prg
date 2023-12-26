@@ -110,7 +110,7 @@ FUNCTION conn_CheckIn()
 
    RETURN .F.
 
-FUNCTION srv_conn_Create( cFile )
+FUNCTION srv_conn_Create( cFile, lRepl )
 
    nMyId := 2
    nHisId := 1
@@ -133,6 +133,11 @@ FUNCTION srv_conn_Create( cFile )
 
    conn_Send( .F., "+v" + cVersion + "/" + PROTOCOL_VER + Chr(10) )
    conn_Send( .T., "+Ok" + Chr(10) )
+   IF lRepl
+   ELSE
+      //conn_Send( .T., "+v" + cVersion + "/" + PROTOCOL_VER + Chr(10) )
+      //conn_Send( .F., "+Ok" + Chr(10) )
+   ENDIF
 
    RETURN lActive
 
