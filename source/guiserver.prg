@@ -63,8 +63,6 @@ STATIC lPanic := .F.
 
 FUNCTION gs_Run( cExe, nLog, nType, cDir )
 
-   gs_ipInit()
-
    IF Valtype( nLog ) == "N"
       nLogOn := nLog
       IF nLogOn > 1
@@ -75,6 +73,7 @@ FUNCTION gs_Run( cExe, nLog, nType, cDir )
 
    IF nType == Nil .OR. nType == 1
       nConnType := 1
+      gs_ipInit()
       gs_SetHandler( "MAINHANDLER" )
       gs_CreateSocket( nPort )
    ELSEIF nType == 2

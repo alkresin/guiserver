@@ -8,7 +8,7 @@ export HARBOUR_LIBS="-lhbdebug -lhbvm -lhbrtl -lgtcgi -lhblang -lhbrdd -lhbmacro
 export HWGUI_LIBS="-lhwgui -lprocmisc -lhbxml -lhwgdebug"
 export SRC_DIR=source
 
-$HB_INS/bin/linux/gcc/harbour $SRC_DIR/guiserver -n  -q -i$HB_INS/include -i$HWGUI_INC -w2 $1 2>bldh.log
+$HB_INS/bin/linux/gcc/harbour $SRC_DIR/guiserver -n -q -DGUIS_LIB -i$HB_INS/include -i$HWGUI_INC -w2 $1 2>bldh.log
 
 gcc guiserver.c $SRC_DIR/hbip.c $SRC_DIR/listen.c $SRC_DIR/misc.c -c -Wall -O3 -I $HB_INS/include -I $HWGUI_INC -I ../../../source/gtk -DHWG_USE_POINTER_ITEM -L $HB_INS/lib/linux/gcc `pkg-config --cflags gtk+-2.0`  >bld.log 2>bld.log
 ar rc guisrv.a guiserver.o hbip.o listen.o misc.o
