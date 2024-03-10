@@ -7,6 +7,7 @@
 STATIC nConnType := 1
 STATIC cn := e"\n"
 STATIC nLogOn := 0, cLogFile := "guiserver.log"
+STATIC cFileRoot := "gs", cDirRoot
 
 FUNCTION gs_Run( cExe, nLog, nType, cDir )
 
@@ -28,14 +29,14 @@ FUNCTION gs_Run( cExe, nLog, nType, cDir )
    ELSEIF nType == 2
       nConnType := 2
       IF Empty( cDir )
-         cDir := hb_DirTemp()
+         cDirRoot := Iif( Empty( cDir ), hb_DirTemp(), cDir )
       ENDIF
-      srv_conn_Create( cDir + cFileRoot, .F. )
+      srv_conn_Create( cDirRoot + cFileRoot, .F. )
    ENDIF
 
 #ifdef __HWGUI__
    SET TIMER oMTimer OF HWindow():GetMain() VALUE nInterval ACTION {||TimerFunc()}
-#endid
+#endif
    extgui_RunApp( cExe + Iif( !Empty(nType).AND.nType==2, " type=2", "" ) , 1 )
 
    RETURN Nil
