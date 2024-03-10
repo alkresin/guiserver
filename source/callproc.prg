@@ -2,9 +2,13 @@
  * Calls external program as a dll
  */
 
-FUNCTION gs_Run( cExe, nLog, nType, cDir )
+#define GUIS_VERSION   "1.4"
 
-   gs_ipInit()
+STATIC nConnType := 1
+STATIC cn := e"\n"
+STATIC nLogOn := 0, cLogFile := "guiserver.log"
+
+FUNCTION gs_Run( cExe, nLog, nType, cDir )
 
    IF Valtype( nLog ) == "N"
       nLogOn := nLog
@@ -12,12 +16,15 @@ FUNCTION gs_Run( cExe, nLog, nType, cDir )
          gs_SetLogFile( "ac.log" )
       ENDIF
    ENDIF
-   gs_SetVersion( GUIS_VERSION )
 
    IF nType == Nil .OR. nType == 1
       nConnType := 1
+#ifdef __IP_SUPPORT
+      gs_ipInit()
+      gs_SetVersion( GUIS_VERSION )
       gs_SetHandler( "MAINHANDLER" )
       gs_CreateSocket( nPort )
+#endif
    ELSEIF nType == 2
       nConnType := 2
       IF Empty( cDir )
@@ -26,7 +33,9 @@ FUNCTION gs_Run( cExe, nLog, nType, cDir )
       srv_conn_Create( cDir + cFileRoot, .F. )
    ENDIF
 
+#ifdef __HWGUI__
    SET TIMER oMTimer OF HWindow():GetMain() VALUE nInterval ACTION {||TimerFunc()}
+#endid
    extgui_RunApp( cExe + Iif( !Empty(nType).AND.nType==2, " type=2", "" ) , 1 )
 
    RETURN Nil
@@ -82,3 +91,37 @@ FUNCTION fGO( cFunc, aParams )
       RETURN Substr( cRes, 2, Len(cRes)-2 )
    ENDIF
    RETURN cRes
+
+STATIC FUNCTION SendOut( s )
+
+   LOCAL cRes
+   gWritelog( "   " + Ltrim(Str(nConnType)) + " " + s )
+
+   IF nConnType == 1
+#ifdef __IP_SUPPORT
+      cRes := gs_Send2SocketOut( "+" + s + cn )
+      IF gs_CheckSockError()
+         Panic()
+      ENDIF
+#endif
+   ELSEIF nConnType == 2
+      cRes := conn_Send2SocketOut( "+" + s + cn )
+   ENDIF
+
+   RETURN Iif( Empty(cRes), "", cRes )
+
+STATIC FUNCTION gWritelog( s )
+
+   LOCAL nHand
+
+   IF nLogOn > 0
+      IF ! File( cLogFile )
+         nHand := FCreate( cLogFile )
+      ELSE
+         nHand := FOpen( cLogFile, 1 )
+      ENDIF
+      FSeek( nHand, 0, 2 )
+      FWrite( nHand, s + cn )
+      FClose( nHand )
+   ENDIF
+   RETURN Nil
