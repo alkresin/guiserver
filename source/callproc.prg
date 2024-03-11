@@ -13,15 +13,15 @@ FUNCTION gs_Run( cExe, nLog, nType, cDir )
 
    IF Valtype( nLog ) == "N"
       nLogOn := nLog
-      IF nLogOn > 1
-         gs_SetLogFile( "ac.log" )
-      ENDIF
    ENDIF
 
    IF nType == Nil .OR. nType == 1
       nConnType := 1
 #ifdef __IP_SUPPORT
       gs_ipInit()
+      IF nLogOn > 1
+         gs_SetLogFile( "ac.log" )
+      ENDIF
       gs_SetVersion( GUIS_VERSION )
       gs_SetHandler( "MAINHANDLER" )
       gs_CreateSocket( nPort )
