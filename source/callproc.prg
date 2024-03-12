@@ -111,6 +111,46 @@ STATIC FUNCTION SendOut( s )
 
    RETURN Iif( Empty(cRes), "", cRes )
 
+STATIC FUNCTION SendIn( s )
+
+   IF nConnType == 1
+#ifdef __IP_SUPPORT
+      gs_Send2SocketIn( s )
+#endif
+   ELSEIF nConnType == 2
+      conn_Send2SocketIn( s )
+   ENDIF
+
+   RETURN Nil
+
+FUNCTION MainHandler()
+
+   LOCAL arr, cBuffer
+
+   IF nConnType == 1
+#ifdef __IP_SUPPORT
+      cBuffer := gs_GetRecvBuffer()
+#endif
+   ELSEIF nConnType == 2
+      cBuffer := conn_GetRecvBuffer()
+   ENDIF
+
+   gWritelog( cBuffer )
+
+   hb_jsonDecode( cBuffer, @arr )
+   IF Valtype(arr) != "A" .OR. Empty(arr)
+      SendIn( "+Wrong" + cn )
+      RETURN Nil
+   ENDIF
+   SendIn( "+Ok" + cn )
+
+/*
+   IF !Parse( arr, .F. )
+      gWritelog( "Parsing error" )
+   ENDIF
+*/
+   RETURN Nil
+
 STATIC FUNCTION gWritelog( s )
 
    LOCAL nHand
