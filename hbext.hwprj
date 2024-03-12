@@ -1,0 +1,24 @@
+#
+
+guilib=
+outpath=lib
+
+:project hbextcli
+target=lib
+
+srcpath=source
+outname=hbextcli
+
+hbextcli.prg
+fconnect.prg
+misc.c
+
+:project hbextsrv
+target=lib
+
+outname=hbextsrv
+srcpath=source
+
+hbextsrv.prg
+fconnect.prg
+misc.c

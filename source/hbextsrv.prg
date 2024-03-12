@@ -215,7 +215,6 @@ STATIC FUNCTION gWritelog( s )
 
 #pragma BEGINDUMP
 
-#include <windows.h>
 #include "hbapi.h"
 
 HB_FUNC( GS_SLEEP )
