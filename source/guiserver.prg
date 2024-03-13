@@ -85,7 +85,7 @@ FUNCTION gs_Run( cExe, nLog, nType, cDir )
    ENDIF
 
    SET TIMER oMTimer OF HWindow():GetMain() VALUE nInterval ACTION {||TimerFunc()}
-   extgui_RunApp( cExe + Iif( !Empty(nType).AND.nType==2, " type=2", "" ) , 1 )
+   extgui_RunApp( cExe + Iif( !Empty(nType).AND.nType==2, " type=2", "" ) )
 
    RETURN Nil
 #else

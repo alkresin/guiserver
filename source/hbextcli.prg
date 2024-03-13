@@ -4,10 +4,11 @@
 
 #define GUIS_VERSION   "1.4"
 
-STATIC nConnType := 1
+STATIC nConnType := 2
 STATIC cn := e"\n"
-STATIC nLogOn := 0, cLogFile := "guiserver.log"
+STATIC nLogOn := 0, cLogFile := "extclient.log"
 STATIC cFileRoot := "gs", cDirRoot
+STATIC nInterval := 20
 
 FUNCTION gs_Run( cExe, nLog, nType, cDir )
 
@@ -15,7 +16,7 @@ FUNCTION gs_Run( cExe, nLog, nType, cDir )
       nLogOn := nLog
    ENDIF
 
-   IF nType == Nil .OR. nType == 1
+   IF nType != Nil .AND. nType == 1
       nConnType := 1
 #ifdef __IP_SUPPORT
       gs_ipInit()
@@ -26,7 +27,7 @@ FUNCTION gs_Run( cExe, nLog, nType, cDir )
       gs_SetHandler( "MAINHANDLER" )
       gs_CreateSocket( nPort )
 #endif
-   ELSEIF nType == 2
+   ELSE //IF nType == 2
       nConnType := 2
       IF Empty( cDir )
          cDirRoot := Iif( Empty( cDir ), hb_DirTemp(), cDir )
@@ -35,10 +36,13 @@ FUNCTION gs_Run( cExe, nLog, nType, cDir )
    ENDIF
 
 #ifdef __HWGUI__
-   SET TIMER oMTimer OF HWindow():GetMain() VALUE nInterval ACTION {||TimerFunc()}
+   //SET TIMER oMTimer OF HWindow():GetMain() VALUE nInterval ACTION {||TimerFunc()}
 #endif
-   extgui_RunApp( cExe + Iif( !Empty(nType).AND.nType==2, " type=2", "" ) , 1 )
-
+#ifdef __PLATFORM__UNIX
+   hbext_RunApp( cExe + Iif( nConnType==2, " type=2 &", " &" ) )
+#else
+   hbext_RunApp( cExe + Iif( nConnType==2, " type=2", "" ) )
+#endif
    RETURN Nil
 
 STATIC FUNCTION CnvVal( xRes )
@@ -151,7 +155,24 @@ FUNCTION MainHandler()
 */
    RETURN Nil
 
-STATIC FUNCTION gWritelog( s )
+FUNCTION gs_Close()
+
+   conn_SetNoWait( .T. )
+   SendOut( '["endapp"]' )
+   gs_Sleep( nInterval*2 )
+   IF nConnType == 1
+#ifdef __IP_SUPPORT
+      gs_ipExit()
+#endif
+   ELSEIF nConnType == 2
+      //gwritelog( "End" )
+      conn_Exit()
+   ENDIF
+   gs_Sleep( nInterval*2 )
+
+   RETURN Nil
+
+FUNCTION gWritelog( s )
 
    LOCAL nHand
 
@@ -166,3 +187,72 @@ STATIC FUNCTION gWritelog( s )
       FClose( nHand )
    ENDIF
    RETURN Nil
+
+EXIT PROCEDURE GS_EXIT
+
+   gs_Close()
+
+   RETURN
+
+#pragma BEGINDUMP
+
+#if defined(HB_OS_UNIX) || defined( HB_OS_UNIX ) || defined( HB_OS_BSD )
+  #include <unistd.h>
+  #include <sys/time.h>
+  #include <sys/timeb.h>
+#else
+  #include <windows.h>
+#endif
+
+#include "hbapi.h"
+
+#if defined(HB_OS_UNIX) || defined( HB_OS_UNIX ) || defined( HB_OS_BSD )
+HB_FUNC( HBEXT_RUNAPP )
+{
+   //hb_retl( g_spawn_command_line_async( hb_parc(1), NULL ) );
+   system( hb_parc(1) );
+}
+#else
+HB_FUNC( HBEXT_RUNAPP )
+{
+      STARTUPINFO si;
+      PROCESS_INFORMATION pi;
+
+      ZeroMemory( &si, sizeof(si) );
+      si.cb = sizeof(si);
+      si.wShowWindow = SW_SHOW;
+      si.dwFlags = STARTF_USESHOWWINDOW;
+      ZeroMemory( &pi, sizeof(pi) );
+
+      CreateProcess( NULL,   // No module name (use command line)
+          (LPTSTR)hb_parc(1),  // Command line
+          NULL,           // Process handle not inheritable
+          NULL,           // Thread handle not inheritable
+          FALSE,          // Set handle inheritance to FALSE
+          CREATE_NO_WINDOW,  // No creation flags
+          NULL,           // Use parent's environment block
+          NULL,           // Use parent's starting directory
+          &si,            // Pointer to STARTUPINFO structure
+          &pi );          // Pointer to PROCESS_INFORMATION structure
+}
+
+#endif
+
+static void sleep_ns( long int milliseconds )
+{
+#if defined(HB_OS_UNIX) || defined( HB_OS_UNIX ) || defined( HB_OS_BSD )
+   struct timeval tv;
+   tv.tv_sec = milliseconds / 1000;
+   tv.tv_usec = milliseconds % 1000 * 1000;
+   select(0, NULL, NULL, NULL, &tv);
+#else
+   Sleep( milliseconds );
+#endif
+}
+
+HB_FUNC( GS_SLEEP )
+{
+   sleep_ns( hb_parni(1) );
+}
+
+#pragma ENDDUMP

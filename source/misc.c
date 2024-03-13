@@ -20,7 +20,6 @@ HB_FUNC( EXTGUI_RUNAPP )
 {
       STARTUPINFO si;
       PROCESS_INFORMATION pi;
-      void * hStr;
 
       ZeroMemory( &si, sizeof(si) );
       si.cb = sizeof(si);
@@ -33,9 +32,9 @@ HB_FUNC( EXTGUI_RUNAPP )
           NULL,           // Process handle not inheritable
           NULL,           // Thread handle not inheritable
           FALSE,          // Set handle inheritance to FALSE
-          CREATE_NEW_CONSOLE,   // No creation flags
+          (HB_ISLOG(2) && hb_parl(2))? CREATE_NO_WINDOW : CREATE_NEW_CONSOLE,   // No creation flags
           NULL,           // Use parent's environment block
-          NULL,           // Use parent's starting directory 
+          NULL,           // Use parent's starting directory
           &si,            // Pointer to STARTUPINFO structure
           &pi );          // Pointer to PROCESS_INFORMATION structure
 }

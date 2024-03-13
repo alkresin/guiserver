@@ -26,6 +26,13 @@
 STATIC handlIn := -1, handlOut := -1, cBufferIn, cBufferOut, cBuffRes
 STATIC lActive := .F., cVersion := "1.0"
 STATIC nMyId, nHisId
+STATIC lNoWait4Answer := .F.
+STATIC bCallBack := Nil
+
+FUNCTION conn_SetCallBack( b )
+
+   bCallBack := b
+   RETURN Nil
 
 FUNCTION conn_SetVersion( s )
 
@@ -84,14 +91,19 @@ FUNCTION conn_Send2SocketOut( s )
 
    IF lActive
       conn_Send( .T., s )
-      DO WHILE lActive
-         conn_CheckIn()
-         FSeek( handlOut, 0, 0 )
-         IF FRead( handlOut, @cBufferOut, 1 ) > 0 .AND. Asc( cBufferOut ) == nHisId
-            conn_Read( .T. )
-            RETURN conn_GetRecvBuffer()
-         ENDIF
-      ENDDO
+      IF !lNoWait4Answer
+         DO WHILE lActive
+            conn_CheckIn()
+            FSeek( handlOut, 0, 0 )
+            IF FRead( handlOut, @cBufferOut, 1 ) > 0 .AND. Asc( cBufferOut ) == nHisId
+               conn_Read( .T. )
+               RETURN conn_GetRecvBuffer()
+            ENDIF
+            IF !Empty( bCallBack )
+               Eval( bCallBack )
+            ENDIF
+         ENDDO
+      ENDIF
    ENDIF
 
    RETURN Nil
@@ -110,6 +122,11 @@ FUNCTION conn_CheckIn()
 
    RETURN .F.
 
+FUNCTION conn_SetNoWait( l )
+
+   lNoWait4Answer := l
+   RETURN Nil
+
 FUNCTION srv_conn_Create( cFile, lRepl )
 
    nMyId := 2
@@ -123,8 +140,9 @@ FUNCTION srv_conn_Create( cFile, lRepl )
    FClose( handlOut )
 
    handlIn := FOpen( cFile + ".gs1", FO_READWRITE + FO_SHARED )
-   //hwg_writelog( "Open " + str(handlIn) )
+   gwritelog( "Open in " + cFile + ".gs1" + " " + str(handlIn) )
    handlOut := FOpen( cFile + ".gs2", FO_READWRITE + FO_SHARED )
+   gwritelog( "Open out " + cFile + ".gs2" + " " + str(handlOut) )
 
    cBufferIn := Space( BUFFLEN )
    cBufferOut := Space( BUFFLEN )
@@ -150,9 +168,11 @@ FUNCTION client_conn_Connect( cFile )
 
    IF handlOut < 0
       handlOut := FOpen( cFile + ".gs1", FO_READWRITE + FO_SHARED )
+      gwritelog( "Open out " + cFile + ".gs1" + " " + str(handlOut) )
    ENDIF
    IF handlIn < 0
       handlIn := FOpen( cFile + ".gs2", FO_READWRITE + FO_SHARED )
+      gwritelog( "Open in " + cFile + ".gs2" + " " + str(handlIn) )
    ENDIF
 
    cBufferIn := Space( BUFFLEN )

@@ -11,7 +11,6 @@ outname=hbextcli
 
 hbextcli.prg
 fconnect.prg
-misc.c
 
 :project hbextsrv
 target=lib
@@ -21,4 +20,3 @@ srcpath=source
 
 hbextsrv.prg
 fconnect.prg
-misc.c

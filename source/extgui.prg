@@ -86,7 +86,7 @@ FUNCTION eGUI_Init( cOptions )
    IF !Empty( cServer )
       extgui_RunApp( cServer + " -p" + Ltrim(Str(nPort)) + ;
          Iif(nLog>0," -log"+Str(nLog,1),"") + Iif(nConnType>1, ;
-         " -t"+Ltrim(Str(nConnType))+" f"+cFileRoot,""), 1 )
+         " -t"+Ltrim(Str(nConnType))+" f"+cFileRoot,"") )
    ENDIF
    hb_idleSleep( 0.2 )
    //gs_Sleep_ns( 200 )
@@ -834,11 +834,7 @@ FUNCTION MainHandler()
    ELSEIF cCommand == "endapp"
       lSend := .T.
       SendIn( "+Ok"+cn )
-      IF nConnType == 1
-         gs_ipExit()
-      ELSEIF nConnType == 2
-         conn_Exit()
-      ENDIF
+      eGUI_Exit()
       Quit
 
    ENDIF
