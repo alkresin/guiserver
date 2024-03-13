@@ -10,7 +10,7 @@ STATIC nLogOn := 0, cLogFile := "extclient.log"
 STATIC cFileRoot := "gs", cDirRoot
 STATIC nInterval := 20
 
-FUNCTION gs_Run( cExe, nLog, nType, cDir )
+FUNCTION ecli_Run( cExe, nLog, nType, cDir )
 
    IF Valtype( nLog ) == "N"
       nLogOn := nLog
@@ -29,21 +29,24 @@ FUNCTION gs_Run( cExe, nLog, nType, cDir )
 #endif
    ELSE //IF nType == 2
       nConnType := 2
-      IF Empty( cDir )
-         cDirRoot := Iif( Empty( cDir ), hb_DirTemp(), cDir )
+      cDirRoot := Iif( Empty( cDir ), hb_DirTemp(), cDir )
+      IF !( Right( cDirRoot,1 ) $ "\/" )
+         cDirRoot += hb_ps()
       ENDIF
-      srv_conn_Create( cDirRoot + cFileRoot, .F. )
+      gwritelog( cdirroot )
+      IF !srv_conn_Create( cDirRoot + cFileRoot, .F. )
+         RETURN .F.
+      ENDIF
    ENDIF
 
-#ifdef __HWGUI__
-   //SET TIMER oMTimer OF HWindow():GetMain() VALUE nInterval ACTION {||TimerFunc()}
-#endif
 #ifdef __PLATFORM__UNIX
-   hbext_RunApp( cExe + Iif( nConnType==2, " type=2 &", " &" ) )
+   ecli_RunApp( cExe + ' dir="' + cDirRoot + '" ' + Iif( nLogOn>0, "log="+Str(nLogOn,1), "" ) + ;
+      Iif( nConnType==2, " type=2 &", " &" ) )
 #else
-   hbext_RunApp( cExe + Iif( nConnType==2, " type=2", "" ) )
+   ecli_RunApp( cExe + ' dir="' + cDirRoot + '" ' + Iif( nLogOn>0, "log="+Str(nLogOn,1), "" ) + ;
+      Iif( nConnType==2, " type=2", "" ) )
 #endif
-   RETURN Nil
+   RETURN .T.
 
 STATIC FUNCTION CnvVal( xRes )
 
@@ -75,7 +78,7 @@ STATIC FUNCTION CnvVal( xRes )
 
    RETURN cRes
 
-FUNCTION pGO( cFunc, aParams )
+FUNCTION ecli_RunProc( cFunc, aParams )
 
    LOCAL i
 
@@ -88,7 +91,7 @@ FUNCTION pGO( cFunc, aParams )
 
    RETURN Nil
 
-FUNCTION fGO( cFunc, aParams )
+FUNCTION ecli_RunFunc( cFunc, aParams )
 
    LOCAL cRes := SendOut( hb_jsonEncode( { "runfunc", cFunc, hb_jsonEncode( aParams ) } ) )
 
@@ -155,11 +158,12 @@ FUNCTION MainHandler()
 */
    RETURN Nil
 
-FUNCTION gs_Close()
+FUNCTION ecli_Close()
 
    conn_SetNoWait( .T. )
    SendOut( '["endapp"]' )
-   gs_Sleep( nInterval*2 )
+   ecli_Sleep( nInterval*2 )
+
    IF nConnType == 1
 #ifdef __IP_SUPPORT
       gs_ipExit()
@@ -168,7 +172,7 @@ FUNCTION gs_Close()
       //gwritelog( "End" )
       conn_Exit()
    ENDIF
-   gs_Sleep( nInterval*2 )
+   ecli_Sleep( nInterval*2 )
 
    RETURN Nil
 
@@ -188,9 +192,9 @@ FUNCTION gWritelog( s )
    ENDIF
    RETURN Nil
 
-EXIT PROCEDURE GS_EXIT
+EXIT PROCEDURE ECLI_EXIT
 
-   gs_Close()
+   ecli_Close()
 
    RETURN
 
@@ -207,13 +211,13 @@ EXIT PROCEDURE GS_EXIT
 #include "hbapi.h"
 
 #if defined(HB_OS_UNIX) || defined( HB_OS_UNIX ) || defined( HB_OS_BSD )
-HB_FUNC( HBEXT_RUNAPP )
+HB_FUNC( ECLI_RUNAPP )
 {
    //hb_retl( g_spawn_command_line_async( hb_parc(1), NULL ) );
    system( hb_parc(1) );
 }
 #else
-HB_FUNC( HBEXT_RUNAPP )
+HB_FUNC( ECLI_RUNAPP )
 {
       STARTUPINFO si;
       PROCESS_INFORMATION pi;
@@ -250,7 +254,7 @@ static void sleep_ns( long int milliseconds )
 #endif
 }
 
-HB_FUNC( GS_SLEEP )
+HB_FUNC( ECLI_SLEEP )
 {
    sleep_ns( hb_parni(1) );
 }

@@ -9,11 +9,23 @@ STATIC nPort := 3101
 STATIC cFileRoot := "gs", cDir
 STATIC lEnd := .F., nInterval := 20
 STATIC cn := e"\n"
-STATIC nLogOn := 1, cLogFile := "extserver.log"
+STATIC nLogOn := 0, cLogFile := "extserver.log"
 
-FUNCTION gs_Init( cParams )
+FUNCTION esrv_Init( cParams )
 
-   LOCAL i, aParams := hb_aParams(), c, sp
+   LOCAL i, aParams := hb_aParams(), x
+
+   FOR i := 1 TO Len( aParams )
+      //gWritelog( aParams[i] )
+      IF ( x := Left( aParams[i],3 ) ) == "dir"
+         cDir := Substr( aParams[i], 5 )
+         IF Left( cDir,1 ) == '"'
+            cDir := Substr( cDir, 2, Len(cDir)-2 )
+         ENDIF
+      ELSEIF x == "log"
+         nLogOn := Val( Substr( aParams[i], 5 ) )
+      ENDIF
+   NEXT
 
    IF nConnType == 1
 #ifdef __IP_SUPPORT
@@ -33,12 +45,14 @@ FUNCTION gs_Init( cParams )
       conn_SetVersion( GUIS_VERSION )
       gWritelog( "Connect via files "+ cDir + cFileRoot + ".*" )
       //srv_conn_Create( cDir + cFileRoot, .T. )
-      client_conn_Connect( cDir + cFileRoot )
+      IF Empty( client_conn_Connect( cDir + cFileRoot ) )
+         RETURN .F.
+      ENDIF
    ENDIF
 
-   RETURN Nil
+   RETURN .T.
 
-FUNCTION gs_Wait()
+FUNCTION esrv_Wait()
 
    DO WHILE !lEnd
       gs_Sleep( nInterval )
