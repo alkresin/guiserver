@@ -72,6 +72,49 @@ FUNCTION esrv_Wait()
 
    RETURN Nil
 
+STATIC FUNCTION CnvVal( xRes )
+
+   LOCAL cRes := Valtype(xRes), nPos2
+
+   IF cRes == "A"
+      cRes := "Array"
+   ELSEIF cRes == "O"
+      cRes := "Object of " + xRes:Classname()
+   ELSEIF cRes == "H"
+      cRes := "Hash array"
+   ELSEIF cRes == "U"
+      cRes := "Nil"
+   ELSEIF cRes == "C"
+      cRes := xRes
+   ELSEIF cRes == "L"
+      cRes := Iif( xRes, "t", "f" )
+   ELSE
+      cRes := Trim( Transform( xReS, "@B" ) )
+   ENDIF
+   IF Valtype( xRes ) == "N" .AND. Rat( ".", cRes ) > 0
+     nPos2 := Len( cRes )
+     DO WHILE Substr( cRes, nPos2, 1 ) == '0'; nPos2 --; ENDDO
+     IF Substr( cRes, nPos2, 1 ) == '.'
+        nPos2 --
+     ENDIF
+     cRes := Left( cRes, nPos2 )
+   ENDIF
+
+   RETURN cRes
+
+FUNCTION esrv_RunProc( cFunc, aParams )
+
+   LOCAL i
+
+   FOR i := 1 TO Len(aParams)
+      IF Valtype( aParams[i] ) != "C"
+         aParams[i] := CnvVal( aParams[i] )
+      ENDIF
+   NEXT
+   SendOut( hb_jsonEncode( { "runproc", cFunc, hb_jsonEncode( aParams ) } ) )
+
+   RETURN Nil
+
 STATIC FUNCTION Parse( arr, lPacket )
 
    LOCAL cCommand := Lower( arr[1] ), c := Left( cCommand, 1 ), arrp

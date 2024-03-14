@@ -39,13 +39,9 @@ FUNCTION ecli_Run( cExe, nLog, nType, cDir )
       ENDIF
    ENDIF
 
-#ifdef __PLATFORM__UNIX
-   ecli_RunApp( cExe + ' dir="' + cDirRoot + '" ' + Iif( nLogOn>0, "log="+Str(nLogOn,1), "" ) + ;
-      Iif( nConnType==2, " type=2 &", " &" ) )
-#else
    ecli_RunApp( cExe + ' dir="' + cDirRoot + '" ' + Iif( nLogOn>0, "log="+Str(nLogOn,1), "" ) + ;
       Iif( nConnType==2, " type=2", "" ) )
-#endif
+
    RETURN .T.
 
 STATIC FUNCTION CnvVal( xRes )
@@ -214,30 +210,54 @@ EXIT PROCEDURE ECLI_EXIT
 HB_FUNC( ECLI_RUNAPP )
 {
    //hb_retl( g_spawn_command_line_async( hb_parc(1), NULL ) );
+   char scmd[2048];
+   int nLen = hb_parclen( 1 );
+
+   memcpy( scmd, hb_parc(1), nLen );
+   scmd[nLen] = ' ';
+   scmd[nLen+1] = '&';
+   scmd[nLen+2] = '\0';
    system( hb_parc(1) );
 }
 #else
 HB_FUNC( ECLI_RUNAPP )
 {
-      STARTUPINFO si;
-      PROCESS_INFORMATION pi;
+   STARTUPINFO si;
+   PROCESS_INFORMATION pi;
+#ifdef UNICODE
+   TCHAR wc1[CMDLENGTH];
+#endif
 
-      ZeroMemory( &si, sizeof(si) );
-      si.cb = sizeof(si);
-      si.wShowWindow = SW_SHOW;
-      si.dwFlags = STARTF_USESHOWWINDOW;
-      ZeroMemory( &pi, sizeof(pi) );
+   ZeroMemory( &si, sizeof(si) );
+   si.cb = sizeof(si);
+   si.wShowWindow = SW_SHOW;
+   si.dwFlags = STARTF_USESHOWWINDOW;
+   ZeroMemory( &pi, sizeof(pi) );
 
-      CreateProcess( NULL,   // No module name (use command line)
-          (LPTSTR)hb_parc(1),  // Command line
-          NULL,           // Process handle not inheritable
-          NULL,           // Thread handle not inheritable
-          FALSE,          // Set handle inheritance to FALSE
-          CREATE_NO_WINDOW,  // No creation flags
-          NULL,           // Use parent's environment block
-          NULL,           // Use parent's starting directory
-          &si,            // Pointer to STARTUPINFO structure
-          &pi );          // Pointer to PROCESS_INFORMATION structure
+#ifdef UNICODE
+   MultiByteToWideChar( GetACP(), 0, hb_parc(1), -1, wc1, CMDLENGTH );
+   CreateProcess( NULL,   // No module name (use command line)
+       wc1,            // Command line
+       NULL,           // Process handle not inheritable
+       NULL,           // Thread handle not inheritable
+       FALSE,          // Set handle inheritance to FALSE
+       CREATE_NO_WINDOW,  // No creation flags
+       NULL,           // Use parent's environment block
+       NULL,           // Use parent's starting directory
+       &si,            // Pointer to STARTUPINFO structure
+       &pi );          // Pointer to PROCESS_INFORMATION structure
+#else
+   CreateProcess( NULL,   // No module name (use command line)
+       (LPTSTR)hb_parc(1),  // Command line
+       NULL,           // Process handle not inheritable
+       NULL,           // Thread handle not inheritable
+       FALSE,          // Set handle inheritance to FALSE
+       CREATE_NO_WINDOW,  // No creation flags
+       NULL,           // Use parent's environment block
+       NULL,           // Use parent's starting directory
+       &si,            // Pointer to STARTUPINFO structure
+       &pi );          // Pointer to PROCESS_INFORMATION structure
+#endif
 }
 
 #endif

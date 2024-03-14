@@ -97,6 +97,7 @@ FUNCTION conn_Send2SocketOut( s )
             FSeek( handlOut, 0, 0 )
             IF FRead( handlOut, @cBufferOut, 1 ) > 0 .AND. Asc( cBufferOut ) == nHisId
                conn_Read( .T. )
+               gWritelog( "s2out-read: " + conn_GetRecvBuffer() )
                RETURN conn_GetRecvBuffer()
             ENDIF
             IF !Empty( bCallBack )
@@ -113,6 +114,7 @@ FUNCTION conn_CheckIn()
    IF lActive
       FSeek( handlIn, 0, 0 )
       IF FRead( handlIn, @cBufferIn, 1 ) > 0 .AND. Asc( cBufferIn ) == nHisId
+         gWritelog( "Checkin-1" )
          IF conn_Read( .F. ) > 0
             MainHandler()
          ENDIF
