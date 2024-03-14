@@ -217,7 +217,7 @@ HB_FUNC( ECLI_RUNAPP )
    scmd[nLen] = ' ';
    scmd[nLen+1] = '&';
    scmd[nLen+2] = '\0';
-   system( hb_parc(1) );
+   system( scmd );
 }
 #else
 HB_FUNC( ECLI_RUNAPP )
