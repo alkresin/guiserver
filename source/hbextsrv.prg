@@ -11,7 +11,7 @@ STATIC lEnd := .F., nInterval := 20
 STATIC cn := e"\n"
 STATIC nLogOn := 0, cLogFile := "extserver.log"
 
-FUNCTION esrv_Init( cParams )
+FUNCTION esrv_Init( ... )
 
    LOCAL i, aParams := hb_aParams(), x
 

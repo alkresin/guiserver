@@ -87,18 +87,17 @@ FUNCTION conn_Send2SocketIn( s )
 
    RETURN Nil
 
-FUNCTION conn_Send2SocketOut( s )
+FUNCTION conn_Send2SocketOut( s, lNoWait )
+
+   LOCAL cAns
 
    IF lActive
       conn_Send( .T., s )
-      IF !lNoWait4Answer
+      IF !lNoWait4Answer .AND. Empty( lNoWait )
          DO WHILE lActive
             conn_CheckIn()
-            FSeek( handlOut, 0, 0 )
-            IF FRead( handlOut, @cBufferOut, 1 ) > 0 .AND. Asc( cBufferOut ) == nHisId
-               conn_Read( .T. )
-               gWritelog( "s2out-read: " + conn_GetRecvBuffer() )
-               RETURN conn_GetRecvBuffer()
+            IF !Empty( cAns := conn_CheckOut() )
+               RETURN cAns
             ENDIF
             IF !Empty( bCallBack )
                Eval( bCallBack )
@@ -114,15 +113,26 @@ FUNCTION conn_CheckIn()
    IF lActive
       FSeek( handlIn, 0, 0 )
       IF FRead( handlIn, @cBufferIn, 1 ) > 0 .AND. Asc( cBufferIn ) == nHisId
-         gWritelog( "Checkin-1" )
+         gWritelog( "Checkin" )
          IF conn_Read( .F. ) > 0
             MainHandler()
          ENDIF
          RETURN .T.
       ENDIF
    ENDIF
-
    RETURN .F.
+
+FUNCTION conn_CheckOut()
+
+   IF lActive
+      FSeek( handlOut, 0, 0 )
+      IF FRead( handlOut, @cBufferOut, 1 ) > 0 .AND. Asc( cBufferOut ) == nHisId
+         conn_Read( .T. )
+         gWritelog( "Checkout: " + conn_GetRecvBuffer() )
+         RETURN conn_GetRecvBuffer()
+      ENDIF
+   ENDIF
+   RETURN Nil
 
 FUNCTION conn_SetNoWait( l )
 

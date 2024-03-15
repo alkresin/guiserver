@@ -87,16 +87,32 @@ FUNCTION ecli_RunProc( cFunc, aParams )
 
    RETURN Nil
 
-FUNCTION ecli_RunFunc( cFunc, aParams )
+FUNCTION ecli_RunFunc( cFunc, aParams, lNoWait )
 
-   LOCAL cRes := SendOut( hb_jsonEncode( { "runfunc", cFunc, hb_jsonEncode( aParams ) } ) )
+   LOCAL cRes := SendOut( hb_jsonEncode( { "runfunc", cFunc, hb_jsonEncode( aParams ) } ), lNoWait )
 
    IF Left( cRes,1 ) == '"'
       RETURN Substr( cRes, 2, Len(cRes)-2 )
    ENDIF
    RETURN cRes
 
-STATIC FUNCTION SendOut( s )
+FUNCTION ecli_CheckAnswer()
+
+   RETURN conn_CheckOut()
+
+FUNCTION ecli_SetVar( cVarName, cValue )
+
+   SendOut( hb_jsonEncode( { "setvar", cVarName, cValue } ) )
+
+   RETURN Nil
+
+FUNCTION ecli_GetVar( cVarName )
+
+   LOCAL cRes := SendOut( hb_jsonEncode( { "getvar", cVarName } ) )
+
+   RETURN Substr( cRes,2,Len(cRes)-2 )
+
+STATIC FUNCTION SendOut( s, lNoWait )
 
    LOCAL cRes
    gWritelog( "   " + Ltrim(Str(nConnType)) + " " + s )
@@ -109,7 +125,7 @@ STATIC FUNCTION SendOut( s )
       ENDIF
 #endif
    ELSEIF nConnType == 2
-      cRes := conn_Send2SocketOut( "+" + s + cn )
+      cRes := conn_Send2SocketOut( "+" + s + cn, lNoWait )
    ENDIF
 
    RETURN Iif( Empty(cRes), "", cRes )
