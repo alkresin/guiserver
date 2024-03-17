@@ -12,6 +12,8 @@ STATIC nInterval := 20
 
 FUNCTION ecli_Run( cExe, nLog, nType, cDir )
 
+   LOCAL nSec
+
    IF Valtype( nLog ) == "N"
       nLogOn := nLog
    ENDIF
@@ -42,7 +44,15 @@ FUNCTION ecli_Run( cExe, nLog, nType, cDir )
    ecli_RunApp( cExe + ' dir="' + cDirRoot + '" ' + Iif( nLogOn>0, "log="+Str(nLogOn,1), "" ) + ;
       Iif( nConnType==2, " type=2", "" ) )
 
-   RETURN .T.
+   nSec := Seconds()
+   DO WHILE Seconds() - nSec < 1
+      IF !Empty( ecli_CheckAnswer() )
+         RETURN .T.
+      ENDIF
+      ecli_Sleep( nInterval*2 )
+   ENDDO
+
+   RETURN .F.
 
 STATIC FUNCTION CnvVal( xRes )
 
@@ -233,7 +243,7 @@ HB_FUNC( ECLI_RUNAPP )
    scmd[nLen] = ' ';
    scmd[nLen+1] = '&';
    scmd[nLen+2] = '\0';
-   system( scmd );
+   hb_retl( system( scmd ) > 0 );
 }
 #else
 HB_FUNC( ECLI_RUNAPP )
@@ -243,6 +253,7 @@ HB_FUNC( ECLI_RUNAPP )
 #ifdef UNICODE
    TCHAR wc1[CMDLENGTH];
 #endif
+   BOOL bRes;
 
    ZeroMemory( &si, sizeof(si) );
    si.cb = sizeof(si);
@@ -252,7 +263,7 @@ HB_FUNC( ECLI_RUNAPP )
 
 #ifdef UNICODE
    MultiByteToWideChar( GetACP(), 0, hb_parc(1), -1, wc1, CMDLENGTH );
-   CreateProcess( NULL,   // No module name (use command line)
+   bRes = CreateProcess( NULL,   // No module name (use command line)
        wc1,            // Command line
        NULL,           // Process handle not inheritable
        NULL,           // Thread handle not inheritable
@@ -263,7 +274,7 @@ HB_FUNC( ECLI_RUNAPP )
        &si,            // Pointer to STARTUPINFO structure
        &pi );          // Pointer to PROCESS_INFORMATION structure
 #else
-   CreateProcess( NULL,   // No module name (use command line)
+   bRes = CreateProcess( NULL,   // No module name (use command line)
        (LPTSTR)hb_parc(1),  // Command line
        NULL,           // Process handle not inheritable
        NULL,           // Thread handle not inheritable
@@ -274,6 +285,7 @@ HB_FUNC( ECLI_RUNAPP )
        &si,            // Pointer to STARTUPINFO structure
        &pi );          // Pointer to PROCESS_INFORMATION structure
 #endif
+   hb_retl( bRes != 0 );
 }
 
 #endif

@@ -48,6 +48,7 @@ FUNCTION esrv_Init( ... )
       IF Empty( client_conn_Connect( cDir + cFileRoot ) )
          RETURN .F.
       ENDIF
+      SendIn( "ok" )
    ENDIF
 
    RETURN .T.
