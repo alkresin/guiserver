@@ -10,7 +10,7 @@ STATIC nLogOn := 0, cLogFile := "extclient.log"
 STATIC cFileRoot := "gs", cDirRoot
 STATIC nInterval := 20
 
-FUNCTION ecli_Run( cExe, nLog, nType, cDir )
+FUNCTION ecli_Run( cExe, nLog, cDir )
 
    LOCAL nSec
 
@@ -18,9 +18,7 @@ FUNCTION ecli_Run( cExe, nLog, nType, cDir )
       nLogOn := nLog
    ENDIF
 
-   IF nType != Nil .AND. nType == 1
-      nConnType := 1
-#ifdef __IP_SUPPORT
+/* #ifdef __IP_SUPPORT
       gs_ipInit()
       IF nLogOn > 1
          gs_SetLogFile( "ac.log" )
@@ -28,17 +26,15 @@ FUNCTION ecli_Run( cExe, nLog, nType, cDir )
       gs_SetVersion( GUIS_VERSION )
       gs_SetHandler( "MAINHANDLER" )
       gs_CreateSocket( nPort )
-#endif
-   ELSE //IF nType == 2
-      nConnType := 2
-      cDirRoot := Iif( Empty( cDir ), hb_DirTemp(), cDir )
-      IF !( Right( cDirRoot,1 ) $ "\/" )
-         cDirRoot += hb_ps()
-      ENDIF
-      gwritelog( cdirroot )
-      IF !srv_conn_Create( cDirRoot + cFileRoot, .F. )
-         RETURN .F.
-      ENDIF
+#endif */
+
+   cDirRoot := Iif( Empty( cDir ), hb_DirTemp(), cDir )
+   IF !( Right( cDirRoot,1 ) $ "\/" )
+      cDirRoot += hb_ps()
+   ENDIF
+   gwritelog( cdirroot )
+   IF !srv_conn_Create( cDirRoot + cFileRoot, .F. )
+      RETURN .F.
    ENDIF
 
    ecli_RunApp( cExe + ' dir="' + cDirRoot + '" ' + Iif( nLogOn>0, "log="+Str(nLogOn,1), "" ) + ;
