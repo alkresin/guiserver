@@ -17,13 +17,15 @@ FUNCTION esrv_Init( ... )
 
    FOR i := 1 TO Len( aParams )
       //gWritelog( aParams[i] )
-      IF ( x := Left( aParams[i],3 ) ) == "dir"
+      IF ( x := Left( aParams[i],4 ) ) == "dir="
          cDir := Substr( aParams[i], 5 )
          IF Left( cDir,1 ) == '"'
             cDir := Substr( cDir, 2, Len(cDir)-2 )
          ENDIF
-      ELSEIF x == "log"
+      ELSEIF x == "log="
          nLogOn := Val( Substr( aParams[i], 5 ) )
+      ELSEIF Left( aParams[i],5 ) == "file="
+         cFileRoot := Substr( aParams[i], 6 )
       ENDIF
    NEXT
 
@@ -44,7 +46,6 @@ FUNCTION esrv_Init( ... )
       ENDIF
       conn_SetVersion( GUIS_VERSION )
       gWritelog( "Connect via files "+ cDir + cFileRoot + ".*" )
-      //srv_conn_Create( cDir + cFileRoot, .T. )
       IF Empty( client_conn_Connect( cDir + cFileRoot ) )
          RETURN .F.
       ENDIF
@@ -52,6 +53,16 @@ FUNCTION esrv_Init( ... )
    ENDIF
 
    RETURN .T.
+
+FUNCTION esrv_LogLevel( nLogLevel )
+
+   LOCAL n := nLogOn
+
+   IF Valtype( nLogLevel ) == "N"
+      nLogOn := nLogLevel
+   ENDIF
+
+   RETURN n
 
 FUNCTION esrv_Wait()
 

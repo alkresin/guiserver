@@ -10,7 +10,7 @@ STATIC nLogOn := 0, cLogFile := "extclient.log"
 STATIC cFileRoot := "gs", cDirRoot
 STATIC nInterval := 20
 
-FUNCTION ecli_Run( cExe, nLog, cDir )
+FUNCTION ecli_Run( cExe, nLog, cDir, cFile )
 
    LOCAL nSec
 
@@ -32,13 +32,16 @@ FUNCTION ecli_Run( cExe, nLog, cDir )
    IF !( Right( cDirRoot,1 ) $ "\/" )
       cDirRoot += hb_ps()
    ENDIF
-   gwritelog( cdirroot )
+   //gwritelog( cdirroot )
+   IF !Empty( cFile ) .AND. Valtype( cFile ) == "C"
+      cFileRoot := cFile
+   ENDIF
    IF !srv_conn_Create( cDirRoot + cFileRoot, .F. )
       RETURN .F.
    ENDIF
 
    ecli_RunApp( cExe + ' dir="' + cDirRoot + '" ' + Iif( nLogOn>0, "log="+Str(nLogOn,1), "" ) + ;
-      Iif( nConnType==2, " type=2", "" ) )
+      Iif( !Empty(cFile).AND.Valtype(cFile)=="C", " file="+cFile, "" ) )
 
    nSec := Seconds()
    DO WHILE Seconds() - nSec < 1
@@ -178,8 +181,7 @@ FUNCTION MainHandler()
 
 FUNCTION ecli_Close()
 
-   conn_SetNoWait( .T. )
-   SendOut( '["endapp"]' )
+   SendOut( '["endapp"]', .T. )
    ecli_Sleep( nInterval*2 )
 
    IF nConnType == 1

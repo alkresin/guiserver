@@ -26,7 +26,6 @@
 STATIC handlIn := -1, handlOut := -1, cBufferIn, cBufferOut, cBuffRes
 STATIC lActive := .F., cVersion := "1.0"
 STATIC nMyId, nHisId
-STATIC lNoWait4Answer := .F.
 STATIC bCallBack := Nil
 
 FUNCTION conn_SetCallBack( b )
@@ -93,7 +92,7 @@ FUNCTION conn_Send2SocketOut( s, lNoWait )
 
    IF lActive
       conn_Send( .T., s )
-      IF !lNoWait4Answer .AND. Empty( lNoWait )
+      IF Empty( lNoWait )
          DO WHILE lActive
             conn_CheckIn()
             IF !Empty( cAns := conn_CheckOut() )
@@ -132,11 +131,6 @@ FUNCTION conn_CheckOut()
          RETURN conn_GetRecvBuffer()
       ENDIF
    ENDIF
-   RETURN Nil
-
-FUNCTION conn_SetNoWait( l )
-
-   lNoWait4Answer := l
    RETURN Nil
 
 FUNCTION srv_conn_Create( cFile )
