@@ -1,9 +1,5 @@
 # GuiServer
 
-<b> Attention! Since October 6, 2023 we are forced to use two-factor authentication to be able to
-   update the repository. Because it's not suitable for me, I will probably use another place for projects.
-   Maybe, https://gitflic.ru/, maybe, Sourceforge... Follow the news on my website, http://www.kresin.ru/ </b>
-
 A server application, providing GUI service, providing an opportunity to create GUI frameworks for different programming languages.
 A connection with your program is established via tcp/ip connection or via regular files.
 It is written on Harbour (look at http://www.kresin.ru/en/harbour.html) and C, GUI layer is provided by HwGUI library (http://www.kresin.ru/en/hwgui.html).
@@ -37,3 +33,8 @@ Probably, you will need to change HRB_INS and HWGUI_DIR variables in this shell 
 
 ### Notes
    extgui.prg and extgui_classes.prg together with hbip.c, listen.c are an implementation of a GUI framework, based on connection with GuiServer, for Harbour.
+
+<b> Attention! Since October 6, 2023, we have been forced to use two-factor identification in order to 
+   log in to github.com under your account. I can still do <i>git push</i> from the command line, but I can't
+   use other services, for example, to answer questions. That's why I'm opening new projects on 
+   https://gitflic.ru /, Sourceforge, or somewhere else. Follow the news on my website http://www.kresin.ru/ </b>
