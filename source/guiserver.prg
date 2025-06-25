@@ -2029,7 +2029,7 @@ STATIC FUNCTION SendIn( s )
 
    RETURN Nil
 
-STATIC FUNCTION gWritelog( s )
+FUNCTION gWritelog( s )
 
    IF nLogOn > 0
       hwg_writelog( s, cLogFile )

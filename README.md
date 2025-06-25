@@ -33,8 +33,3 @@ Probably, you will need to change HRB_INS and HWGUI_DIR variables in this shell 
 
 ### Notes
    extgui.prg and extgui_classes.prg together with hbip.c, listen.c are an implementation of a GUI framework, based on connection with GuiServer, for Harbour.
-
-<b> Attention! Since October 6, 2023, we have been forced to use two-factor identification in order to 
-   log in to github.com under your account. I can still do <i>git push</i> from the command line, but I can't
-   use other services, for example, to answer questions. That's why I'm opening new projects on 
-   https://gitflic.ru /, Sourceforge, or somewhere else. Follow the news on my website http://www.kresin.ru/ </b>
